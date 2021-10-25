@@ -73,6 +73,8 @@ test_integration:
 
 pages_javadoc:
   extends: .post-processing_job
+  only:
+    - master
   script:
     - mvn javadoc:javadoc
     - mv target/site/apidocs .
@@ -114,6 +116,8 @@ sonarqube:
 pages:
   stage: deploy
   allow_failure: true
+  only:
+    - master
   script:
     - mkdir public
     - mv jacoco public
