@@ -107,12 +107,12 @@ visualize_coverage:
   extends: .post-processing_job
   image: registry.gitlab.com/haynes/jacoco2cobertura:1.0.7
   script:
-    - python /opt/cover2cover.py jacoco/jacoco.xml $CI_PROJECT_DIR/src/main/java/ > target/site/cobertura.xml
+    - python /opt/cover2cover.py jacoco/jacoco.xml $CI_PROJECT_DIR/src/main/java/ > cobertura.xml
   needs:
     - pages_jacoco
   artifacts:
     reports:
-      cobertura: target/site/cobertura.xml
+      cobertura: cobertura.xml
 
 sonarqube:
   extends: .post-processing_job
