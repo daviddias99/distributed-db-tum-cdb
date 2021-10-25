@@ -122,7 +122,7 @@ sonarqube:
     - compile_test
     - pages_jacoco
   script:
-    - mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECT_KEY -Dsonar.projectName=$SONARQUBE_PROJECT_NAME
+    - mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECT_KEY -Dsonar.projectName="$SONARQUBE_PROJECT_NAME"
 
 pages:
   stage: deploy
