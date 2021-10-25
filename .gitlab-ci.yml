@@ -32,7 +32,7 @@ compile_test:
   stage: compile
   script:
     - mvn process-test-classes
-  dependencies:
+  needs:
     - compile_source
   artifacts:
     name: compiled_sources_and_tests
@@ -42,7 +42,7 @@ compile_test:
 
 .test_job:
   stage: test
-  dependencies:
+  needs:
     - compile_test
 
 test_unit:
@@ -76,7 +76,7 @@ pages_javadoc:
   script:
     - mvn javadoc:javadoc
     - mv target/site/apidocs .
-  dependencies:
+  needs:
     - compile_test
   artifacts:
     name: javadocs
@@ -92,7 +92,7 @@ pages_jacoco:
     - mvn jacoco:report
     - mv target/site/jacoco .
     - grep -Po "Total.*?([0-9]{1,3})%" jacoco/index.html
-  dependencies:
+  needs:
     - test_unit
     - compile_test
   artifacts:
@@ -104,7 +104,7 @@ pages_jacoco:
 sonarqube:
   extends: .post-processing_job
   when: always
-  dependencies:
+  needs:
     - test_unit
     - compile_test
     - pages_jacoco
@@ -118,7 +118,7 @@ pages:
     - mkdir public
     - mv jacoco public
     - mv apidocs public
-  dependencies:
+  needs:
     - pages_javadoc
     - pages_jacoco
   artifacts:
