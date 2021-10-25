@@ -1,0 +1,128 @@
+default:
+  image: maven:3-jdk-17
+  tags:
+    - docker
+
+stages:
+  - compile
+  - test
+  - post_process
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
+
+cache:
+  paths:
+    - .m2/repository
+    - .sonar
+
+compile_source:
+  stage: compile
+  script:
+    - mvn clean process-classes -U
+  artifacts:
+    name: compiled_sources
+    expire_in: 1 hour
+    paths:
+      - target/*
+
+compile_test:
+  stage: compile
+  script:
+    - mvn process-test-classes
+  dependencies:
+    - compile_source
+  artifacts:
+    name: compiled_sources_and_tests
+    expire_in: 1 hour
+    paths:
+      - target/*
+
+.test_job:
+  stage: test
+  dependencies:
+    - compile_test
+
+test_unit:
+  extends: .test_job
+  script:
+    - mvn package
+  artifacts:
+    name: unit_artifacts
+    reports:
+      junit:
+        - "target/surefire-reports/TEST-*.xml"
+    paths:
+      - target/jacoco.exec
+
+test_integration:
+  extends: .test_job
+  script:
+    - mvn install -Dsurefire.skip
+  artifacts:
+    name: integration_artifacts
+    reports:
+      junit:
+        - "target/failsafe-reports/TEST-*.xml"
+
+.post-processing_job:
+  stage: post_process
+  allow_failure: true
+
+pages_javadoc:
+  extends: .post-processing_job
+  script:
+    - mvn javadoc:javadoc
+    - mv target/site/apidocs .
+  dependencies:
+    - compile_test
+  artifacts:
+    name: javadocs
+    expire_in: 1 hour
+    paths:
+      - apidocs
+
+pages_jacoco:
+  extends: .post-processing_job
+  when: always
+  coverage: '/Total.*?([0-9]{1,3})%/'
+  script:
+    - mvn jacoco:report
+    - mv target/site/jacoco .
+    - grep -Po "Total.*?([0-9]{1,3})%" jacoco/index.html
+  dependencies:
+    - test_unit
+    - compile_test
+  artifacts:
+    name: jacoco
+    expire_in: 1 hour
+    paths:
+      - jacoco
+
+sonarqube:
+  extends: .post-processing_job
+  when: always
+  dependencies:
+    - test_unit
+    - compile_test
+    - pages_jacoco
+  script:
+    - mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECT_KEY -Dsonar.projectName=$SONARQUBE_PROJECT_NAME
+
+pages:
+  stage: deploy
+  allow_failure: true
+  script:
+    - mkdir public
+    - mv jacoco public
+    - mv apidocs public
+  dependencies:
+    - pages_javadoc
+    - pages_jacoco
+  artifacts:
+    name: page_artifacts
+    expire_in: 1 hour
+    paths:
+      - public
