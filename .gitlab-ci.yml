@@ -1,5 +1,5 @@
 default:
-  image: maven:3-openjdk-17
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/maven:3-openjdk-17
   tags:
     - docker
 
