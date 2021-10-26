@@ -1,0 +1,66 @@
+2021-10-26 17:24:28.765 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:24:28.791 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:25:30.621 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:25:30.639 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:25:31.174 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:25:31.181 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:25:31.186 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:28:04.110 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:28:04.128 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:28:04.150 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:28:04.151 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:28:04.153 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:28:54.338 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:28:54.358 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:28:54.376 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:28:54.378 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:28:54.379 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:30:41.075 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:30:41.094 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:30:41.113 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:30:41.115 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:30:41.117 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:31:43.525 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:31:43.550 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:31:43.568 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:31:43.572 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:31:43.574 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:38:02.638 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:38:02.668 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:38:02.819 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:38:02.825 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:45:37.241 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:45:37.276 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:45:37.299 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:45:37.303 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:45:45.597 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:46:48.692 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:46:48.712 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:46:48.732 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:46:48.734 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:46:51.491 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:47:06.548 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:47:06.576 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:47:06.622 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:47:06.625 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:47:08.812 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:47:32.044 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:47:32.070 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:47:32.089 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:47:32.092 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:47:33.829 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 17:48:35.019 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 17:48:35.041 INFO    [de.tum.i13.client.TestClient] Connecting to server 
+2021-10-26 17:48:35.057 INFO    [de.tum.i13.client.TestClient] Getting the outputstream and inputstream 
+2021-10-26 17:48:35.058 INFO    [de.tum.i13.client.TestClient] sending hello echo 
+2021-10-26 17:48:36.503 INFO    [de.tum.i13.client.TestClient] printing what the server has returned 
+2021-10-26 22:41:26.349 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:48:24.759 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:48:51.560 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:49:22.993 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:50:02.106 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:51:53.944 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:52:31.154 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:53:05.399 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:53:58.261 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
+2021-10-26 22:54:53.736 INFO    [de.tum.i13.client.TestClient] Creating a new Socket 
