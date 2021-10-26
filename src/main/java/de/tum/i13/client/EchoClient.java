@@ -21,7 +21,7 @@ public class EchoClient {
     this.connect(address, port);
   }
 
-  public boolean connect(String address, int port) throws ClientException {
+  public void connect(String address, int port) throws ClientException {
     try {
       Socket socket = new Socket(address, port);
       this.connection = socket;
@@ -34,8 +34,6 @@ public class EchoClient {
     } catch (IOException e) {
       throw new ClientException("Could not open socket");
     }
-
-    return true;
   }
 
   public void send(byte[] message) throws ClientException {
