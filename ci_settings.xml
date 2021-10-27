@@ -12,5 +12,10 @@
                 </httpHeaders>
             </configuration>
         </server>
+        <server>
+            <id>${env.CI_REGISTRY}</id>
+            <username>${env.CI_REGISTRY_USER}</username>
+            <password>${env.CI_REGISTRY_PASSWORD}</password>
+        </server>
     </servers>
 </settings>

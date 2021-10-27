@@ -140,15 +140,23 @@ pages:
     paths:
       - public
 
-deploy_maven_package:
+.deploy_job:
   stage: deploy
   allow_failure: true
-  only:
-    - master
+#  only:
+#    - master
   needs:
     - compile_source
     - compile_test
     - test_unit
     - test_integration
+
+deploy_maven_package:
+  extends: .deploy_job
   script:
     - mvn deploy -s ci_settings.xml -Dsurefire.skip -Dfailsafe.skip
+
+deploy_jib_image:
+  extends: .deploy_job
+  script:
+    - mvn -s ci_settings.xml jib:build
