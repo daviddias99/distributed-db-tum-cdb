@@ -139,3 +139,9 @@ pages:
     expire_in: 1 hour
     paths:
       - public
+
+deploy_maven_package:
+  stage: deploy
+  allow_failure: true
+  script:
+    - mvn deploy -s ci_settings.xml
