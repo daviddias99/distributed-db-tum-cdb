@@ -54,6 +54,7 @@ test_unit:
     reports:
       junit:
         - "target/surefire-reports/TEST-*.xml"
+    expire_in: 1 hour
     paths:
       - target/jacoco.exec
 
