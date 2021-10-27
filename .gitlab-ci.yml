@@ -143,6 +143,8 @@ pages:
 deploy_maven_package:
   stage: deploy
   allow_failure: true
+  only:
+    - master
   needs:
     - compile_source
     - compile_test
