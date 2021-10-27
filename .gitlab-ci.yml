@@ -143,5 +143,10 @@ pages:
 deploy_maven_package:
   stage: deploy
   allow_failure: true
+  needs:
+    - compile_source
+    - compile_test
+    - test_unit
+    - test_integration
   script:
     - mvn deploy -s ci_settings.xml
