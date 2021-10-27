@@ -11,6 +11,7 @@
     <properties>
         <surefire.skip>false</surefire.skip>
         <failsafe.skip>false</failsafe.skip>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
