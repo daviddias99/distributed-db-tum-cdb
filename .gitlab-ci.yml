@@ -143,8 +143,8 @@ pages:
 .deploy_job:
   stage: deploy
   allow_failure: true
-#  only:
-#    - master
+  only:
+    - master
   needs:
     - compile_source
     - compile_test
