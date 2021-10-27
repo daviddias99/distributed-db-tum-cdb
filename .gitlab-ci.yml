@@ -149,4 +149,4 @@ deploy_maven_package:
     - test_unit
     - test_integration
   script:
-    - mvn deploy -s ci_settings.xml
+    - mvn deploy -s ci_settings.xml -Dsurefire.skip -Dfailsafe.skip

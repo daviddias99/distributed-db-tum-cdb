@@ -10,6 +10,7 @@
 
     <properties>
         <surefire.skip>false</surefire.skip>
+        <failsafe.skip>false</failsafe.skip>
     </properties>
 
     <build>
@@ -89,6 +90,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.2</version>
+                <configuration>
+                    <skip>${failsafe.skip}</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
