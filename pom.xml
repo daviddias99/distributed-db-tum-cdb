@@ -113,6 +113,7 @@
                 <version>3.1.4</version>
                 <configuration>
                     <to>
+                        <!--suppress UnresolvedMavenProperty -->
                         <image>${env.CI_REGISTRY_IMAGE}</image>
                     </to>
                 </configuration>
@@ -144,6 +145,7 @@
     <repositories>
         <repository>
             <id>gitlab-maven</id>
+            <!--suppress UnresolvedMavenProperty -->
             <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </repository>
     </repositories>
@@ -151,10 +153,12 @@
     <distributionManagement>
         <repository>
             <id>gitlab-maven</id>
+            <!--suppress UnresolvedMavenProperty -->
             <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </repository>
         <snapshotRepository>
             <id>gitlab-maven</id>
+            <!--suppress UnresolvedMavenProperty -->
             <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </snapshotRepository>
     </distributionManagement>
