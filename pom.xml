@@ -10,7 +10,6 @@
 
     <properties>
         <surefire.skip>false</surefire.skip>
-        <sonar.coverage.jacoco.xmlReportPaths>jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <build>
