@@ -5,3 +5,7 @@ target
 
 # IDE related
 .settings
+
+# Logging files
+
+**.log**
