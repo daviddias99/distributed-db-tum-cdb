@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Logger;
 
-import de.tum.i13.shared.Constants;
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
 
