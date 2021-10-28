@@ -5,6 +5,7 @@ target
 
 # IDE related
 .settings
+.vscode
 
 # Logging files
 
