@@ -86,4 +86,8 @@ public class EchoClient {
       throw new ClientException("Could not receive");
     }
   }
+
+  public static void main( String[] args){
+      System.out.println("Echo");
+  }
 }
