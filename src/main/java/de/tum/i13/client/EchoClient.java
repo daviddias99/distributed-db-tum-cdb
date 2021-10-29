@@ -200,4 +200,12 @@ public class EchoClient {
       throw new ClientException("Could not receive");
     }
   }
+
+  /**
+   * This method returns true if the client is currently connected to a host.
+   * @return  True if client is connected to host, false otherwise
+   */
+  public boolean isConnected() {
+    return this.connection != null && !this.connection.isClosed();
+  }
 }
