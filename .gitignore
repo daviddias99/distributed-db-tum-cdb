@@ -8,5 +8,5 @@ target
 .vscode
 
 # Logging files
-
+logs/
 **.log**

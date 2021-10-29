@@ -10,16 +10,16 @@ import static de.tum.i13.shared.LogSetup.setupLogging;
 
 public class TestClient {
 
+
     private final static Logger LOGGER = Logger.getLogger(TestClient.class.getName());
 
     public static void main(String[] args) {
         setupLogging("test.log");
 
-        LOGGER.info("Creating a new Socket");
         try {
             EchoClient client = new EchoClient();
 
-            client.connect("clouddatabases.msrg.in.tum.de", 5551);
+            client.connect("clouddatabases.msrg.in.tum.de", 5551, true);
             String tosend = "hello echo\r\n";
             client.send(tosend.getBytes());
             byte[] res = client.receive();
