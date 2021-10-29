@@ -65,7 +65,7 @@ public class EchoClient {
    * @throws ClientException A ClientException is thrown when the either the host.
    *                         address/port is invalid or a socket can't be created.
    */
-  private void connect(String address, int port) throws ClientException {
+  public void connect(String address, int port) throws ClientException {
     this.address = address;
     this.port = port;
     LOGGER.info(String.format("Creating socket to %s:%d", address, port));
