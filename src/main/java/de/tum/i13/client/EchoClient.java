@@ -66,6 +66,11 @@ public class EchoClient {
    *                         address/port is invalid or a socket can't be created.
    */
   public void connect(String address, int port) throws ClientException {
+
+    if (this.isConnected()) {
+      this.disconnect();
+    }
+
     this.address = address;
     this.port = port;
     LOGGER.info(String.format("Creating socket to %s:%d", address, port));
@@ -98,7 +103,7 @@ public class EchoClient {
     LOGGER.info(String.format("Disconnecting from socket at %s:%d", address, port));
 
     // Throw exception if no connection is open
-    if (this.connection == null) {
+    if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because a disconnection from a un-connected socket was made.");
       throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet");
     }
@@ -131,7 +136,7 @@ public class EchoClient {
         (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : "")));
 
     // Throw exception if no connection is open
-    if (connection == null) {
+    if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
       throw new ClientException("No connection established");
     }
@@ -172,7 +177,7 @@ public class EchoClient {
     LOGGER.info(String.format("Receiving message from %s:%d.", address, port));
 
     // Throw exception if no connection is open
-    if (connection == null) {
+    if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
       throw new ClientException("No connection established");
     }
