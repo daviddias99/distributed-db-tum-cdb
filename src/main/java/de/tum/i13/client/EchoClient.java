@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import de.tum.i13.client.exceptions.ClientException.ClientException;
 import de.tum.i13.shared.Constants;
@@ -27,7 +28,7 @@ public class EchoClient {
    * Creates a new client. The created is not connected to any host.
    */
   public EchoClient() {
-
+    LOGGER.setLevel(Level.OFF);
   }
 
   /**
@@ -201,16 +202,11 @@ public class EchoClient {
     }
   }
 
-<<<<<<< HEAD
-  public static void main( String[] args){
-      System.out.println("Echo");
-=======
   /**
    * This method returns true if the client is currently connected to a host.
    * @return  True if client is connected to host, false otherwise
    */
   public boolean isConnected() {
     return this.connection != null && !this.connection.isClosed();
->>>>>>> 3-communication-client
   }
 }
