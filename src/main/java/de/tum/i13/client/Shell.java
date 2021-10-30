@@ -82,7 +82,7 @@ public class Shell{
                 //unrecognized input
                 else{
                     LOGGER.info("Unrecognized command.");
-                    printUnknownCommand();
+                    printHelp();
                 }
             } catch (ClientException e) {
                 LOGGER.severe(String.format("Exception type: %s. Exception reason: %s", e.getType(), e.getReason()));
@@ -115,7 +115,7 @@ public class Shell{
 
         } catch (NumberFormatException e) {
             LOGGER.info("Unrecognized command. Port number in wrong format.");
-            printUnknownCommand();
+            printHelp();
         } catch (UnsupportedEncodingException e){
             LOGGER.severe("UnsupportedEncodingException when trying to convert server message to String type.");
             System.out.println(e.getMessage());
@@ -156,7 +156,7 @@ public class Shell{
             System.out.println( String.format("Loglevel set from %s to %s.", oldLevel, input));
         } catch(IllegalArgumentException e){
             LOGGER.severe( String.format("Log level %s not valid.", input));
-            printUnknownCommand();
+            printHelp();
         }
     }
 
@@ -166,14 +166,6 @@ public class Shell{
     private static void printHelp(){
         //TODO
         System.out.println("help");
-    }
-
-    /**
-     * Messages user that input command was not recognized/valid.
-     */
-    private static void printUnknownCommand(){
-        System.out.println("EchoClient> Unrecognized command!");
-        printHelp();
     }
 
 }
