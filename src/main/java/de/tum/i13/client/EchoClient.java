@@ -52,7 +52,7 @@ public class EchoClient {
    * @return Bytes sent by the host.
    * @throws ClientException
    */
-  public byte[] connectAndRead(String address, int port) throws ClientException {
+  public byte[] connectAndReceive(String address, int port) throws ClientException {
     this.connect(address, port);
     return this.receive();
   }
