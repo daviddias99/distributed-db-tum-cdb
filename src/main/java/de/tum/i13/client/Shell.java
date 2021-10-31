@@ -87,7 +87,7 @@ public class Shell{
             } catch (ClientException e) {
                 LOGGER.severe(String.format("Exception type: %s. Exception reason: %s", e.getType(), e.getReason()));
                 //TODO Figure out which error message to print to console & when
-                System.out.println("EchoClient> Error:" + e.getReason());
+                System.out.println("EchoClient> Error: " + e.getReason());
             }
             
         }
@@ -164,8 +164,13 @@ public class Shell{
      * Prints information about the intended usage of the client application and describes its set of commands.
      */
     private static void printHelp(){
-        //TODO
-        System.out.println("help");
+        System.out.println("Possible commands:");
+        System.out.printf("%-30s: %s%n", "connect <address> <port>","establishes a connection to <address>:<port>");
+        System.out.printf("%-30s: %s%n", "disconnect", "to disconnect from existing connection");
+        System.out.printf("%-30s: %s%n", "send <message>", "sends <message> to the server and receives a response");
+        System.out.printf("%-30s: %s%n", "logLevel <new_level>", "changes the logging level to the <new_level>");
+        System.out.printf("%-30s: %s%n", "quit", "closes the interface");
+        System.out.printf("%-30s: %s%n", "help", "gives information aboutcommands");
     }
 
 }
