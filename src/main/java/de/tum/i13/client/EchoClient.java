@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import de.tum.i13.client.exceptions.ClientException.ClientException;
+import de.tum.i13.client.exceptions.ClientException.ClientExceptionType;
 import de.tum.i13.shared.Constants;
 
 public class EchoClient {
@@ -83,10 +84,10 @@ public class EchoClient {
       this.outStream = this.connection.getOutputStream();
     } catch (UnknownHostException e) {
       LOGGER.severe(String.format("Throwing exception because host (%s) could not be found.", address));
-      throw new ClientException("Could not find host");
+      throw new ClientException("Could not find host", ClientExceptionType.UNKNOWN_HOST);
     } catch (IOException e) {
       LOGGER.severe(String.format("Throwing exception because socket at %s:%d could not be openned.", address, port));
-      throw new ClientException("Could not open socket");
+      throw new ClientException("Could not open socket", ClientExceptionType.SOCKET_OPENING_ERROR);
     }
   }
 
@@ -103,7 +104,7 @@ public class EchoClient {
     // Throw exception if no connection is open
     if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because a disconnection from a un-connected socket was made.");
-      throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet");
+      throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet", ClientExceptionType.UNCONNECTED);
     }
 
     try {
@@ -111,7 +112,7 @@ public class EchoClient {
       this.connection.close();
     } catch (IOException e) {
       LOGGER.severe("Throwing exception because an error while closing connection/streams.");
-      throw new ClientException("Error while closing client");
+      throw new ClientException("Error while closing client", ClientExceptionType.SOCKET_CLOSING_ERROR);
     }
   }
 
@@ -132,14 +133,14 @@ public class EchoClient {
     // Throw exception if no connection is open
     if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
-      throw new ClientException("No connection established");
+      throw new ClientException("No connection established", ClientExceptionType.ERROR_CONNECTING);
     }
 
     // Throw exception if message exceeds size
     if (message.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
       LOGGER.severe(
           String.format("Throwing exception because data is to large (max is %s KB).", Constants.MAX_MESSAGE_SIZE_KB));
-      throw new ClientException("Message too large");
+      throw new ClientException("Message too large", ClientExceptionType.MESSAGE_TOO_LARGE);
     }
 
     try {
@@ -156,7 +157,7 @@ public class EchoClient {
 
     IOException e) {
       LOGGER.severe("Throwing exception because an error occured while sending data.");
-      throw new ClientException("Could not send message");
+      throw new ClientException("Could not send message", ClientExceptionType.INTERNAL_ERROR);
     }
   }
 
@@ -172,7 +173,7 @@ public class EchoClient {
     // Throw exception if no connection is open
     if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
-      throw new ClientException("No connection established");
+      throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
     }
 
     byte[] incomingMessageBuffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
@@ -195,7 +196,7 @@ public class EchoClient {
       return result;
     } catch (IOException e) {
       LOGGER.severe("Throwing exception because an error occured while receiving data.");
-      throw new ClientException("Could not receive");
+      throw new ClientException("Could not receive", ClientExceptionType.INTERNAL_ERROR);
     }
   }
 

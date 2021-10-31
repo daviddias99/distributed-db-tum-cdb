@@ -7,10 +7,12 @@ public class ClientException extends Exception{
 
   public ClientException(String reason) {
     this.reason = reason;
+    this.type = ClientExceptionType.UNKNOWN_ERROR;
   }
 
   public ClientException(String reason, ClientExceptionType type) {
     this.reason = reason;
+    this.type = type;
   }
 
   public ClientExceptionType getType() {
