@@ -161,6 +161,21 @@ public class TestEchoClient {
   }
 
   @Test
+  public void testSend1() {
+    EchoClient client = new EchoClient();
+    assertEquals(false, client.isConnected());
+    
+    try {
+      client.connect("localhost", serverSocket.getLocalPort());
+      assertEquals(true, client.isConnected());
+      client.send("Hello!".getBytes());
+      assertEquals(true, client.isConnected());
+    } catch (Exception e) {
+      fail();
+    }
+  }
+
+  @Test
   public void testSend2() {
     EchoClient client = new EchoClient();
     assertEquals(false, client.isConnected());
