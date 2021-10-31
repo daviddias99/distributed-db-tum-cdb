@@ -133,7 +133,7 @@ public class EchoClient {
     // Throw exception if no connection is open
     if (!this.isConnected()) {
       LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
-      throw new ClientException("No connection established", ClientExceptionType.ERROR_CONNECTING);
+      throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
     }
 
     // Throw exception if message exceeds size

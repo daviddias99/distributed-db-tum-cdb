@@ -3,6 +3,7 @@ package de.tum.i13.client;
 import org.junit.jupiter.api.*;
 
 import de.tum.i13.client.exceptions.ClientException.ClientException;
+import de.tum.i13.client.exceptions.ClientException.ClientExceptionType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -74,6 +75,7 @@ public class TestEchoClient {
       client = new EchoClient("localhost00", serverSocket.getLocalPort());
     } catch (ClientException e) {
       assertEquals(false, client.isConnected());
+      assertEquals(ClientExceptionType.UNKNOWN_HOST, e.getType());
       return;
     }
   }
@@ -86,7 +88,7 @@ public class TestEchoClient {
     try {
       client.connect("localhost", serverSocket.getLocalPort());
       assertEquals(true, client.isConnected());
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -101,7 +103,7 @@ public class TestEchoClient {
 
       client.connect("localhost", serverSocket.getLocalPort());
       assertEquals(true, client.isConnected());
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -112,7 +114,8 @@ public class TestEchoClient {
 
     try {
       client.connect("localhost00", serverSocket.getLocalPort());
-    } catch (Exception e) {
+    } catch (ClientException e) {
+      assertEquals(ClientExceptionType.UNKNOWN_HOST, e.getType());
       return;
     }
     fail();
@@ -127,7 +130,7 @@ public class TestEchoClient {
       byte[] receivedData = client.connectAndReceive("localhost", serverSocket.getLocalPort());
       String receivedString = new String(receivedData);
       assertEquals("Welcome!", receivedString);
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -142,7 +145,7 @@ public class TestEchoClient {
       byte[] receivedData = client.receive();
       String receivedString = new String(receivedData);
       assertEquals("Welcome!", receivedString);
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -154,7 +157,8 @@ public class TestEchoClient {
 
     try {
       client.receive();
-    } catch (Exception e) {
+    } catch (ClientException e) {
+      assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
       return;
     }
     fail();
@@ -170,7 +174,7 @@ public class TestEchoClient {
       assertEquals(true, client.isConnected());
       client.send("Hello!".getBytes());
       assertEquals(true, client.isConnected());
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -182,7 +186,8 @@ public class TestEchoClient {
 
     try {
       client.send("test".getBytes());
-    } catch (Exception e) {
+    } catch (ClientException e) {
+      assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
       return;
     }
     fail();
@@ -196,7 +201,8 @@ public class TestEchoClient {
     try {
       client.connect("localhost", serverSocket.getLocalPort());
       client.send(new byte[1024 * 256]);
-    } catch (Exception e) {
+    } catch (ClientException e) {
+      assertEquals(ClientExceptionType.MESSAGE_TOO_LARGE, e.getType());
       return;
     }
     fail();
@@ -213,7 +219,7 @@ public class TestEchoClient {
       client.disconnect();
       assertEquals(false, client.isConnected());
 
-    } catch (Exception e) {
+    } catch (ClientException e) {
       fail();
     }
   }
@@ -225,7 +231,8 @@ public class TestEchoClient {
 
     try {
       client.disconnect();
-    } catch (Exception e) {
+    } catch (ClientException e) {
+      assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
       return;
     }
     fail();
