@@ -82,12 +82,10 @@ public class EchoClient {
       this.inStream = this.connection.getInputStream();
       this.outStream = this.connection.getOutputStream();
     } catch (UnknownHostException e) {
-      this.disconnect();
-      LOGGER.severe(String.format("Throwing exception because host (%s) could not be found."));
+      LOGGER.severe(String.format("Throwing exception because host (%s) could not be found.", address));
       throw new ClientException("Could not find host");
     } catch (IOException e) {
-      this.disconnect();
-      LOGGER.severe(String.format("Throwing exception because socket at %s:%d not be found.", address, port));
+      LOGGER.severe(String.format("Throwing exception because socket at %s:%d could not be openned.", address, port));
       throw new ClientException("Could not open socket");
     }
   }
@@ -109,10 +107,6 @@ public class EchoClient {
     }
 
     try {
-      LOGGER.fine(String.format("Closing input stream from socket at %s:%d", address, port));
-      this.inStream.close();
-      LOGGER.fine(String.format("Closing output stream from socket at %s:%d", address, port));
-      this.outStream.close();
       LOGGER.fine(String.format("Closing connection from socket at %s:%d", address, port));
       this.connection.close();
     } catch (IOException e) {
@@ -161,8 +155,7 @@ public class EchoClient {
     } catch (
 
     IOException e) {
-      LOGGER.severe(String.format("Throwing exception because an error occured while sending data.",
-          Constants.MAX_MESSAGE_SIZE_KB));
+      LOGGER.severe("Throwing exception because an error occured while sending data.");
       throw new ClientException("Could not send message");
     }
   }

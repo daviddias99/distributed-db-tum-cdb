@@ -14,16 +14,17 @@ public class TestEchoClient {
 
   private static Thread serverThread;
   private static ServerSocket serverSocket;
+  private static ServerStub server;
 
   @BeforeEach
   public void createServer() {
     try {
       TestEchoClient.serverSocket = new ServerSocket(0);
+      TestEchoClient.server = new ServerStub(serverSocket);
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    TestEchoClient.serverThread = new Thread(new ServerStub(serverSocket));
+    TestEchoClient.serverThread = new Thread(server);
     TestEchoClient.serverThread.start();
   }
 
@@ -33,7 +34,6 @@ public class TestEchoClient {
     try {
       serverSocket.close();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
@@ -89,6 +89,33 @@ public class TestEchoClient {
     } catch (Exception e) {
       fail();
     }
+  }
+
+  @Test
+  public void testConnectMethod2() {
+    EchoClient client = new EchoClient();
+
+    try {
+      client.connect("localhost", serverSocket.getLocalPort());
+      assertEquals(true, client.isConnected());
+
+      client.connect("localhost", serverSocket.getLocalPort());
+      assertEquals(true, client.isConnected());
+    } catch (Exception e) {
+      fail();
+    }
+  }
+
+  @Test
+  public void testConnectMethod3() {
+    EchoClient client = new EchoClient();
+
+    try {
+      client.connect("localhost00", serverSocket.getLocalPort());
+    } catch (Exception e) {
+      return;
+    }
+    fail();
   }
 
   @Test
@@ -152,8 +179,37 @@ public class TestEchoClient {
     assertEquals(false, client.isConnected());
 
     try {
-      client.connect("host", serverSocket.getLocalPort());
+      client.connect("localhost", serverSocket.getLocalPort());
       client.send(new byte[1024 * 256]);
+    } catch (Exception e) {
+      return;
+    }
+    fail();
+  }
+
+  @Test
+  public void testDisconnect1() {
+    EchoClient client = new EchoClient();
+    assertEquals(false, client.isConnected());
+
+    try {
+      client.connect("localhost", serverSocket.getLocalPort());
+      assertEquals(true, client.isConnected());
+      client.disconnect();
+      assertEquals(false, client.isConnected());
+
+    } catch (Exception e) {
+      fail();
+    }
+  }
+
+  @Test
+  public void testDisconnect2() {
+    EchoClient client = new EchoClient();
+    assertEquals(false, client.isConnected());
+
+    try {
+      client.disconnect();
     } catch (Exception e) {
       return;
     }
