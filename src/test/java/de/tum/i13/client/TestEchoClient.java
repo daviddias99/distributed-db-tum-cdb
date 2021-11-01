@@ -39,17 +39,6 @@ public class TestEchoClient {
         }
     }
 
-    @BeforeEach // gets called before the class initializes, perfect place to connect to a
-    // server
-    public void initialize() {
-    }
-
-    @AfterEach // tearing down, perfect place to properly disconnect from a server or close a
-    // socket
-    public void teardown() {
-
-    }
-
     @Test
     public void testConstructor1() {
 
