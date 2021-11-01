@@ -15,12 +15,12 @@ import java.util.Arrays;
 
 public class EchoClient {
 
-  private Socket connection;
-  private InputStream inStream;
-  private OutputStream outStream;
+    private Socket connection;
+    private InputStream inStream;
+    private OutputStream outStream;
 
-  private String address;
-  private int port;
+    private String address;
+    private int port;
 
   private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
   private static final Logger LOGGER = LogManager.getLogger(EchoClient.class);
@@ -31,46 +31,46 @@ public class EchoClient {
   public EchoClient() {
   }
 
-  /**
-   * Creates a new client connected to <address>:<port>.
-   * 
-   * @param address Hostname or address of the destination.
-   * @param port    Port of the destination.
-   * @throws ClientException A ClientException is thrown when connection fails.
-   *                         (see 'connect' method).
-   */
-  public EchoClient(String address, int port) throws ClientException {
-    this.connect(address, port);
-  }
-
-  /**
-   * Connects client to <address>:<port> and returns the message sent by the host
-   * upon connection. This method is equivalent to calling the 'receive' method
-   * after the 'connect' method;
-   * 
-   * @param address Hostname or address of the destination.
-   * @param port    Port of the destination.
-   * @return Bytes sent by the host.
-   * @throws ClientException
-   */
-  public byte[] connectAndReceive(String address, int port) throws ClientException {
-    this.connect(address, port);
-    return this.receive();
-  }
-
-  /**
-   * Connects client to <address>:<port>.
-   * 
-   * @param address Hostname or address of the destination.
-   * @param port    Port of the destination.
-   * @throws ClientException A ClientException is thrown when the either the host.
-   *                         address/port is invalid or a socket can't be created.
-   */
-  public void connect(String address, int port) throws ClientException {
-
-    if (this.isConnected()) {
-      this.disconnect();
+    /**
+     * Creates a new client connected to <address>:<port>.
+     *
+     * @param address Hostname or address of the destination.
+     * @param port    Port of the destination.
+     * @throws ClientException A ClientException is thrown when connection fails.
+     *                         (see 'connect' method).
+     */
+    public EchoClient(String address, int port) throws ClientException {
+        this.connect(address, port);
     }
+
+    /**
+     * Connects client to <address>:<port> and returns the message sent by the host
+     * upon connection. This method is equivalent to calling the 'receive' method
+     * after the 'connect' method;
+     *
+     * @param address Hostname or address of the destination.
+     * @param port    Port of the destination.
+     * @return Bytes sent by the host.
+     * @throws ClientException
+     */
+    public byte[] connectAndReceive(String address, int port) throws ClientException {
+        this.connect(address, port);
+        return this.receive();
+    }
+
+    /**
+     * Connects client to <address>:<port>.
+     *
+     * @param address Hostname or address of the destination.
+     * @param port    Port of the destination.
+     * @throws ClientException A ClientException is thrown when the either the host.
+     *                         address/port is invalid or a socket can't be created.
+     */
+    public void connect(String address, int port) throws ClientException {
+
+        if (this.isConnected()) {
+            this.disconnect();
+        }
 
     this.address = address;
     this.port = port;
@@ -89,7 +89,6 @@ public class EchoClient {
       LOGGER.error("Throwing exception because socket at {}:{} could not be opened.", address, port);
       throw new ClientException("Could not open socket", ClientExceptionType.SOCKET_OPENING_ERROR);
     }
-  }
 
   /**
    * Disconnects from current connection.
@@ -114,17 +113,16 @@ public class EchoClient {
       LOGGER.error("Throwing exception because an error while closing connection/streams.");
       throw new ClientException("Error while closing client", ClientExceptionType.SOCKET_CLOSING_ERROR);
     }
-  }
 
-  /**
-   * Sends a message to the connected host. The message must be smaller then MAX_MESSAGE_SIZE_BYTES (see 'Constants' class)
-   * @param message  Message to be sent to the host.
-   * @throws ClientException  An exception is thrown when the message is too large, the client isn't connected or the message fails to be sent.
-   */
-  public void send(byte[] message) throws ClientException {
+    /**
+     * Sends a message to the connected host. The message must be smaller then MAX_MESSAGE_SIZE_BYTES (see 'Constants' class)
+     * @param message  Message to be sent to the host.
+     * @throws ClientException  An exception is thrown when the message is too large, the client isn't connected or the message fails to be sent.
+     */
+    public void send(byte[] message) throws ClientException {
 
-    int messageSize = message.length;
-    int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
+        int messageSize = message.length;
+        int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
     LOGGER.info("Sending {} bytes to {}:{}. ({}{})",
             () -> messageSize, () -> address, () -> port,
@@ -143,30 +141,29 @@ public class EchoClient {
       throw new ClientException("Message too large", ClientExceptionType.MESSAGE_TOO_LARGE);
     }
 
-    try {
-      // Write the whole array at once
-      this.outStream.write(message);
+        try {
+            // Write the whole array at once
+            this.outStream.write(message);
 
-      /*
-       * // Write one byte at a time. for (byte b : message) { * for (byte b :
-       * message) { this.outStream.write(b); }
-       */
+            /*
+             * // Write one byte at a time. for (byte b : message) { * for (byte b :
+             * message) { this.outStream.write(b); }
+             */
 
-      this.outStream.flush();
-    } catch (
+            this.outStream.flush();
+        } catch (
 
     IOException e) {
       LOGGER.error("Throwing exception because an error occured while sending data.");
       throw new ClientException("Could not send message", ClientExceptionType.INTERNAL_ERROR);
     }
-  }
 
-  /**
-   * Receives a message from the host in the form of a byte array. Note that this method blocks waiting for data to be sent.
-   * @return Bytes received from host.
-   * @throws ClientException An exception is thrown if the client isn't connected or a message coundln't be received.
-   */
-  public byte[] receive() throws ClientException {
+    /**
+     * Receives a message from the host in the form of a byte array. Note that this method blocks waiting for data to be sent.
+     * @return Bytes received from host.
+     * @throws ClientException An exception is thrown if the client isn't connected or a message coundln't be received.
+     */
+    public byte[] receive() throws ClientException {
 
     LOGGER.info("Receiving message from {}:{}.", address, port);
 
@@ -176,18 +173,18 @@ public class EchoClient {
       throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
     }
 
-    byte[] incomingMessageBuffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
+        byte[] incomingMessageBuffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
 
-    try {
-      // Read all bytes at once
-      int numberOfReceivedBytes = this.inStream.read(incomingMessageBuffer, 0, Constants.MAX_MESSAGE_SIZE_BYTES);
+        try {
+            // Read all bytes at once
+            int numberOfReceivedBytes = this.inStream.read(incomingMessageBuffer, 0, Constants.MAX_MESSAGE_SIZE_BYTES);
 
-      // Return an array with the size of the number of read bytes
-      byte[] result = numberOfReceivedBytes == -1 ? new byte[0]: Arrays.copyOf(incomingMessageBuffer, numberOfReceivedBytes);
+            // Return an array with the size of the number of read bytes
+            byte[] result = numberOfReceivedBytes == -1 ? new byte[0]: Arrays.copyOf(incomingMessageBuffer, numberOfReceivedBytes);
 
-      // Logging aid variables
-      int messageSize = result.length;
-      int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
+            // Logging aid variables
+            int messageSize = result.length;
+            int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
       LOGGER.info("Receiving {} bytes to {}:{}. ({}{})",
               () -> messageSize, () -> address, () -> port,
@@ -198,13 +195,12 @@ public class EchoClient {
       LOGGER.error("Throwing exception because an error occured while receiving data.");
       throw new ClientException("Could not receive", ClientExceptionType.INTERNAL_ERROR);
     }
-  }
 
-  /**
-   * This method returns true if the client is currently connected to a host.
-   * @return  True if client is connected to host, false otherwise
-   */
-  public boolean isConnected() {
-    return this.connection != null && !this.connection.isClosed();
-  }
+    /**
+     * This method returns true if the client is currently connected to a host.
+     * @return  True if client is connected to host, false otherwise
+     */
+    public boolean isConnected() {
+        return this.connection != null && !this.connection.isClosed();
+    }
 }
