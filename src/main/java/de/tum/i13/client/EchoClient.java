@@ -1,17 +1,17 @@
 package de.tum.i13.client;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.InputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
 import de.tum.i13.client.exceptions.ClientException.ClientException;
 import de.tum.i13.client.exceptions.ClientException.ClientExceptionType;
 import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 
 public class EchoClient {
 
@@ -22,14 +22,13 @@ public class EchoClient {
   private String address;
   private int port;
 
-  private final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
-  private final static Logger LOGGER = Logger.getLogger(TestClient.class.getName());
+  private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
+  private static final Logger LOGGER = LogManager.getLogger(EchoClient.class);
 
   /**
    * Creates a new client. The created is not connected to any host.
    */
   public EchoClient() {
-    LOGGER.setLevel(Level.OFF);
   }
 
   /**
@@ -75,7 +74,7 @@ public class EchoClient {
 
     this.address = address;
     this.port = port;
-    LOGGER.info(String.format("Creating socket to %s:%d", address, port));
+    LOGGER.info("Creating socket to {}:{}", address, port);
 
     try {
       // Open socket and get streams
@@ -84,10 +83,10 @@ public class EchoClient {
       this.inStream = this.connection.getInputStream();
       this.outStream = this.connection.getOutputStream();
     } catch (UnknownHostException e) {
-      LOGGER.severe(String.format("Throwing exception because host (%s) could not be found.", address));
+      LOGGER.error("Throwing exception because host {} could not be found.", address);
       throw new ClientException("Could not find host", ClientExceptionType.UNKNOWN_HOST);
     } catch (IOException e) {
-      LOGGER.severe(String.format("Throwing exception because socket at %s:%d could not be openned.", address, port));
+      LOGGER.error("Throwing exception because socket at {}:{} could not be opened.", address, port);
       throw new ClientException("Could not open socket", ClientExceptionType.SOCKET_OPENING_ERROR);
     }
   }
@@ -100,19 +99,19 @@ public class EchoClient {
    *                         unconnected client.
    */
   public void disconnect() throws ClientException {
-    LOGGER.info(String.format("Disconnecting from socket at %s:%d", address, port));
+    LOGGER.info("Disconnecting from socket at {}:{}", address, port);
 
     // Throw exception if no connection is open
     if (!this.isConnected()) {
-      LOGGER.severe("Throwing exception because a disconnection from a un-connected socket was made.");
+      LOGGER.error("Throwing exception because a disconnection from a un-connected socket was made.");
       throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet", ClientExceptionType.UNCONNECTED);
     }
 
     try {
-      LOGGER.fine(String.format("Closing connection from socket at %s:%d", address, port));
+      LOGGER.debug("Closing connection from socket at {}:{}", address, port);
       this.connection.close();
     } catch (IOException e) {
-      LOGGER.severe("Throwing exception because an error while closing connection/streams.");
+      LOGGER.error("Throwing exception because an error while closing connection/streams.");
       throw new ClientException("Error while closing client", ClientExceptionType.SOCKET_CLOSING_ERROR);
     }
   }
@@ -127,20 +126,20 @@ public class EchoClient {
     int messageSize = message.length;
     int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
-    LOGGER.info(String.format("Sending %d bytes to %s:%d. (%s%s)", messageSize, address, port,
-        (new String(message)).substring(0, previewSize),
-        (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : "")));
+    LOGGER.info("Sending {} bytes to {}:{}. ({}{})",
+            () -> messageSize, () -> address, () -> port,
+            () -> (new String(message)).substring(0, previewSize),
+            () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
 
     // Throw exception if no connection is open
     if (!this.isConnected()) {
-      LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
+      LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
       throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
     }
 
     // Throw exception if message exceeds size
     if (message.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
-      LOGGER.severe(
-          String.format("Throwing exception because data is to large (max is %s KB).", Constants.MAX_MESSAGE_SIZE_KB));
+      LOGGER.error("Throwing exception because data is to large (max is {} KB).", Constants.MAX_MESSAGE_SIZE_KB);
       throw new ClientException("Message too large", ClientExceptionType.MESSAGE_TOO_LARGE);
     }
 
@@ -157,7 +156,7 @@ public class EchoClient {
     } catch (
 
     IOException e) {
-      LOGGER.severe("Throwing exception because an error occured while sending data.");
+      LOGGER.error("Throwing exception because an error occured while sending data.");
       throw new ClientException("Could not send message", ClientExceptionType.INTERNAL_ERROR);
     }
   }
@@ -169,11 +168,11 @@ public class EchoClient {
    */
   public byte[] receive() throws ClientException {
 
-    LOGGER.info(String.format("Receiving message from %s:%d.", address, port));
+    LOGGER.info("Receiving message from {}:{}.", address, port);
 
     // Throw exception if no connection is open
     if (!this.isConnected()) {
-      LOGGER.severe("Throwing exception because data can't be send to an unconnected client.");
+      LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
       throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
     }
 
@@ -190,13 +189,13 @@ public class EchoClient {
       int messageSize = result.length;
       int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
-      LOGGER.info(String.format("Receiving %d bytes to %s:%d. (%s%s)", messageSize, address, port,
-          (new String(result)).substring(0, previewSize),
-          (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : "")));
-
+      LOGGER.info("Receiving {} bytes to {}:{}. ({}{})",
+              () -> messageSize, () -> address, () -> port,
+              () ->(new String(result)).substring(0, previewSize),
+              () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
       return result;
     } catch (IOException e) {
-      LOGGER.severe("Throwing exception because an error occured while receiving data.");
+      LOGGER.error("Throwing exception because an error occured while receiving data.");
       throw new ClientException("Could not receive", ClientExceptionType.INTERNAL_ERROR);
     }
   }
