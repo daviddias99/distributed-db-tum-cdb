@@ -117,6 +117,9 @@
                         <!--suppress UnresolvedMavenProperty -->
                         <image>${env.CI_REGISTRY_IMAGE}</image>
                     </to>
+                    <container>
+                        <mainClass>de.tum.i13.client.Shell</mainClass>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>
