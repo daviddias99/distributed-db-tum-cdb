@@ -1,15 +1,18 @@
 package de.tum.i13.client;
 
-import org.junit.jupiter.api.*;
-
 import de.tum.i13.client.exceptions.ClientException.ClientException;
 import de.tum.i13.client.exceptions.ClientException.ClientExceptionType;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class TestEchoClient {
 
@@ -40,190 +43,153 @@ class TestEchoClient {
     }
 
     @Test
-    void testConstructor1() {
+    void correctLocalhost() {
+        EchoClient client = assertDoesNotThrow(() -> new EchoClient("localhost", serverSocket.getLocalPort()));
+        assertThat(client.isConnected()).isTrue();
+    }
 
-        try {
-            EchoClient client = new EchoClient("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-        } catch (ClientException e) {
-            System.out.println(e);
-            fail();
+    @Test
+    void defaultConstructor() {
+        EchoClient client = new EchoClient();
+        assertThat(client.isConnected()).isFalse();
+    }
+
+    @Test
+    void wrongLocalhost() {
+        EchoClient client = new EchoClient();
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(() -> new EchoClient("localhost00", serverSocket.getLocalPort()))
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.UNKNOWN_HOST);
+        assertThat(client.isConnected()).isFalse();
+    }
+
+    @Test
+    void connectSingleTime() {
+        EchoClient client = new EchoClient();
+        assertThat(client.isConnected()).isFalse();
+
+        assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                .doesNotThrowAnyException();
+        assertThat(client.isConnected()).isTrue();
+    }
+
+    @Test
+    void connectMultipleTimes() {
+        EchoClient client = new EchoClient();
+
+        for (int i = 0; i < 3; i++) {
+            assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                    .doesNotThrowAnyException();
+            assertThat(client.isConnected()).isTrue();
         }
     }
 
     @Test
-    void testConstructor2() {
+    void connectIncorrectly() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(() -> client.connect("localhost00", serverSocket.getLocalPort()))
+                .isInstanceOf(ClientException.class)
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.UNKNOWN_HOST);
     }
 
     @Test
-    void testConstructor3() {
+    void connectAndReceiveSimultaneously() {
         EchoClient client = new EchoClient();
-        try {
-            client = new EchoClient("localhost00", serverSocket.getLocalPort());
-        } catch (ClientException e) {
-            assertEquals(false, client.isConnected());
-            assertEquals(ClientExceptionType.UNKNOWN_HOST, e.getType());
-            return;
-        }
+        assertThat(client.isConnected()).isFalse();
+
+        byte[] receivedData = assertDoesNotThrow(() -> client.connectAndReceive("localhost", serverSocket.getLocalPort()));
+        assertThat(receivedData)
+                .asString()
+                .isEqualTo("Welcome!");
     }
 
     @Test
-    void testConnectMethod() {
+    void connectAndReceiveSeparately() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-        } catch (ClientException e) {
-            fail();
-        }
+        assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                .doesNotThrowAnyException();
+        byte[] receivedData = assertDoesNotThrow(client::receive);
+        assertThat(receivedData)
+                .asString()
+                .isEqualTo("Welcome!");
     }
 
     @Test
-    void testConnectMethod2() {
+    void unconnectedReceive() {
         EchoClient client = new EchoClient();
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-
-            client.connect("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-        } catch (ClientException e) {
-            fail();
-        }
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(client::receive)
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.UNCONNECTED);
     }
 
     @Test
-    void testConnectMethod3() {
+    void connectAndSend() {
         EchoClient client = new EchoClient();
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.connect("localhost00", serverSocket.getLocalPort());
-        } catch (ClientException e) {
-            assertEquals(ClientExceptionType.UNKNOWN_HOST, e.getType());
-            return;
-        }
-        fail();
+        assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                .doesNotThrowAnyException();
+        assertThat(client.isConnected()).isTrue();
+
+        assertThatCode(() -> client.send("Hello!".getBytes()))
+                .doesNotThrowAnyException();
+        assertThat(client.isConnected()).isTrue();
     }
 
     @Test
-    void testConnectAndReceive() {
+    void unconnectedSend() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            byte[] receivedData = client.connectAndReceive("localhost", serverSocket.getLocalPort());
-            String receivedString = new String(receivedData);
-            assertEquals("Welcome!", receivedString);
-        } catch (ClientException e) {
-            fail();
-        }
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(() -> client.send("test".getBytes()))
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.UNCONNECTED);
     }
 
     @Test
-    void testReceive1() {
+    void messageToLarge() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            byte[] receivedData = client.receive();
-            String receivedString = new String(receivedData);
-            assertEquals("Welcome!", receivedString);
-        } catch (ClientException e) {
-            fail();
-        }
+        assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                .doesNotThrowAnyException();
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(() -> client.send(new byte[1024 * 256]))
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.MESSAGE_TOO_LARGE);
     }
 
     @Test
-    void testReceive2() {
+    void disconnect() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.receive();
-        } catch (ClientException e) {
-            assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
-            return;
-        }
-        fail();
+        assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
+                .doesNotThrowAnyException();
+        assertThat(client.isConnected()).isTrue();
+        assertThatCode(client::disconnect)
+                .doesNotThrowAnyException();
+        assertThat(client.isConnected()).isFalse();
     }
 
     @Test
-    void testSend1() {
+    void disconnectUnconnected() {
         EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
+        assertThat(client.isConnected()).isFalse();
 
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-            client.send("Hello!".getBytes());
-            assertEquals(true, client.isConnected());
-        } catch (ClientException e) {
-            fail();
-        }
-    }
-
-    @Test
-    void testSend2() {
-        EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
-
-        try {
-            client.send("test".getBytes());
-        } catch (ClientException e) {
-            assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
-            return;
-        }
-        fail();
-    }
-
-    @Test
-    void testSend3() {
-        EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
-
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            client.send(new byte[1024 * 256]);
-        } catch (ClientException e) {
-            assertEquals(ClientExceptionType.MESSAGE_TOO_LARGE, e.getType());
-            return;
-        }
-        fail();
-    }
-
-    @Test
-    void testDisconnect1() {
-        EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
-
-        try {
-            client.connect("localhost", serverSocket.getLocalPort());
-            assertEquals(true, client.isConnected());
-            client.disconnect();
-            assertEquals(false, client.isConnected());
-
-        } catch (ClientException e) {
-            fail();
-        }
-    }
-
-    @Test
-    void testDisconnect2() {
-        EchoClient client = new EchoClient();
-        assertEquals(false, client.isConnected());
-
-        try {
-            client.disconnect();
-        } catch (ClientException e) {
-            assertEquals(ClientExceptionType.UNCONNECTED, e.getType());
-            return;
-        }
-        fail();
+        assertThatExceptionOfType(ClientException.class)
+                .isThrownBy(client::disconnect)
+                .extracting(ClientException::getType)
+                .isEqualTo(ClientExceptionType.UNCONNECTED);
     }
 }
