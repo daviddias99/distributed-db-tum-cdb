@@ -1,4 +1,4 @@
-package de.tum.i13.client.exceptions.ClientException;
+package de.tum.i13.client.exceptions;
 
 public class ClientException extends Exception{
 

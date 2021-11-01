@@ -13,6 +13,9 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
+import de.tum.i13.client.exceptions.ClientException;
+import de.tum.i13.shared.Constants;
+
 public class Shell{    
 
     private static EchoClient client = new EchoClient();

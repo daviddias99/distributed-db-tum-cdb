@@ -13,6 +13,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
+import de.tum.i13.client.exceptions.ClientException;
+import de.tum.i13.client.exceptions.ClientExceptionType;
+import de.tum.i13.shared.Constants;
+
 public class EchoClient {
 
     private Socket connection;
