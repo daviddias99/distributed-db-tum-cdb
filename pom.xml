@@ -31,7 +31,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.tum.i13.client.TestClient</mainClass>
+                            <mainClass>de.tum.i13.client.Shell</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -45,7 +45,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.tum.i13.client.TestClient</mainClass>
+                                    <mainClass>de.tum.i13.client.Shell</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

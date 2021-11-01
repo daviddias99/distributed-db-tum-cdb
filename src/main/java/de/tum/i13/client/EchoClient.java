@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import de.tum.i13.client.exceptions.ClientException.ClientException;
 import de.tum.i13.client.exceptions.ClientException.ClientExceptionType;
@@ -28,7 +29,7 @@ public class EchoClient {
    * Creates a new client. The created is not connected to any host.
    */
   public EchoClient() {
-
+    LOGGER.setLevel(Level.OFF);
   }
 
   /**
