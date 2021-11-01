@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-public class TestEchoClient {
+class TestEchoClient {
 
     private static Thread serverThread;
     private static ServerSocket serverSocket;
@@ -40,7 +40,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConstructor1() {
+    void testConstructor1() {
 
         try {
             EchoClient client = new EchoClient("localhost", serverSocket.getLocalPort());
@@ -52,13 +52,13 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConstructor2() {
+    void testConstructor2() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
     }
 
     @Test
-    public void testConstructor3() {
+    void testConstructor3() {
         EchoClient client = new EchoClient();
         try {
             client = new EchoClient("localhost00", serverSocket.getLocalPort());
@@ -70,7 +70,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConnectMethod() {
+    void testConnectMethod() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -83,7 +83,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConnectMethod2() {
+    void testConnectMethod2() {
         EchoClient client = new EchoClient();
 
         try {
@@ -98,7 +98,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConnectMethod3() {
+    void testConnectMethod3() {
         EchoClient client = new EchoClient();
 
         try {
@@ -111,7 +111,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testConnectAndReceive() {
+    void testConnectAndReceive() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -125,7 +125,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testReceive1() {
+    void testReceive1() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -140,7 +140,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testReceive2() {
+    void testReceive2() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -154,7 +154,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testSend1() {
+    void testSend1() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -169,7 +169,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testSend2() {
+    void testSend2() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -183,7 +183,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testSend3() {
+    void testSend3() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -198,7 +198,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testDisconnect1() {
+    void testDisconnect1() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
@@ -214,7 +214,7 @@ public class TestEchoClient {
     }
 
     @Test
-    public void testDisconnect2() {
+    void testDisconnect2() {
         EchoClient client = new EchoClient();
         assertEquals(false, client.isConnected());
 
