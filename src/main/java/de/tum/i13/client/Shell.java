@@ -121,9 +121,6 @@ public class Shell{
         } catch (NumberFormatException e) {
             LOGGER.info("Unrecognized command. Port number in wrong format.");
             printHelp();
-        } catch (UnsupportedEncodingException e){
-            LOGGER.error("UnsupportedEncodingException when trying to convert server message to String type.");
-            System.out.println(e.getMessage());
         }
     }
 
@@ -133,17 +130,12 @@ public class Shell{
      * @throws ClientException
      */
     private static void receiveMessage() throws ClientException{
-        try {
-            //receive and print server response
-            LOGGER.info("Receiving message from server.");
-            byte[] response = client.receive();
-            String responseStr = new String( response, 0, response.length - 2, Constants.TELNET_ENCODING);
-            System.out.println(Constants.PROMPT + responseStr);
-            
-        } catch (UnsupportedEncodingException e){
-            LOGGER.error("UnsupportedEncodingException when trying to convert server message to String type.");
-            System.out.println(e.getMessage());
-        }
+        //receive and print server response
+        LOGGER.info("Receiving message from server.");
+        byte[] response = client.receive();
+        String responseStr = new String( response, 0, response.length - 2, Constants.TELNET_ENCODING);
+        System.out.println(Constants.PROMPT + responseStr);
+
     }
 
     /**

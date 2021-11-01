@@ -2,8 +2,8 @@ package de.tum.i13.client.exceptions;
 
 public class ClientException extends Exception{
 
-    private String reason;
-    private ClientExceptionType type;
+    private final String reason;
+    private final ClientExceptionType type;
 
     public ClientException(String reason) {
         this.reason = reason;
