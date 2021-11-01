@@ -1,6 +1,6 @@
 package de.tum.i13.client;
 
-import de.tum.i13.client.exceptions.ClientException.ClientException;
+import de.tum.i13.client.exceptions.ClientException;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -10,11 +10,7 @@ import org.apache.logging.log4j.core.config.Configurator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.Optional;
-
-import de.tum.i13.client.exceptions.ClientException;
-import de.tum.i13.shared.Constants;
 
 public class Shell{    
 
