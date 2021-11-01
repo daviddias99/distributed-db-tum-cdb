@@ -36,7 +36,7 @@ public class Shell{
 
         while (!quit) {
             //print prompt 
-            System.out.print("EchoClient> ");
+            System.out.print(Constants.PROMPT);
 
             //read user input from console
             String input = cons.readLine();
@@ -44,32 +44,32 @@ public class Shell{
 
             try {
                 //connect command should be in format: "connect <address> <port>"
-                if( tokens.length == 3 && tokens[0].equals("connect")){
+                if( tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)){
                     connect(tokens);
                 }
                 //disconnect command should provide status report upon successful disconnection
-                else if( tokens.length == 1 && tokens[0].equals("disconnect")){
+                else if( tokens.length == 1 && tokens[0].equals(Constants.DISCONNECT_COMMAND)){
                     LOGGER.info(String.format("Disconnecting from %s:%d", address, port));
                     client.disconnect();
-                    System.out.println("EchoClient> Successfully disconnected.");
+                    System.out.println(Constants.PROMPT + "Successfully disconnected.");
                 }
                 //command to send message to server: "send <message>"
-                else if( tokens.length == 2 && tokens[0].equals("send")){
+                else if(tokens[0].equals(Constants.SEND_COMMAND)){
                     //send the message in bytes after appending the delimiter
                     LOGGER.info(String.format("Sending message to %s:%d", address, port));
-                    client.send( (tokens[1] + "\r\n").getBytes());
+                    client.send( (input.substring(5) + Constants.TERMINATING_STR).getBytes());
                     receiveMessage();
                 }
                 //command to change the logging level: "logLevel <level>"
-                else if( tokens.length == 2 && tokens[0].equals("logLevel")){
+                else if( tokens.length == 2 && tokens[0].equals(Constants.LOG_COMMAND)){
                     changeLogLevel(tokens[1]);
                 }
                 //help command to print information about the program
-                else if( tokens.length == 1 && tokens[0].equals("help")){
+                else if( tokens.length == 1 && tokens[0].equals(Constants.HELP_COMMAND)){
                     printHelp();
                 }
                 //quit command should close any existing connection before quitting the program
-                else if( tokens.length == 1 && tokens[0].equals("quit")){
+                else if( tokens.length == 1 && tokens[0].equals(Constants.QUIT_COMMAND)){
                     if(client.isConnected()){
                         LOGGER.info(String.format("Disconnecting from %s:%d", address, port));
                         client.disconnect();
@@ -77,7 +77,7 @@ public class Shell{
 
                     LOGGER.info("Quitting application.");
                     quit = true;
-                    System.out.println("EchoClient> Application exit!");
+                    System.out.println(Constants.PROMPT + "Application exit!");
                 }
                 //unrecognized input
                 else{
@@ -87,7 +87,7 @@ public class Shell{
             } catch (ClientException e) {
                 LOGGER.severe(String.format("Exception type: %s. Exception reason: %s", e.getType(), e.getReason()));
                 //TODO Figure out which error message to print to console & when
-                System.out.println("EchoClient> Error: " + e.getReason());
+                System.out.println(Constants.PROMPT + "Error: " + e.getReason());
             }
             
         }
@@ -110,7 +110,7 @@ public class Shell{
             LOGGER.info(String.format("Initiating connection to %s:%d", address, port));
             byte[] response = client.connectAndReceive(address, port);
             String confirmation = new String( response, 0, response.length - 2, Constants.TELNET_ENCODING);
-            System.out.println("server> " + confirmation);
+            System.out.println(Constants.PROMPT + confirmation);
             LOGGER.info(String.format("Connection to %s:%d successful.", address, port));
 
         } catch (NumberFormatException e) {
@@ -133,7 +133,7 @@ public class Shell{
             LOGGER.info("Receiving message from server.");
             byte[] response = client.receive();
             String responseStr = new String( response, 0, response.length - 2, Constants.TELNET_ENCODING);
-            System.out.println("server> " + responseStr);
+            System.out.println(Constants.PROMPT + responseStr);
             
         } catch (UnsupportedEncodingException e){
             LOGGER.severe("UnsupportedEncodingException when trying to convert server message to String type.");
@@ -152,8 +152,8 @@ public class Shell{
             Level newLevel = Level.parse(input);
             LOGGER.setLevel(newLevel);
 
-            LOGGER.info( String.format("Loglevel set from %s to %s.", oldLevel, input));
-            System.out.println( String.format("Loglevel set from %s to %s.", oldLevel, input));
+            LOGGER.info( String.format("Log level set from %s to %s.", oldLevel, input));
+            System.out.println( String.format("Log level set from %s to %s.", oldLevel, input));
         } catch(IllegalArgumentException e){
             LOGGER.severe( String.format("Log level %s not valid.", input));
             printHelp();
@@ -165,12 +165,12 @@ public class Shell{
      */
     private static void printHelp(){
         System.out.println("Possible commands:");
-        System.out.printf("%-30s: %s%n", "connect <address> <port>","establishes a connection to <address>:<port>");
-        System.out.printf("%-30s: %s%n", "disconnect", "to disconnect from existing connection");
-        System.out.printf("%-30s: %s%n", "send <message>", "sends <message> to the server and receives a response");
-        System.out.printf("%-30s: %s%n", "logLevel <new_level>", "changes the logging level to the <new_level>");
-        System.out.printf("%-30s: %s%n", "quit", "closes the interface");
-        System.out.printf("%-30s: %s%n", "help", "gives information aboutcommands");
+        System.out.printf("%-30s: %s%n", Constants.CONNECT_COMMAND + " <address> <port>","establishes a connection to <address>:<port>");
+        System.out.printf("%-30s: %s%n", Constants.DISCONNECT_COMMAND , "to disconnect from existing connection");
+        System.out.printf("%-30s: %s%n", Constants.SEND_COMMAND + " <message>", "sends <message> to the server and receives a response");
+        System.out.printf("%-30s: %s%n", Constants.LOG_COMMAND + " <new_level>", "changes the logging level to the <new_level>");
+        System.out.printf("%-30s: %s%n", Constants.QUIT_COMMAND , "closes the interface");
+        System.out.printf("%-30s: %s%n", Constants.HELP_COMMAND , "gives information aboutcommands");
     }
 
 }
