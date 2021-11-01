@@ -32,7 +32,7 @@ public class EchoClient {
   }
 
     /**
-     * Creates a new client connected to <address>:<port>.
+     * Creates a new client connected to {@code <address>:<port>}.
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.
@@ -44,7 +44,7 @@ public class EchoClient {
     }
 
     /**
-     * Connects client to <address>:<port> and returns the message sent by the host
+     * Connects client to {@code <address>:<port>} and returns the message sent by the host
      * upon connection. This method is equivalent to calling the 'receive' method
      * after the 'connect' method;
      *
@@ -59,7 +59,7 @@ public class EchoClient {
     }
 
     /**
-     * Connects client to <address>:<port>.
+     * Connects client to {@code <address>:<port>}.
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.

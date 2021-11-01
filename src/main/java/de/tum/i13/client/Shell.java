@@ -29,7 +29,7 @@ public class Shell{
 
     /**
      * Main method. Reads user commands from the console and maintains connection of our Client to a Server.
-     * Client can connect to <address>:<port> , disconnect, send a message to the server, change logging level. 
+     * Client can connect to {@code <address>:<port>} , disconnect, send a message to the server, change logging level.
      */
     public static void main(String[] args) throws IOException   {
 
