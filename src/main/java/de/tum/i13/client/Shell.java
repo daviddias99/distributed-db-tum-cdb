@@ -108,7 +108,7 @@ public class Shell{
 
             //create new connection and receive confirmation from server
             LOGGER.info(String.format("Initiating connection to %s:%d", address, port));
-            byte[] response = client.connectAndRead(address, port);
+            byte[] response = client.connectAndReceive(address, port);
             String confirmation = new String( response, 0, response.length - 2, Constants.TELNET_ENCODING);
             System.out.println("server> " + confirmation);
             LOGGER.info(String.format("Connection to %s:%d successful.", address, port));
