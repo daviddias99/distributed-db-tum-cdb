@@ -61,8 +61,14 @@ public class Shell {
     }
 
     private void handleInput(String input, String[] tokens) throws ClientException {
+        if (input.isEmpty()) {
+            handleFaultyCommand("Commands should not be empty");
+        }
+        else if (Character.isWhitespace(input.charAt(0))) {
+            handleFaultyCommand("Commands should not start with whitespace");
+        }
         //connect command should be in format: "connect <address> <port>"
-        if (tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)) {
+        else if (tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)) {
             connect(tokens);
         }
         //disconnect command should provide status report upon successful disconnection
