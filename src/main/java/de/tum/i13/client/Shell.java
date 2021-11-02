@@ -10,6 +10,7 @@ import org.apache.logging.log4j.core.config.Configurator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class Shell{    
@@ -45,7 +46,7 @@ public class Shell{
         BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
         quit = false;
         while (!quit) {
-            //print prompt 
+            //print prompt
             System.out.print(Constants.PROMPT);
 
             //read user input from console
@@ -213,7 +214,7 @@ public class Shell{
         System.out.printf("%-30s: %s%n", Constants.CONNECT_COMMAND + " <address> <port>","establishes a connection to <address>:<port>");
         System.out.printf("%-30s: %s%n", Constants.DISCONNECT_COMMAND , "to disconnect from existing connection");
         System.out.printf("%-30s: %s%n", Constants.SEND_COMMAND + " <message>", "sends <message> to the server and receives a response");
-        System.out.printf("%-30s: %s%n", Constants.LOG_COMMAND + " <new_level>", "changes the logging level to the <new_level>");
+        System.out.printf("%-30s: %s%n", Constants.LOG_COMMAND + " <new_level>", "changes the logging level to the <new_level>. Possible values: " + Arrays.toString(Level.values()));
         System.out.printf("%-30s: %s%n", Constants.QUIT_COMMAND , "closes the interface");
         System.out.printf("%-30s: %s%n", Constants.HELP_COMMAND , "gives information aboutcommands");
     }
