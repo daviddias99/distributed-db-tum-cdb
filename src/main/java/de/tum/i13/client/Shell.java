@@ -19,12 +19,14 @@ public class Shell{
 
     private String address;              //server address of current connection, for logging purposes
     private int port;                    //port number of current connection
+    private boolean quit;
 
     /**
      * Creates a new command line interface.
      */
     public Shell(){
         client = new EchoClient();
+        quit = false;
     }
 
     /**
@@ -40,10 +42,8 @@ public class Shell{
      * Client can connect to {@code <address>:<port>} , disconnect, send a message to the server, change logging level.
      */
     public void start() throws IOException   {
-
         BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
-        boolean quit = false;
-
+        quit = false;
         while (!quit) {
             //print prompt 
             System.out.print(Constants.PROMPT);
@@ -53,54 +53,98 @@ public class Shell{
             String[] tokens = input.trim().split("\\s+");
 
             try {
-                //connect command should be in format: "connect <address> <port>"
-                if( tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)){
-                    connect(tokens);
-                }
-                //disconnect command should provide status report upon successful disconnection
-                else if( tokens.length == 1 && tokens[0].equals(Constants.DISCONNECT_COMMAND)){
-                    LOGGER.info("Disconnecting from {}:{}", address, port);
-                    client.disconnect();
-                    System.out.println(Constants.PROMPT + "Successfully disconnected.");
-                }
-                //command to send message to server: "send <message>"
-                else if(tokens[0].equals(Constants.SEND_COMMAND)){
-                    //send the message in bytes after appending the delimiter
-                    LOGGER.info("Sending message to {}:{}", address, port);
-                    client.send( (input.substring(5) + Constants.TERMINATING_STR).getBytes());
-                    receiveMessage();
-                }
-                //command to change the logging level: "logLevel <level>"
-                else if( tokens.length == 2 && tokens[0].equals(Constants.LOG_COMMAND)){
-                    changeLogLevel(tokens[1]);
-                }
-                //help command to print information about the program
-                else if( tokens.length == 1 && tokens[0].equals(Constants.HELP_COMMAND)){
-                    printHelp();
-                }
-                //quit command should close any existing connection before quitting the program
-                else if( tokens.length == 1 && tokens[0].equals(Constants.QUIT_COMMAND)){
-                    if(client.isConnected()){
-                        LOGGER.info("Disconnecting from {}:{}", address, port);
-                        client.disconnect();
-                    }
-
-                    LOGGER.info("Quitting application.");
-                    quit = true;
-                    System.out.println(Constants.PROMPT + "Application exit!");
-                }
-                //unrecognized input
-                else{
-                    LOGGER.info("Unrecognized command.");
-                    printHelp();
-                }
+                handleInput(input, tokens);
             } catch (ClientException e) {
-                LOGGER.error("Exception type: {}. Exception reason: {}", e.getType(), e.getReason());
-                //TODO Figure out which error message to print to console & when
-                System.out.println(Constants.PROMPT + "Error: " + e.getReason());
+                handleClientException(e);
             }
-            
         }
+    }
+
+    private void handleInput(String input, String[] tokens) throws ClientException {
+        //connect command should be in format: "connect <address> <port>"
+        if( tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)){
+            connect(tokens);
+        }
+        //disconnect command should provide status report upon successful disconnection
+        else if( tokens.length == 1 && tokens[0].equals(Constants.DISCONNECT_COMMAND)){
+            disconnect();
+        }
+        //command to send message to server: "send <message>"
+        else if(tokens[0].equals(Constants.SEND_COMMAND)){
+            send(input);
+        }
+        //command to change the logging level: "logLevel <level>"
+        else if(tokens.length == 2 && tokens[0].equals(Constants.LOG_COMMAND)){
+            changeLogLevel(tokens[1]);
+        }
+        //help command to print information about the program
+        else if(tokens.length == 1 && tokens[0].equals(Constants.HELP_COMMAND)){
+            printHelp();
+        }
+        //quit command should close any existing connection before quitting the program
+        else if(tokens.length == 1 && tokens[0].equals(Constants.QUIT_COMMAND)){
+            quit();
+        }
+        //unrecognized input
+        else{
+            handleFaultyCommand("Unrecognized command.");
+        }
+    }
+
+    /**
+     * Disconnects from the server
+     * @throws ClientException in case the disconnect is unsuccessful
+     */
+    private void disconnect() throws ClientException {
+        LOGGER.info("Disconnecting from {}:{}", address, port);
+        client.disconnect();
+        System.out.println(Constants.PROMPT + "Successfully disconnected.");
+    }
+
+    /**
+     * Send the input to the server
+     * @param input the input to send
+     * @throws ClientException in case the sending process is unsuccessful
+     */
+    private void send(String input) throws ClientException {
+        //send the message in bytes after appending the delimiter
+        LOGGER.info("Sending message to {}:{}", address, port);
+        client.send( (input.substring(5) + Constants.TERMINATING_STR).getBytes());
+        receiveMessage();
+    }
+
+    /**
+     * Quits the shell
+     * @throws ClientException in case the quitting process is unsuccessful
+     */
+    private void quit() throws ClientException {
+        if(client.isConnected()){
+            LOGGER.info("Disconnecting from {}:{}", address, port);
+            client.disconnect();
+        }
+
+        LOGGER.info("Quitting application.");
+        System.out.println(Constants.PROMPT + "Application exit!");
+        quit = true;
+    }
+
+    /**
+     * Handles a faulty command
+     * @param reason the reasons why the command is faulty
+     */
+    private void handleFaultyCommand(String reason) {
+        LOGGER.info(reason);
+        printHelp();
+    }
+
+    /**
+     * Handles a {@link ClientException}
+     * @param e the exception to handle
+     */
+    private void handleClientException(ClientException e) {
+        LOGGER.error("Exception type: {}. Exception reason: {}", e.getType(), e.getReason());
+        //TODO Figure out which error message to print to console & when
+        System.out.println(Constants.PROMPT + "Error: " + e.getReason());
     }
 
     /**
@@ -124,8 +168,7 @@ public class Shell{
             LOGGER.info("Connection to {}:{} successful.", address, port);
 
         } catch (NumberFormatException e) {
-            LOGGER.info("Unrecognized command. Port number in wrong format.");
-            printHelp();
+            handleFaultyCommand("Unrecognized command. Port number in wrong format.");
         }
     }
 
