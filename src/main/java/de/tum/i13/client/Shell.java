@@ -14,23 +14,32 @@ import java.util.Optional;
 
 public class Shell{    
 
-    private static EchoClient client = new EchoClient();
+    private final EchoClient client;
     private static final Logger LOGGER = LogManager.getLogger(Shell.class.getName());
 
-    private static String address;              //server address of current connection, for logging purposes
-    private static int port;                    //port number of current connection
+    private String address;              //server address of current connection, for logging purposes
+    private int port;                    //port number of current connection
 
     /**
      * Creates a new command line interface.
      */
     public Shell(){
+        client = new EchoClient();
     }
 
     /**
-     * Main method. Reads user commands from the console and maintains connection of our Client to a Server.
+     * Main method. Creates a shell and starts it.
+     */
+    public static void main(String[] args) throws IOException {
+        Shell shell = new Shell();
+        shell.start();
+    }
+
+    /**
+     * Starts shell. Reads user commands from the console and maintains connection of our Client to a Server.
      * Client can connect to {@code <address>:<port>} , disconnect, send a message to the server, change logging level.
      */
-    public static void main(String[] args) throws IOException   {
+    public void start() throws IOException   {
 
         BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
         boolean quit = false;
@@ -102,7 +111,7 @@ public class Shell{
      * @throws ClientException if the connection is unsuccessful
      * @throws NumberFormatException if port number is not an integer
      */
-    private static void connect( String[] tokens) throws ClientException{
+    private void connect( String[] tokens) throws ClientException{
         try {
             port = Integer.parseInt(tokens[2]);
             address = tokens[1];
@@ -125,7 +134,7 @@ public class Shell{
      * in proper encoding and prints it to console.
      * @throws ClientException
      */
-    private static void receiveMessage() throws ClientException{
+    private void receiveMessage() throws ClientException{
         //receive and print server response
         LOGGER.info("Receiving message from server.");
         byte[] response = client.receive();
@@ -139,7 +148,7 @@ public class Shell{
      * @param input is the user input for the desired log level
      * @throws IllegalArgumentException if the parameter is not a valid logger Level name 
      */
-    private static void changeLogLevel(String input){
+    private void changeLogLevel(String input){
         Optional<Level> newLevel = Optional.ofNullable(Level.getLevel(input));
         if (newLevel.isPresent()) {
             String oldLevelName = LOGGER.getLevel().name();
@@ -156,7 +165,7 @@ public class Shell{
     /**
      * Prints information about the intended usage of the client application and describes its set of commands.
      */
-    private static void printHelp(){
+    private void printHelp(){
         System.out.println("Possible commands:");
         System.out.printf("%-30s: %s%n", Constants.CONNECT_COMMAND + " <address> <port>","establishes a connection to <address>:<port>");
         System.out.printf("%-30s: %s%n", Constants.DISCONNECT_COMMAND , "to disconnect from existing connection");
