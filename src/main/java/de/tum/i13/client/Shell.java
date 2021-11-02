@@ -144,6 +144,7 @@ public class Shell {
      */
     private void handleFaultyCommand(String reason) {
         LOGGER.info(reason);
+        System.out.println(reason);
         printHelp();
     }
 
