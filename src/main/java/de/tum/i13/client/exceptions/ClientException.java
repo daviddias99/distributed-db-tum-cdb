@@ -1,6 +1,6 @@
 package de.tum.i13.client.exceptions;
 
-public class ClientException extends Exception{
+public class ClientException extends Exception {
 
     private final String reason;
     private final ClientExceptionType type;
@@ -22,4 +22,5 @@ public class ClientException extends Exception{
     public String getReason() {
         return this.reason;
     }
+
 }

@@ -15,15 +15,13 @@ import java.util.Arrays;
 
 public class EchoClient {
 
+    private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
+    private static final Logger LOGGER = LogManager.getLogger(EchoClient.class);
     private Socket connection;
     private InputStream inStream;
     private OutputStream outStream;
-
     private String address;
     private int port;
-
-    private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
-    private static final Logger LOGGER = LogManager.getLogger(EchoClient.class);
 
     /**
      * Creates a new client. The created is not connected to any host.
