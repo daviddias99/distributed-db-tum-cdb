@@ -18,6 +18,7 @@ buildNumber.properties
 # project specifi
 *.log
 data/
+*.log.lck
 
 # Compiled class file
 *.class
