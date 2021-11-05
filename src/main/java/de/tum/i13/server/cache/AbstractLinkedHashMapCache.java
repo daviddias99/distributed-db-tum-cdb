@@ -2,7 +2,6 @@ package de.tum.i13.server.cache;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Preconditions;
 
 import java.util.LinkedHashMap;
@@ -10,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public abstract class AbstractLinkedHashMapCache implements KVStore {
+public abstract class AbstractLinkedHashMapCache implements Cache {
 
     private static class FixedSizeLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
