@@ -44,6 +44,8 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     private final FixedSizeLinkedHashMap<String, String> cache;
 
     protected AbstractLinkedHashMapCache(int size, boolean accessOrder) {
+        Preconditions.check(size > 0 );
+
         cache = new FixedSizeLinkedHashMap<>(size, 0.75f, accessOrder);
     }
 
@@ -58,8 +60,7 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     @Override
     public KVMessage get(String key) {
         Preconditions.notNull(key);
-        final Optional<String> optionalValue = Optional.ofNullable(cache.get(key));
-        return optionalValue
+        return Optional.ofNullable(cache.get(key))
                 .map(value -> new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS))
                 .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
