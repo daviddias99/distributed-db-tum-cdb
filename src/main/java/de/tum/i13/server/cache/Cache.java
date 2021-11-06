@@ -11,4 +11,6 @@ public interface Cache extends KVStore {
     @Override
     KVMessage put(String key, String value);
 
+    CachingStrategy getCachingStrategy();
+
 }

@@ -6,4 +6,9 @@ public class LRUCache extends AbstractLinkedHashMapCache {
         super(size, true);
     }
 
+    @Override
+    public CachingStrategy getCachingStrategy() {
+        return CachingStrategy.LRU;
+    }
+
 }

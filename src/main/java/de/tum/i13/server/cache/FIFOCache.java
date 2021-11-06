@@ -6,4 +6,9 @@ public class FIFOCache extends AbstractLinkedHashMapCache {
         super(size, false);
     }
 
+    @Override
+    public CachingStrategy getCachingStrategy() {
+        return CachingStrategy.FIFO;
+    }
+
 }

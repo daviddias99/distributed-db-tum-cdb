@@ -118,4 +118,9 @@ public class LFUCache implements Cache {
         }
     }
 
+    @Override
+    public CachingStrategy getCachingStrategy() {
+        return CachingStrategy.LFU;
+    }
+
 }
