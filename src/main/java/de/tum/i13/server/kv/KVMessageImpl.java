@@ -11,6 +11,8 @@ public class KVMessageImpl implements KVMessage {
     public KVMessageImpl(String key, StatusType status) {
         Preconditions.notNull(key);
         Preconditions.check(status.canHaveEmptyValue());
+        Preconditions.notNull(status);
+
         this.key = key;
         this.value = null;
         this.status = status;
@@ -19,6 +21,8 @@ public class KVMessageImpl implements KVMessage {
     public KVMessageImpl(String key, String value, StatusType status) {
         Preconditions.notNull(key);
         Preconditions.notNull(value);
+        Preconditions.notNull(status);
+
         this.key = key;
         this.value = value;
         this.status = status;
