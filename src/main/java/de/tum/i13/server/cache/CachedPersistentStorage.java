@@ -3,14 +3,15 @@ package de.tum.i13.server.cache;
 import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
 import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class CachedPersistentStorage implements KVStore {
+import java.util.Optional;
+
+public class CachedPersistentStorage implements PersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(CachedPersistentStorage.class);
     private final Cache cache;
@@ -33,13 +34,16 @@ public class CachedPersistentStorage implements KVStore {
     @Override
     public KVMessage put(String key, String value) throws PutException {
         Preconditions.notNull(key, "Key cannot be null");
-        Preconditions.notNull(value, "Value cannot be null");
         LOGGER.info("Trying to put key {} with value {}", key, value);
 
         try {
+            if (value == null) LOGGER.debug("Deleting key {}", key);
+            else LOGGER.debug("Putting key {} to value {}", key, value);
             persistentStorage.put(key, value);
             cache.put(key, value);
-            return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+            return Optional.ofNullable(value)
+                    .map(newValue -> new KVMessageImpl(key, newValue, KVMessage.StatusType.PUT_SUCCESS))
+                    .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS));
         } catch (Exception exception) {
             LOGGER.error("Could not put key {} with value {} in persistent storage", key, value);
             throw new PutException(
