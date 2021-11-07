@@ -37,4 +37,44 @@ abstract class CacheTest {
                 .isNull();
     }
 
+    @Test
+    void deletesKey() {
+        final Cache cache = getCache(4);
+
+        for (int i = 0; i < 3; i++) {
+            cache.put("key" + i, "value" + i);
+        }
+
+        assertThat(cache.get("key1"))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "key1",
+                        "value1",
+                        KVMessage.StatusType.GET_SUCCESS
+                );
+        assertThat(cache.put("key1", null))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "key1",
+                        null,
+                        KVMessage.StatusType.DELETE_SUCCESS
+                );
+        assertThat(cache.get("key1"))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "key1",
+                        null,
+                        KVMessage.StatusType.GET_ERROR
+                );
+    }
+
 }
