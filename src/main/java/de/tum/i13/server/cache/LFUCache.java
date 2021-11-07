@@ -3,6 +3,8 @@ package de.tum.i13.server.cache;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Preconditions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +54,8 @@ public class LFUCache implements Cache {
      */
     private final int maxEntries;
 
+    private static final Logger LOGGER = LogManager.getLogger(LFUCache.class);
+
     public LFUCache(int maxEntries) {
         Preconditions.check(maxEntries > 0, "Cache must have a size greater than 0");
 
@@ -63,6 +67,7 @@ public class LFUCache implements Cache {
     @Override
     public synchronized KVMessage get(String key) {
         Preconditions.notNull(key, "Key cannot be null");
+        LOGGER.info("Trying to get value of key {}", key);
 
         return Optional.ofNullable(keyNodeMap.get(key))
                 .map(value -> updateKeyFrequency(key, value))
@@ -70,17 +75,19 @@ public class LFUCache implements Cache {
     }
 
     private KVMessage updateKeyFrequency(String key, MapNode mapNode) {
+        LOGGER.debug("Updating frequency of key {}", key);
+
         final int currentIndex = mapNode.listIndex;
         final ListNode currentListNode = accessFrequencyList.get(currentIndex);
 
         currentListNode.incrementFrequency();
 
-        // Move forward in list, if updated frequency is higher than previous
         final ListIterator<ListNode> iterator = accessFrequencyList.listIterator(currentIndex);
         if (iterator.hasPrevious()) {
             final int previousIndex = iterator.previousIndex();
             final ListNode previousListNode = iterator.previous();
             if (previousListNode.accessFrequency < currentListNode.accessFrequency) {
+                LOGGER.debug("Moving key {} forward in list due to updated frequency", key);
                 accessFrequencyList.set(previousIndex, currentListNode);
                 accessFrequencyList.set(currentIndex, previousListNode);
                 keyNodeMap.get(currentListNode.key).listIndex = previousIndex;
@@ -95,21 +102,28 @@ public class LFUCache implements Cache {
     public synchronized KVMessage put(String key, String value) {
         Preconditions.notNull(key, "Key cannot be null");
         Preconditions.notNull(value, "Value cannot be null");
+        LOGGER.info("Trying to put key {} with value {}", key, value);
 
         return Optional.ofNullable(keyNodeMap.get(key))
-                .map(mapNode -> {
-                    mapNode.value = value;
-                    return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
-                })
+                .map(mapNode -> putPresentKey(key, value, mapNode))
                 .orElse(putAbsentKey(key, value));
     }
 
+    private KVMessage putPresentKey(String key, String value, MapNode mapNode) {
+        LOGGER.debug("Putting key {} with previously present value {} to value {}", key, mapNode.value, value);
+        mapNode.value = value;
+        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
+    }
+
     private KVMessageImpl putAbsentKey(String key, String value) {
+        LOGGER.debug("Putting key {} with previously absent value to value {}", key, value);
         if (accessFrequencyList.size() < maxEntries) {
+            LOGGER.debug("Putting key {} to value {} in non-full cache", key, value);
             keyNodeMap.put(key, new MapNode(value, accessFrequencyList.size()));
             accessFrequencyList.add(new ListNode(key));
         }
         else {
+            LOGGER.debug("Putting key {} to value {} in full cache", key, value);
             final int indexLFU = accessFrequencyList.size() - 1;
             keyNodeMap.remove(accessFrequencyList.get(indexLFU).key);
             keyNodeMap.put(key, new MapNode(value, indexLFU));

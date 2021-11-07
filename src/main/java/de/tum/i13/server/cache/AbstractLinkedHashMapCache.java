@@ -3,6 +3,8 @@ package de.tum.i13.server.cache;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Preconditions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -15,6 +17,8 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
         private final int maxEntries;
 
+        private static final Logger LOGGER = LogManager.getLogger(FixedSizeLinkedHashMap.class);
+
         private FixedSizeLinkedHashMap(int maxEntries, float loadFactor, boolean accessOrder) {
             super(maxEntries, loadFactor, accessOrder);
             this.maxEntries = maxEntries;
@@ -22,6 +26,8 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
         @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            LOGGER.debug("Check for eldest entry");
+
             return this.size() > maxEntries;
         }
 
@@ -42,9 +48,10 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     }
 
     private final FixedSizeLinkedHashMap<String, String> cache;
+    private static final Logger LOGGER = LogManager.getLogger(AbstractLinkedHashMapCache.class);
 
     protected AbstractLinkedHashMapCache(int size, boolean accessOrder) {
-        Preconditions.check(size > 0 , "Cache must have a size greater than 0");
+        Preconditions.check(size > 0, "Cache must have a size greater than 0");
 
         cache = new FixedSizeLinkedHashMap<>(size, 0.75f, accessOrder);
     }
@@ -53,6 +60,8 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     public KVMessage put(String key, String value) {
         Preconditions.notNull(key, "Key cannot be null");
         Preconditions.notNull(value, "Value cannot be null");
+        LOGGER.info("Trying to put key {} with value {}", key, value);
+
         cache.put(key, value);
         return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
     }
@@ -60,9 +69,11 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     @Override
     public KVMessage get(String key) {
         Preconditions.notNull(key, "Key cannot be null");
+        LOGGER.info("Trying to get value of key {}", key);
+
         return Optional.ofNullable(cache.get(key))
                 .map(value -> new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS))
-                .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
+                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
 
 }
