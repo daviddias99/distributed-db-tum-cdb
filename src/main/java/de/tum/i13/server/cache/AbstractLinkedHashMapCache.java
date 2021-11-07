@@ -38,7 +38,7 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
         return Optional.ofNullable(cache.get(key))
                 .map(value -> new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS))
-                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
+                .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
 
     private static class FixedSizeLinkedHashMap<K, V> extends LinkedHashMap<K, V> {

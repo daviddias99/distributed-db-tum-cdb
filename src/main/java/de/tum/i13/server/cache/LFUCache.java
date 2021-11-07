@@ -40,7 +40,7 @@ public class LFUCache implements Cache {
 
         return Optional.ofNullable(keyNodeMap.get(key))
                 .map(value -> updateKeyFrequency(key, value))
-                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
+                .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
 
     private KVMessage updateKeyFrequency(String key, MapNode mapNode) {
@@ -75,7 +75,7 @@ public class LFUCache implements Cache {
 
         return Optional.ofNullable(keyNodeMap.get(key))
                 .map(mapNode -> putPresentKey(key, value, mapNode))
-                .orElse(putAbsentKey(key, value));
+                .orElseGet(() -> putAbsentKey(key, value));
     }
 
     private KVMessage putPresentKey(String key, String value, MapNode mapNode) {
