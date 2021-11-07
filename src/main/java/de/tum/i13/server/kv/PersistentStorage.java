@@ -14,7 +14,7 @@ public interface PersistentStorage extends KVStore {
 
     /**
      * @param key {@inheritDoc} must not be null
-     * @throws PutException if the retrieval of the key fails
+     * @throws PutException if the putting of the key fails
      */
     @Override
     KVMessage put(String key, String value) throws PutException;
