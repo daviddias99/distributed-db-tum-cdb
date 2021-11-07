@@ -28,7 +28,7 @@ public interface KVMessage {
          */
         PUT_UPDATE(false),
         /**
-         * Put - request not successfu
+         * Put - request not successful
          */
         PUT_ERROR(false),
         /**

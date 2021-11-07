@@ -25,6 +25,7 @@ public class LFUCache implements Cache {
      * The maximum number of entries in this cache
      */
     private final int maxEntries;
+
     public LFUCache(int maxEntries) {
         Preconditions.check(maxEntries > 0, "Cache must have a size greater than 0");
 
@@ -100,7 +101,7 @@ public class LFUCache implements Cache {
             iterator.next();
             while (iterator.hasNext()) {
                 final int nextIndex = iterator.nextIndex();
-                accessFrequencyList.set(nextIndex-1, accessFrequencyList.get(nextIndex));
+                accessFrequencyList.set(nextIndex - 1, accessFrequencyList.get(nextIndex));
                 keyNodeMap.get(accessFrequencyList.get(nextIndex - 1).key).listIndex = nextIndex - 1;
                 iterator.next();
             }
