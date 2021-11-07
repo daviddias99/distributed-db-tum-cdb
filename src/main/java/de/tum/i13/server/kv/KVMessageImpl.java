@@ -2,6 +2,9 @@ package de.tum.i13.server.kv;
 
 import de.tum.i13.shared.Preconditions;
 
+/**
+ * Basic data class implementation of {@link KVMessage}
+ */
 public class KVMessageImpl implements KVMessage {
 
     private final String key;

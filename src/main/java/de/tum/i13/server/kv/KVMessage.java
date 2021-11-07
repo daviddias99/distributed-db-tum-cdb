@@ -1,7 +1,13 @@
 package de.tum.i13.server.kv;
 
+/**
+ * A message that is interchanged between a {@link KVStore} and a caller
+ */
 public interface KVMessage {
 
+    /**
+     * The type and status of the {@link KVMessage}
+     */
     enum StatusType {
         /**
          * Get - request
@@ -50,6 +56,11 @@ public interface KVMessage {
             this.canHavEmptyValue = canHavEmptyValue;
         }
 
+        /**
+         * Check if this type of {@link KVMessage} can have an empty value
+         *
+         * @return if it can have an empty value
+         */
         public boolean canHaveEmptyValue() {
             return this.canHavEmptyValue;
         }
