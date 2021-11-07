@@ -43,7 +43,7 @@ public class CachedPersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public KVMessage put(String key, String value) throws PutException {
+    public synchronized KVMessage put(String key, String value) throws PutException {
         Preconditions.notNull(key, "Key cannot be null");
         LOGGER.info("Trying to put key {} with value {}", key, value);
 
@@ -68,7 +68,7 @@ public class CachedPersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public KVMessage get(String key) throws GetException {
+    public synchronized KVMessage get(String key) throws GetException {
         Preconditions.notNull(key, "Key cannot be null");
         LOGGER.info("Trying to get value of key {}", key);
 

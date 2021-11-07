@@ -33,7 +33,7 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     }
 
     @Override
-    public KVMessage put(String key, String value) {
+    public synchronized KVMessage put(String key, String value) {
         Preconditions.notNull(key, "Key cannot be null");
         LOGGER.info("Trying to put key {} with value {}", key, value);
 
@@ -55,7 +55,7 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     }
 
     @Override
-    public KVMessage get(String key) {
+    public synchronized KVMessage get(String key) {
         Preconditions.notNull(key, "Key cannot be null");
         LOGGER.info("Trying to get value of key {}", key);
 
