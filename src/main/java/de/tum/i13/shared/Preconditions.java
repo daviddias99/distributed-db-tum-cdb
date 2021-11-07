@@ -5,6 +5,8 @@ import java.util.function.Supplier;
 
 /**
  * Preconditions which can be used to validate the argument passed to methods.
+ *
+ * Taken from a different university project.
  */
 public final class Preconditions {
     

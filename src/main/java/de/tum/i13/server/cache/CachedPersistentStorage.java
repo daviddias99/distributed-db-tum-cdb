@@ -14,9 +14,9 @@ public class CachedPersistentStorage implements KVStore {
     private final PersistentStorage persistentStorage;
 
     public CachedPersistentStorage(PersistentStorage persistentStorage, CachingStrategy cachingStrategy, int cacheSize) {
-        Preconditions.notNull(persistentStorage);
-        Preconditions.notNull(cachingStrategy);
-        Preconditions.check(cacheSize > 0);
+        Preconditions.notNull(persistentStorage, "Persistent storage cannot be null");
+        Preconditions.notNull(cachingStrategy, "Caching strategy cannot be null");
+        Preconditions.check(cacheSize > 0, "Cache size must be greater than 0");
 
         this.persistentStorage = persistentStorage;
         this.cache = switch (cachingStrategy) {
@@ -28,8 +28,8 @@ public class CachedPersistentStorage implements KVStore {
 
     @Override
     public KVMessage put(String key, String value) throws PutException {
-        Preconditions.notNull(key);
-        Preconditions.notNull(value);
+        Preconditions.notNull(key, "Key cannot be null");
+        Preconditions.notNull(value, "Value cannot be null");
 
         try {
             persistentStorage.put(key, value);
@@ -47,7 +47,7 @@ public class CachedPersistentStorage implements KVStore {
 
     @Override
     public KVMessage get(String key) throws GetException {
-        Preconditions.notNull(key);
+        Preconditions.notNull(key, "Key cannot be null");
 
         final KVMessage cacheResponse = cache.get(key);
         final KVMessage.StatusType cacheGetStatus = cacheResponse.getStatus();

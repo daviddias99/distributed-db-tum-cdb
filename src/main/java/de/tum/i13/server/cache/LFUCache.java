@@ -53,7 +53,7 @@ public class LFUCache implements Cache {
     private final int maxEntries;
 
     public LFUCache(int maxEntries) {
-        Preconditions.check(maxEntries > 0);
+        Preconditions.check(maxEntries > 0, "Cache must have a size greater than 0");
 
         this.keyNodeMap = new HashMap<>(maxEntries);
         this.accessFrequencyList = new ArrayList<>(maxEntries);
@@ -63,6 +63,7 @@ public class LFUCache implements Cache {
     @Override
     public synchronized KVMessage get(String key) {
         Preconditions.notNull(key);
+        Preconditions.notNull(key, "Key cannot be null");
 
         final Optional<MapNode> optValue = Optional.ofNullable(keyNodeMap.get(key));
         if (optValue.isEmpty()) {
@@ -95,7 +96,8 @@ public class LFUCache implements Cache {
     @Override
     public synchronized KVMessage put(String key, String value) {
         Preconditions.notNull(key);
-        Preconditions.notNull(value);
+        Preconditions.notNull(key, "Key cannot be null");
+        Preconditions.notNull(value, "Value cannot be null");
 
         final Optional<MapNode> optMapNode = Optional.ofNullable(keyNodeMap.get(key));
 
