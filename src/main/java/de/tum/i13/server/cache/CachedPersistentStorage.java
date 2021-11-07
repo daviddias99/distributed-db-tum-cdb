@@ -5,6 +5,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,13 +46,14 @@ public class CachedPersistentStorage implements PersistentStorage {
                     .map(newValue -> new KVMessageImpl(key, newValue, KVMessage.StatusType.PUT_SUCCESS))
                     .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS));
         } catch (Exception exception) {
-            LOGGER.error("Could not put key {} with value {} in persistent storage", key, value);
-            throw new PutException(
+            final PutException putException = new PutException(
                     exception,
                     "Could not put key %s with value %s into persistent storage",
                     key,
                     value
             );
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw putException;
         }
     }
 
@@ -68,12 +70,13 @@ public class CachedPersistentStorage implements PersistentStorage {
         } else if (cacheGetStatus == KVMessage.StatusType.GET_ERROR) {
             return handleCacheMiss(key);
         } else {
-            LOGGER.error("Cache returned unprocessable status code {} while getting key {}", cacheGetStatus, key);
-            throw new GetException(
+            final GetException getException = new GetException(
                     "Cache returned unprocessable status code %s while getting key %s",
                     cacheGetStatus,
                     key
             );
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
+            throw getException;
         }
     }
 
@@ -90,21 +93,22 @@ public class CachedPersistentStorage implements PersistentStorage {
                 LOGGER.debug("Did not found key {} in persistent storage", key);
                 return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
             } else {
-                LOGGER.error("Persistent storage returned unprocessable status code {} while getting key {}",
-                        storageStatus, key);
-                throw new GetException(
+                final GetException getException = new GetException(
                         "Persistent storage returned unprocessable status code %s while getting key %s",
                         storageStatus,
                         key
                 );
+                LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
+                throw getException;
             }
         } catch (GetException exception) {
-            LOGGER.error("Could not get key {} from persistent storage", key);
-            throw new GetException(
+            final GetException getException = new GetException(
                     exception,
                     "Could not get key %s from persistent storage",
                     key
             );
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
+            throw getException;
         }
     }
 
@@ -116,14 +120,14 @@ public class CachedPersistentStorage implements PersistentStorage {
             LOGGER.debug("Successfully updated cache with key {} and value {}", key, storageValue);
             return new KVMessageImpl(key, storageValue, KVMessage.StatusType.GET_SUCCESS);
         } else {
-            LOGGER.error("Cache returned unprocessable status code {} while putting key {} with value {}",
-                    cachePutStatus, key, storageValue);
-            throw new GetException(
+            final GetException getException = new GetException(
                     "Cache returned unprocessable status code %s while putting key %s with value %s",
                     cachePutStatus,
                     key,
                     storageValue
             );
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
+            throw getException;
         }
     }
 
