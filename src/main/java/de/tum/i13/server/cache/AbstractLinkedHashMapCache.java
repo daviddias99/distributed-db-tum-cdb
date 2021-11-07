@@ -13,11 +13,38 @@ import java.util.Optional;
 
 public abstract class AbstractLinkedHashMapCache implements Cache {
 
+    private static final Logger LOGGER = LogManager.getLogger(AbstractLinkedHashMapCache.class);
+    private final FixedSizeLinkedHashMap<String, String> cache;
+    protected AbstractLinkedHashMapCache(int size, boolean accessOrder) {
+        Preconditions.check(size > 0, "Cache must have a size greater than 0");
+
+        cache = new FixedSizeLinkedHashMap<>(size, 0.75f, accessOrder);
+    }
+
+    @Override
+    public KVMessage put(String key, String value) {
+        Preconditions.notNull(key, "Key cannot be null");
+        Preconditions.notNull(value, "Value cannot be null");
+        LOGGER.info("Trying to put key {} with value {}", key, value);
+
+        cache.put(key, value);
+        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+    }
+
+    @Override
+    public KVMessage get(String key) {
+        Preconditions.notNull(key, "Key cannot be null");
+        LOGGER.info("Trying to get value of key {}", key);
+
+        return Optional.ofNullable(cache.get(key))
+                .map(value -> new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS))
+                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
+    }
+
     private static class FixedSizeLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
 
-        private final int maxEntries;
-
         private static final Logger LOGGER = LogManager.getLogger(FixedSizeLinkedHashMap.class);
+        private final int maxEntries;
 
         private FixedSizeLinkedHashMap(int maxEntries, float loadFactor, boolean accessOrder) {
             super(maxEntries, loadFactor, accessOrder);
@@ -45,35 +72,6 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
             return Objects.hash(super.hashCode(), maxEntries);
         }
 
-    }
-
-    private final FixedSizeLinkedHashMap<String, String> cache;
-    private static final Logger LOGGER = LogManager.getLogger(AbstractLinkedHashMapCache.class);
-
-    protected AbstractLinkedHashMapCache(int size, boolean accessOrder) {
-        Preconditions.check(size > 0, "Cache must have a size greater than 0");
-
-        cache = new FixedSizeLinkedHashMap<>(size, 0.75f, accessOrder);
-    }
-
-    @Override
-    public KVMessage put(String key, String value) {
-        Preconditions.notNull(key, "Key cannot be null");
-        Preconditions.notNull(value, "Value cannot be null");
-        LOGGER.info("Trying to put key {} with value {}", key, value);
-
-        cache.put(key, value);
-        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
-    }
-
-    @Override
-    public KVMessage get(String key) {
-        Preconditions.notNull(key, "Key cannot be null");
-        LOGGER.info("Trying to get value of key {}", key);
-
-        return Optional.ofNullable(cache.get(key))
-                .map(value -> new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS))
-                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
 
 }

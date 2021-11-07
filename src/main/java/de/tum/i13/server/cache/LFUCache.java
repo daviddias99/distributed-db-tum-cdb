@@ -15,35 +15,7 @@ import java.util.Optional;
 
 public class LFUCache implements Cache {
 
-    private static class MapNode {
-
-        private String value;
-        private int listIndex;
-
-        private MapNode(String value, int listIndex) {
-            this.value = value;
-            this.listIndex = listIndex;
-        }
-
-    }
-
-    private static class ListNode {
-
-        private final String key;
-        private int accessFrequency;
-
-        private ListNode(String key) {
-            this.key = key;
-            this.accessFrequency = 0;
-        }
-
-        private void incrementFrequency() {
-            this.accessFrequency++;
-        }
-
-    }
-
-
+    private static final Logger LOGGER = LogManager.getLogger(LFUCache.class);
     private final Map<String, MapNode> keyNodeMap;
     /**
      * List sorted in descending order according to access frequency
@@ -53,9 +25,6 @@ public class LFUCache implements Cache {
      * The maximum number of entries in this cache
      */
     private final int maxEntries;
-
-    private static final Logger LOGGER = LogManager.getLogger(LFUCache.class);
-
     public LFUCache(int maxEntries) {
         Preconditions.check(maxEntries > 0, "Cache must have a size greater than 0");
 
@@ -121,8 +90,7 @@ public class LFUCache implements Cache {
             LOGGER.debug("Putting key {} to value {} in non-full cache", key, value);
             keyNodeMap.put(key, new MapNode(value, accessFrequencyList.size()));
             accessFrequencyList.add(new ListNode(key));
-        }
-        else {
+        } else {
             LOGGER.debug("Putting key {} to value {} in full cache", key, value);
             final int indexLFU = accessFrequencyList.size() - 1;
             keyNodeMap.remove(accessFrequencyList.get(indexLFU).key);
@@ -135,6 +103,34 @@ public class LFUCache implements Cache {
     @Override
     public CachingStrategy getCachingStrategy() {
         return CachingStrategy.LFU;
+    }
+
+    private static class MapNode {
+
+        private String value;
+        private int listIndex;
+
+        private MapNode(String value, int listIndex) {
+            this.value = value;
+            this.listIndex = listIndex;
+        }
+
+    }
+
+    private static class ListNode {
+
+        private final String key;
+        private int accessFrequency;
+
+        private ListNode(String key) {
+            this.key = key;
+            this.accessFrequency = 0;
+        }
+
+        private void incrementFrequency() {
+            this.accessFrequency++;
+        }
+
     }
 
 }

@@ -12,9 +12,9 @@ import org.apache.logging.log4j.Logger;
 
 public class CachedPersistentStorage implements KVStore {
 
+    private static final Logger LOGGER = LogManager.getLogger(CachedPersistentStorage.class);
     private final Cache cache;
     private final PersistentStorage persistentStorage;
-    private static final Logger LOGGER = LogManager.getLogger(CachedPersistentStorage.class);
 
     public CachedPersistentStorage(PersistentStorage persistentStorage, CachingStrategy cachingStrategy,
                                    int cacheSize) {
