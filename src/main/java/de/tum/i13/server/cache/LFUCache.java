@@ -62,62 +62,60 @@ public class LFUCache implements Cache {
 
     @Override
     public synchronized KVMessage get(String key) {
-        Preconditions.notNull(key);
         Preconditions.notNull(key, "Key cannot be null");
 
-        final Optional<MapNode> optValue = Optional.ofNullable(keyNodeMap.get(key));
-        if (optValue.isEmpty()) {
-            return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
-        }
-        else {
-            final MapNode mapNode = optValue.get();
+        return Optional.ofNullable(keyNodeMap.get(key))
+                .map(value -> updateKeyFrequency(key, value))
+                .orElse(new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
+    }
 
-            final int currentIndex = mapNode.listIndex;
-            final ListNode currentListNode = accessFrequencyList.get(currentIndex);
+    private KVMessage updateKeyFrequency(String key, MapNode mapNode) {
+        final int currentIndex = mapNode.listIndex;
+        final ListNode currentListNode = accessFrequencyList.get(currentIndex);
 
-            currentListNode.incrementFrequency();
+        currentListNode.incrementFrequency();
 
-            final ListIterator<ListNode> iterator = accessFrequencyList.listIterator(currentIndex);
-            if (iterator.hasPrevious()) {
-                final int previousIndex = iterator.previousIndex();
-                final ListNode previousListNode = iterator.previous();
-                if (previousListNode.accessFrequency < currentListNode.accessFrequency) {
-                    accessFrequencyList.set(previousIndex, currentListNode);
-                    accessFrequencyList.set(currentIndex, previousListNode);
-                    keyNodeMap.get(currentListNode.key).listIndex = previousIndex;
-                    keyNodeMap.get(previousListNode.key).listIndex = currentIndex;
-                }
+        // Move forward in list, if updated frequency is higher than previous
+        final ListIterator<ListNode> iterator = accessFrequencyList.listIterator(currentIndex);
+        if (iterator.hasPrevious()) {
+            final int previousIndex = iterator.previousIndex();
+            final ListNode previousListNode = iterator.previous();
+            if (previousListNode.accessFrequency < currentListNode.accessFrequency) {
+                accessFrequencyList.set(previousIndex, currentListNode);
+                accessFrequencyList.set(currentIndex, previousListNode);
+                keyNodeMap.get(currentListNode.key).listIndex = previousIndex;
+                keyNodeMap.get(previousListNode.key).listIndex = currentIndex;
             }
-
-            return new KVMessageImpl(key, mapNode.value, KVMessage.StatusType.GET_SUCCESS);
         }
+
+        return new KVMessageImpl(key, mapNode.value, KVMessage.StatusType.GET_SUCCESS);
     }
 
     @Override
     public synchronized KVMessage put(String key, String value) {
-        Preconditions.notNull(key);
         Preconditions.notNull(key, "Key cannot be null");
         Preconditions.notNull(value, "Value cannot be null");
 
-        final Optional<MapNode> optMapNode = Optional.ofNullable(keyNodeMap.get(key));
+        return Optional.ofNullable(keyNodeMap.get(key))
+                .map(mapNode -> {
+                    mapNode.value = value;
+                    return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
+                })
+                .orElse(putAbsentKey(key, value));
+    }
 
-        if (optMapNode.isPresent()) {
-            optMapNode.get().value = value;
-            return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
+    private KVMessageImpl putAbsentKey(String key, String value) {
+        if (accessFrequencyList.size() < maxEntries) {
+            keyNodeMap.put(key, new MapNode(value, accessFrequencyList.size()));
+            accessFrequencyList.add(new ListNode(key));
         }
         else {
-            if (accessFrequencyList.size() < maxEntries) {
-                keyNodeMap.put(key, new MapNode(value, accessFrequencyList.size()));
-                accessFrequencyList.add(new ListNode(key));
-            }
-            else {
-                final int indexWithLeastAccesses = accessFrequencyList.size() - 1;
-                keyNodeMap.remove(accessFrequencyList.get(indexWithLeastAccesses).key);
-                keyNodeMap.put(key, new MapNode(value, indexWithLeastAccesses));
-                accessFrequencyList.set(indexWithLeastAccesses, new ListNode(key));
-            }
-            return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+            final int indexLFU = accessFrequencyList.size() - 1;
+            keyNodeMap.remove(accessFrequencyList.get(indexLFU).key);
+            keyNodeMap.put(key, new MapNode(value, indexLFU));
+            accessFrequencyList.set(indexLFU, new ListNode(key));
         }
+        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
     }
 
     @Override
