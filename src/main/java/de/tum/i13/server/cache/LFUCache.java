@@ -13,6 +13,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A {@link Cache} with the {@link CachingStrategy} {@link CachingStrategy#LFU}
+ */
 public class LFUCache implements Cache {
 
     private static final Logger LOGGER = LogManager.getLogger(LFUCache.class);
@@ -24,14 +27,19 @@ public class LFUCache implements Cache {
     /**
      * The maximum number of entries in this cache
      */
-    private final int maxEntries;
+    private final int size;
 
-    public LFUCache(int maxEntries) {
-        Preconditions.check(maxEntries > 0, "Cache must have a size greater than 0");
+    /**
+     * Constructs a cache with the given size
+     *
+     * @param size the size of the cache, must be greater than 0
+     */
+    public LFUCache(int size) {
+        Preconditions.check(size > 0, "Cache must have a size greater than 0");
 
-        this.keyNodeMap = new HashMap<>(maxEntries);
-        this.accessFrequencyList = new ArrayList<>(maxEntries);
-        this.maxEntries = maxEntries;
+        this.keyNodeMap = new HashMap<>(size);
+        this.accessFrequencyList = new ArrayList<>(size);
+        this.size = size;
     }
 
     @Override
@@ -119,7 +127,7 @@ public class LFUCache implements Cache {
 
     private KVMessageImpl putAbsentKey(String key, String value) {
         LOGGER.debug("Putting key {} with previously absent value to value {}", key, value);
-        if (accessFrequencyList.size() < maxEntries) {
+        if (accessFrequencyList.size() < size) {
             LOGGER.debug("Putting key {} to value {} in non-full cache", key, value);
             keyNodeMap.put(key, new MapNode(value, accessFrequencyList.size()));
             accessFrequencyList.add(new ListNode(key));

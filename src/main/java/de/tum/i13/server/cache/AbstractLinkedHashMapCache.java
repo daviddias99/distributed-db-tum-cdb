@@ -11,15 +11,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * A {@link Cache} that uses as {@link LinkedHashMap} at its base.
+ */
 public abstract class AbstractLinkedHashMapCache implements Cache {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractLinkedHashMapCache.class);
     private final FixedSizeLinkedHashMap<String, String> cache;
 
-    protected AbstractLinkedHashMapCache(int size, boolean accessOrder) {
+    /**
+     * Constructs an empty cache with the given size and {@link CachingStrategy}
+     *
+     * @param size            the size of the cache, must be greater than 0
+     * @param cachingStrategy the caching strategy - true for {@link CachingStrategy#LRU}, false for
+     * {@link CachingStrategy#FIFO}
+     */
+    protected AbstractLinkedHashMapCache(int size, boolean cachingStrategy) {
         Preconditions.check(size > 0, "Cache must have a size greater than 0");
 
-        cache = new FixedSizeLinkedHashMap<>(size, 0.75f, accessOrder);
+        cache = new FixedSizeLinkedHashMap<>(size, 0.75f, cachingStrategy);
     }
 
     @Override

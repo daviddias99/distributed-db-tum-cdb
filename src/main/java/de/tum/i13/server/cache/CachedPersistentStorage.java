@@ -12,12 +12,22 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 
+/**
+ * A persistent storage with a cache layer in front of the storage
+ */
 public class CachedPersistentStorage implements PersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(CachedPersistentStorage.class);
     private final Cache cache;
     private final PersistentStorage persistentStorage;
 
+    /**
+     * Constructs a new storage with the given storage and caching configuration
+     *
+     * @param persistentStorage the {@link PersistentStorage} to use as a backend, must not be null
+     * @param cachingStrategy the {@link CachingStrategy} to use, most not be null
+     * @param cacheSize the size of the cache, must be greater than 0
+     */
     public CachedPersistentStorage(PersistentStorage persistentStorage, CachingStrategy cachingStrategy,
                                    int cacheSize) {
         Preconditions.notNull(persistentStorage, "Persistent storage cannot be null");

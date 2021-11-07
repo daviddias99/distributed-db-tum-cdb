@@ -1,5 +1,8 @@
 package de.tum.i13.server.kv;
 
+/**
+ * A checked {@link Exception} thrown when getting a key from a {@link PersistentStorage} fails
+ */
 public class GetException extends KVException {
 
     /**

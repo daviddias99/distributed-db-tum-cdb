@@ -1,5 +1,8 @@
 package de.tum.i13.server.kv;
 
+/**
+ * A checked {@link Exception} thrown when putting a key with a value in a {@link PersistentStorage} fails
+ */
 public class PutException extends KVException {
 
     /**
