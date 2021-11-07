@@ -70,12 +70,44 @@ public class LFUCache implements Cache {
     @Override
     public synchronized KVMessage put(String key, String value) {
         Preconditions.notNull(key, "Key cannot be null");
-        Preconditions.notNull(value, "Value cannot be null");
         LOGGER.info("Trying to put key {} with value {}", key, value);
 
+        return Optional.ofNullable(value)
+                .map(newValue -> putKeyToValue(key, newValue))
+                .orElseGet(() -> deleteKey(key));
+
+    }
+
+    private KVMessage putKeyToValue(String key, String value) {
+        LOGGER.debug("Putting key {} to value {}", key, value);
         return Optional.ofNullable(keyNodeMap.get(key))
                 .map(mapNode -> putPresentKey(key, value, mapNode))
                 .orElseGet(() -> putAbsentKey(key, value));
+    }
+
+    private KVMessage deleteKey(String key) {
+        LOGGER.debug("Deleting key {}", key);
+
+        final Optional<MapNode> optMapNode = Optional.ofNullable(keyNodeMap.get(key));
+        if (optMapNode.isEmpty()) {
+            LOGGER.debug("Cannot delete absent key {}", key);
+            return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+        } else {
+            final MapNode mapNode = optMapNode.get();
+            LOGGER.debug("Deleting key {} with previous value {}", key, mapNode.value);
+            keyNodeMap.remove(key);
+            final ListIterator<ListNode> iterator = accessFrequencyList.listIterator(mapNode.listIndex);
+            iterator.next();
+            while (iterator.hasNext()) {
+                final int nextIndex = iterator.nextIndex();
+                accessFrequencyList.set(nextIndex-1, accessFrequencyList.get(nextIndex));
+                keyNodeMap.get(accessFrequencyList.get(nextIndex - 1).key).listIndex = nextIndex - 1;
+                iterator.next();
+            }
+            iterator.remove();
+            return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
+        }
+
     }
 
     private KVMessage putPresentKey(String key, String value, MapNode mapNode) {
