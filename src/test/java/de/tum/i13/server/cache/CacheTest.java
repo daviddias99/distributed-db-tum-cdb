@@ -14,7 +14,7 @@ abstract class CacheTest {
     abstract Cache getCache(int size);
 
     @Test
-    void displaceKeyWhenFull() {
+    void displacesKeyWhenFull() {
         final Cache cache = getCache(3);
 
         for (int i = 0; i < 4; i++) {
@@ -35,6 +35,49 @@ abstract class CacheTest {
                         kvMessage -> assertThat(kvMessage.getKey()).isEqualTo("key2")
                 ).extracting(KVMessage::getValue)
                 .isNull();
+    }
+
+
+    @Test
+    void putReturnsCorrectKeysAndValues() {
+        final Cache cache = getCache(5);
+        assertThat(cache.put("myKey", "myValue"))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "myKey",
+                        "myValue",
+                        KVMessage.StatusType.PUT_SUCCESS
+                );
+        assertThat(cache.put("myKey2", "myValue2"))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "myKey2",
+                        "myValue2",
+                        KVMessage.StatusType.PUT_SUCCESS
+                );
+    }
+
+    @Test
+    void getReturnsCorrectKeysAndValues() {
+        final Cache cache = getCache(4);
+        cache.put("myKey", "myValue");
+        cache.put("myKey2", "myValue2");
+        assertThat(cache.get("myKey"))
+                .extracting(
+                        KVMessage::getKey,
+                        KVMessage::getValue,
+                        KVMessage::getStatus
+                ).containsExactly(
+                        "myKey",
+                        "myValue",
+                        KVMessage.StatusType.GET_SUCCESS
+                );
     }
 
     @Test
