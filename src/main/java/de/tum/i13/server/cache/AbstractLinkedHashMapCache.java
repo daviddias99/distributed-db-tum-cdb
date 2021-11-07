@@ -28,12 +28,12 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
         LOGGER.info("Trying to put key {} with value {}", key, value);
 
         return Optional.ofNullable(value)
-                .map(newValue -> putKey(key, newValue))
+                .map(newValue -> putKeyToValue(key, newValue))
                 .orElseGet(() -> deleteKey(key));
     }
 
-    private KVMessage putKey(String key, String value) {
-        LOGGER.debug("Setting key {} to value {}", key, value);
+    private KVMessage putKeyToValue(String key, String value) {
+        LOGGER.debug("Putting key {} to value {}", key, value);
         cache.put(key, value);
         return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
     }
