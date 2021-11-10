@@ -47,6 +47,7 @@ hs_err_pid*
 # Java related
 .classpath
 .project
+.factorypath
 
 # IDE related
 .settings
