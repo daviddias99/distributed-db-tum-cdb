@@ -94,7 +94,7 @@ public class CachedPersistentStorage implements PersistentStorage {
                 throw putException;
             }
             // Note that if an error happens the cache and the storage might diverge from each other
-            if (cacheStatus == StatusType.PUT_ERROR) return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
+            else if (cacheStatus == StatusType.PUT_ERROR) return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
             else return new KVMessageImpl(key, value, storageStatus);
         }
     }
@@ -109,6 +109,8 @@ public class CachedPersistentStorage implements PersistentStorage {
             );
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
             throw putException;
+        } else if (storageStatus == StatusType.DELETE_ERROR) {
+            return new KVMessageImpl(key, StatusType.DELETE_ERROR);
         } else {
             final StatusType cacheStatus = cache.put(key, null).getStatus();
             if (cacheStatus != StatusType.DELETE_SUCCESS && cacheStatus != StatusType.DELETE_ERROR) {
@@ -119,9 +121,9 @@ public class CachedPersistentStorage implements PersistentStorage {
                 );
                 LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
                 throw putException;
-            } else {
-                return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
             }
+            else if (cacheStatus == StatusType.DELETE_ERROR) return new KVMessageImpl(key, StatusType.DELETE_ERROR);
+            else return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
         }
     }
 

@@ -99,8 +99,7 @@ public class LFUCache implements Cache {
 
         final Optional<MapNode> optMapNode = Optional.ofNullable(keyNodeMap.get(key));
         if (optMapNode.isEmpty()) {
-            LOGGER.debug("Cannot delete absent key {}", key);
-            return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+            LOGGER.debug("Skipping deleting already absent key {}", key);
         } else {
             final MapNode mapNode = optMapNode.get();
             LOGGER.debug("Deleting key {} with previous value {}", key, mapNode.value);
@@ -114,8 +113,8 @@ public class LFUCache implements Cache {
                 iterator.next();
             }
             iterator.remove();
-            return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
         }
+        return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
 
     }
 
