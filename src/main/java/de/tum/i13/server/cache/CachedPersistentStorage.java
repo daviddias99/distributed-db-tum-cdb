@@ -66,6 +66,9 @@ public class CachedPersistentStorage implements PersistentStorage {
         }
     }
 
+    /**
+     * Updates the key in the cache with an actual present value based on the response status of the storage
+     */
     private KVMessage finalizePuttingKeyToValue(String key, String value, StatusType storageStatus) throws PutException {
         LOGGER.debug("Putting key {} to value {}", key, value);
         final Set<StatusType> permittedStatuses = Set.of(StatusType.PUT_UPDATE, StatusType.PUT_SUCCESS,
@@ -99,6 +102,9 @@ public class CachedPersistentStorage implements PersistentStorage {
         }
     }
 
+    /**
+     * Deletes a key in the cache because of an absent value based on the response status of the storage
+     */
     private KVMessageImpl finalizeDeletingKey(String key, StatusType storageStatus) throws PutException {
         LOGGER.debug("Deleting key {}", key);
         if (storageStatus != StatusType.DELETE_SUCCESS && storageStatus != StatusType.DELETE_ERROR) {
@@ -150,6 +156,9 @@ public class CachedPersistentStorage implements PersistentStorage {
         }
     }
 
+    /**
+     * Tries to get a key from the storage after a cache miss
+     */
     private KVMessage handleCacheMiss(String key) throws GetException {
         LOGGER.debug("Handling cache miss of key {}", key);
         try {
@@ -182,6 +191,9 @@ public class CachedPersistentStorage implements PersistentStorage {
         }
     }
 
+    /**
+     * Updates the cache with a value from the storage after a cache miss
+     */
     private KVMessage updateCache(String key, String storageValue) throws GetException {
         LOGGER.debug("Updating cache with key {} and value {}", key, storageValue);
         final KVMessage cachePutResponse = cache.put(key, storageValue);

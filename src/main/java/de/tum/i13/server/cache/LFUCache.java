@@ -19,6 +19,9 @@ import java.util.Optional;
 public class LFUCache implements Cache {
 
     private static final Logger LOGGER = LogManager.getLogger(LFUCache.class);
+    /**
+     * Map of keys to nodes storing information about value and index in access frequency list
+     */
     private final Map<String, MapNode> keyNodeMap;
     /**
      * List sorted in descending order according to access frequency
@@ -87,6 +90,9 @@ public class LFUCache implements Cache {
 
     }
 
+    /**
+     * Updates the key in the cache with an actual present value
+     */
     private KVMessage putKeyToValue(String key, String value) {
         LOGGER.debug("Putting key {} to value {}", key, value);
         return Optional.ofNullable(keyNodeMap.get(key))
@@ -94,6 +100,10 @@ public class LFUCache implements Cache {
                 .orElseGet(() -> putAbsentKey(key, value));
     }
 
+    /**
+     * Deletes a key in the cache because of an absent value
+     * Shifts all the keys following the key to delete in the frequency list one position to the left
+     */
     private KVMessage deleteKey(String key) {
         LOGGER.debug("Deleting key {}", key);
 
@@ -118,12 +128,19 @@ public class LFUCache implements Cache {
 
     }
 
+    /**
+     * Updates a key in the cache, if the key was already present
+     */
     private KVMessage putPresentKey(String key, String value, MapNode mapNode) {
         LOGGER.debug("Putting key {} with previously present value {} to value {}", key, mapNode.value, value);
         mapNode.value = value;
         return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
     }
 
+    /**
+     * Updates a key in the cache, if it was not present before
+     * Replaces the key last in the list, if the cache was already full, otherwise is appended to end
+     */
     private KVMessageImpl putAbsentKey(String key, String value) {
         LOGGER.debug("Putting key {} with previously absent value to value {}", key, value);
         if (accessFrequencyList.size() < size) {
