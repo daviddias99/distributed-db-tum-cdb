@@ -47,7 +47,8 @@ public class Shell {
 
         final CLICommands commands = new CLICommands();
         PicocliCommands.PicocliCommandsFactory factory = new PicocliCommands.PicocliCommandsFactory();
-        final CommandLine cmd = new CommandLine(commands, factory);
+        final CommandLine cmd = new CommandLine(commands, factory)
+                .setExecutionExceptionHandler(new ClientExceptionHandler());
         final PicocliCommands picocliCommands = new PicocliCommands(cmd);
 
         Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
@@ -71,11 +72,13 @@ public class Shell {
                     .variable(LineReader.LIST_MAX, 50)   // max tab completion candidates
                     .build();
             builtins.setLineReader(reader);
-            commands.setLineReader(reader);
+            final PrintWriter writer = reader.getTerminal().writer();
+            commands.setWriter(writer);
+            cmd.setOut(writer);
 
             // User input loop
             boolean quit = false;
-            while (!quit) quit = processLine(systemRegistry, reader);
+            while (!quit) quit = processLine(systemRegistry, reader, writer);
         } catch (Exception exception) {
             LOGGER.fatal("Caught exception", exception);
         } finally {
@@ -83,14 +86,14 @@ public class Shell {
         }
     }
 
-    private static boolean processLine(SystemRegistry systemRegistry, LineReader reader) {
+    private static boolean processLine(SystemRegistry systemRegistry, LineReader reader, PrintWriter writer) {
         boolean quit = false;
         try {
             systemRegistry.cleanUp();
             String line = reader.readLine(Constants.PROMPT);
             systemRegistry.execute(line);
         } catch (UnknownCommandException exception) {
-            reader.getTerminal().writer().println("Unknown command");
+            writer.println("Unknown command");
             try {
                 systemRegistry.execute("help");
             } catch (Exception e) {
@@ -105,6 +108,27 @@ public class Shell {
             systemRegistry.trace(exception);
         }
         return quit;
+    }
+
+    /**
+     * Handles a {@link ClientException}
+     */
+    private static class ClientExceptionHandler implements CommandLine.IExecutionExceptionHandler {
+
+        @Override
+        public int handleExecutionException(Exception ex, CommandLine commandLine,
+                                            CommandLine.ParseResult parseResult) throws Exception {
+            if (ex instanceof ClientException) {
+                final ClientException exception = (ClientException) ex;
+                LOGGER.error("Exception type: {}. Exception reason: {}", exception.getType(), exception.getReason());
+                commandLine.getOut().printf("Error: %s%n", exception.getReason());
+                return 0;
+            } else {
+                LOGGER.fatal("Caught unexpected exception", ex);
+                throw ex;
+            }
+        }
+
     }
 
     @Command(name = "",
@@ -130,8 +154,8 @@ public class Shell {
             client = new EchoClient();
         }
 
-        private void setLineReader(LineReader reader) {
-            out = reader.getTerminal().writer();
+        private void setWriter(PrintWriter writer) {
+            out = writer;
         }
 
     }
@@ -329,18 +353,6 @@ public class Shell {
             return 0;
         }
 
-    }
-
-    // TODO Handle client exceptions
-    /**
-     * Handles a {@link ClientException}
-     *
-     * @param e the exception to handle
-     */
-    private void handleClientException(ClientException e) {
-        LOGGER.error("Exception type: {}. Exception reason: {}", e.getType(), e.getReason());
-        //TODO Figure out which error message to print to console & when
-        System.out.println(Constants.PROMPT + "Error: " + e.getReason());
     }
 
 }
