@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.spi.StandardLevel;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -24,6 +23,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.TypeConversionException;
 import picocli.shell.jline3.PicocliCommands;
 
 import java.io.PrintWriter;
@@ -78,7 +78,8 @@ public class Shell {
             builtins.setLineReader(reader);
             final PrintWriter writer = reader.getTerminal().writer();
             commands.setWriter(writer);
-            cmd.setOut(writer);
+            cmd.setOut(writer)
+                    .setErr(writer);
 
             // User input loop
             boolean quit = false;
@@ -300,6 +301,7 @@ public class Shell {
                 description = "The desired log level. Valid values: ${COMPLETION-CANDIDATES}"
         )
         private Level logLevel;
+
         /**
          * Changes the logger to the specified level if valid.
          */
@@ -317,8 +319,19 @@ public class Shell {
 
             @Override
             public Level convert(String value) {
-                // TODO throw TypeconversionException
-                return Level.valueOf(value);
+                try {
+                    return Level.valueOf(value);
+                } catch (NullPointerException | IllegalArgumentException exception) {
+                    LOGGER.atError()
+                            .withThrowable(exception)
+                            .log("Log level {} is not valid.", value);
+                    throw new TypeConversionException(
+                            String.format(
+                                    "Log level \"%s\" is not valid. %s",
+                                    value,
+                                    exception.getMessage())
+                    );
+                }
             }
 
         }
@@ -331,7 +344,9 @@ public class Shell {
                         .collect(Collectors.toUnmodifiableList())
                 );
             }
+
         }
+
     }
 
     @Command(
