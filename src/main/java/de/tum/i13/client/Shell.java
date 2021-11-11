@@ -6,96 +6,105 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.fusesource.jansi.AnsiConsole;
+import org.jline.console.SystemRegistry;
+import org.jline.console.impl.Builtins;
+import org.jline.console.impl.SystemRegistryImpl;
+import org.jline.console.impl.SystemRegistryImpl.UnknownCommandException;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.Parser;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 import picocli.shell.jline3.PicocliCommands;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public class Shell {
 
     private static final Logger LOGGER = LogManager.getLogger(Shell.class.getName());
-    private boolean quit;
 
-    /**
-     * Creates a new command line interface.
-     */
-    public Shell() {
-        quit = false;
-    }
-
-    /**
-     * Main method. Creates a shell and starts it.
-     */
-    public static void main(String[] args) {
-        final int exitCode = new CommandLine(new CLICommands()).execute("help");
-        System.exit(exitCode);
+    private Shell() {
     }
 
     /**
      * Starts shell. Reads user commands from the console and maintains connection of our Client to a Server.
      * Client can connect to {@code <address>:<port>} , disconnect, send a message to the server, change logging level.
      */
-    public void start() throws IOException {
-        BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
-        quit = false;
-        while (!quit) {
-            //print prompt
-            System.out.print(Constants.PROMPT);
+    public static void main(String[] args) {
+        AnsiConsole.systemInstall();
 
-            //read user input from console
-            String input = cons.readLine();
-            String[] tokens = input.trim().split("\\s+");
+        final CLICommands commands = new CLICommands();
+        PicocliCommands.PicocliCommandsFactory factory = new PicocliCommands.PicocliCommandsFactory();
+        final CommandLine cmd = new CommandLine(commands, factory);
+        final PicocliCommands picocliCommands = new PicocliCommands(cmd);
 
-            try {
-                handleInput(input, tokens);
-            } catch (ClientException e) {
-                handleClientException(e);
-            }
+        Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
+
+        Builtins builtins = new Builtins(workDir, null, null);
+
+        Parser parser = new DefaultParser();
+        try (Terminal terminal = TerminalBuilder.terminal()) {
+            factory.setTerminal(terminal);
+
+            // Configures system registry
+            SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
+            systemRegistry.setCommandRegistries(builtins, picocliCommands);
+            systemRegistry.register("help", picocliCommands);
+
+            // Configures line reader
+            LineReader reader = LineReaderBuilder.builder()
+                    .terminal(terminal)
+                    .completer(systemRegistry.completer())
+                    .parser(parser)
+                    .variable(LineReader.LIST_MAX, 50)   // max tab completion candidates
+                    .build();
+            builtins.setLineReader(reader);
+            commands.setLineReader(reader);
+
+            // User input loop
+            boolean quit = false;
+            while (!quit) quit = processLine(systemRegistry, reader);
+        } catch (Exception exception) {
+            LOGGER.fatal("Caught exception", exception);
+        } finally {
+            AnsiConsole.systemUninstall();
         }
     }
 
-    private void handleInput(String input, String[] tokens) throws ClientException {
-//        if (input.isEmpty()) {
-//            handleFaultyCommand("Commands should not be empty");
-//        }
-//        else if (Character.isWhitespace(input.charAt(0))) {
-//            handleFaultyCommand("Commands should not start with whitespace");
-//        }
-//        //connect command should be in format: "connect <address> <port>"
-//        else if (tokens.length == 3 && tokens[0].equals(Constants.CONNECT_COMMAND)) {
-//            connect(tokens);
-//        }
-//        //disconnect command should provide status report upon successful disconnection
-//        else if (tokens.length == 1 && tokens[0].equals(Constants.DISCONNECT_COMMAND)) {
-//            disconnect();
-//        }
-//        //command to send message to server: "send <message>"
-//        else if (tokens[0].equals(Constants.SEND_COMMAND)) {
-//            send(input);
-//        }
-//        //command to change the logging level: "logLevel <level>"
-//        else if (tokens.length == 2 && tokens[0].equals(Constants.LOG_COMMAND)) {
-//            changeLogLevel(tokens[1]);
-//        }
-//        //help command to print information about the program
-//        else if (tokens.length == 1 && tokens[0].equals(Constants.HELP_COMMAND)) {
-//            printHelp();
-//        }
-//        //quit command should close any existing connection before quitting the program
-//        else if (tokens.length == 1 && tokens[0].equals(Constants.QUIT_COMMAND)) {
-//            quit();
-//        }
-//        //unrecognized input
-//        else {
-//            handleFaultyCommand("Unrecognized command.");
-//        }
+    private static boolean processLine(SystemRegistry systemRegistry, LineReader reader) {
+        boolean quit = false;
+        try {
+            systemRegistry.cleanUp();
+            String line = reader.readLine(Constants.PROMPT);
+            systemRegistry.execute(line);
+        } catch (UnknownCommandException exception) {
+            reader.getTerminal().writer().println("Unknown command");
+            try {
+                systemRegistry.execute("help");
+            } catch (Exception e) {
+                final RuntimeException rethrownException = new RuntimeException("Could not execute help command", e);
+                LOGGER.fatal(rethrownException);
+                throw rethrownException;
+            }
+        } catch (UserInterruptException | EndOfFileException e) {
+            LOGGER.info("User interrupt or end of file received. Closing application.");
+            quit = true;
+        } catch (Exception exception) {
+            systemRegistry.trace(exception);
+        }
+        return quit;
     }
 
     @Command(name = "",
@@ -103,13 +112,11 @@ public class Shell {
             mixinStandardHelpOptions = true,
             subcommands = {PicocliCommands.ClearScreen.class, CommandLine.HelpCommand.class,
                     Disconnect.class, Send.class, Connect.class, ChangeLogLevel.class, Quit.class
-    })
-    private static class CLICommands implements Runnable {
-
+            })
+    private static class CLICommands {
 
         private final EchoClient client;
-        private final boolean quit;
-        private final PrintWriter out;
+        private PrintWriter out;
         /**
          * Server address of current connection
          */
@@ -117,17 +124,14 @@ public class Shell {
         /**
          * Port number of current connection
          */
-        private int port;                    //
+        private int port;
 
-        public CLICommands() {
+        private CLICommands() {
             client = new EchoClient();
-            quit = false;
-            out = new PrintWriter(System.out);
         }
 
-        @Override
-        public void run() {
-            out.println("hello");
+        private void setLineReader(LineReader reader) {
+            out = reader.getTerminal().writer();
         }
 
     }
@@ -143,7 +147,8 @@ public class Shell {
         private CLICommands parent;
 
         /**
-         * Disconnects from the server
+         * Disconnects from the server.
+         * Provides status report upon successful disconnection
          *
          * @throws ClientException in case the disconnect is unsuccessful
          */
@@ -151,7 +156,7 @@ public class Shell {
         public Void call() throws ClientException {
             LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
             parent.client.disconnect();
-            parent.out.println(Constants.PROMPT + "Successfully disconnected.");
+            parent.out.println("Successfully disconnected.");
             return null;
         }
 
@@ -168,9 +173,6 @@ public class Shell {
         private CLICommands parent;
 
         // TODO Make sure that input with spaces are possible
-        /**
-         * Input to send
-         */
         @Parameters(
                 index = "0",
                 description = "The input to send"
@@ -178,7 +180,7 @@ public class Shell {
         private String input;
 
         /**
-         * Send the input to the server
+         * Send a message to the server
          *
          * @throws ClientException in case the sending process is unsuccessful
          */
@@ -202,7 +204,7 @@ public class Shell {
             LOGGER.info("Receiving message from server.");
             byte[] response = parent.client.receive();
             String responseStr = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-            parent.out.println(Constants.PROMPT + responseStr);
+            parent.out.println(responseStr);
         }
 
     }
@@ -219,13 +221,13 @@ public class Shell {
         private CLICommands parent;
 
         @Parameters(
-                index = "0",
+                index = "1",
                 description = "The port to of the server to connect to"
         )
         private int port;
 
         @Parameters(
-                index = "1",
+                index = "0",
                 description = "The address of the server to connect to"
         )
         private String address;
@@ -234,7 +236,7 @@ public class Shell {
          * Initiates connection of client to server using the EchoClient instance if the provided
          * arguments are in the correct format.
          *
-         * @throws ClientException       if the connection is unsuccessful
+         * @throws ClientException if the connection is unsuccessful
          */
         @Override
         public Integer call() throws ClientException {
@@ -242,7 +244,7 @@ public class Shell {
             LOGGER.info("Initiating connection to {}:{}", address, port);
             byte[] response = parent.client.connectAndReceive(address, port);
             String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-            System.out.println(Constants.PROMPT + confirmation);
+            parent.out.println(confirmation);
             LOGGER.info("Connection to {}:{} successful.", address, port);
             return 0;
             // TODO Handle faulty command
@@ -310,7 +312,8 @@ public class Shell {
         private CLICommands parent;
 
         /**
-         * Quits the shell
+         * Quits the shell.
+         * Close any existing connection before quitting the program
          *
          * @throws ClientException in case the quitting process is unsuccessful
          */
@@ -322,24 +325,13 @@ public class Shell {
             }
 
             LOGGER.info("Quitting application.");
-            parent.out.println(Constants.PROMPT + "Application exit!");
+            parent.out.println("Application exit!");
             return 0;
         }
 
     }
 
-    // TODO Handle faulty commands
-//    /**
-//     * Handles a faulty command
-//     *
-//     * @param reason the reasons why the command is faulty
-//     */
-//    private void handleFaultyCommand(String reason) {
-//        LOGGER.info(reason);
-//        System.out.println(reason);
-//        printHelp();
-//    }
-
+    // TODO Handle client exceptions
     /**
      * Handles a {@link ClientException}
      *
