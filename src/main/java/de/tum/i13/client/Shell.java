@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.spi.StandardLevel;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
@@ -28,8 +29,11 @@ import picocli.shell.jline3.PicocliCommands;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class Shell {
 
@@ -62,7 +66,7 @@ public class Shell {
             // Configures system registry
             SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
             systemRegistry.setCommandRegistries(builtins, picocliCommands);
-            systemRegistry.register("help", picocliCommands);
+            systemRegistry.register(Constants.HELP_COMMAND, picocliCommands);
 
             // Configures line reader
             LineReader reader = LineReaderBuilder.builder()
@@ -95,7 +99,7 @@ public class Shell {
         } catch (UnknownCommandException exception) {
             writer.println("Unknown command");
             try {
-                systemRegistry.execute("help");
+                systemRegistry.execute(Constants.HELP_COMMAND);
             } catch (Exception e) {
                 final RuntimeException rethrownException = new RuntimeException("Could not execute help command", e);
                 LOGGER.fatal(rethrownException);
@@ -279,32 +283,28 @@ public class Shell {
 
     @Command(
             name = Constants.LOG_COMMAND,
-            // TODO Add possible values Level.values()
-            description = "changes the logging level to the <new_level>. Possible values: ",
+            description = "Changes the logging level",
             mixinStandardHelpOptions = true,
             subcommands = CommandLine.HelpCommand.class
     )
     private static class ChangeLogLevel implements Callable<Integer> {
 
+
         @ParentCommand
         private CLICommands parent;
 
-
-        // TODO check if index necessary
-        // TODO Check if converter necessary
         @Parameters(
                 index = "0",
                 converter = LogLevelConverter.class,
-                description = "The desired log level"
+                completionCandidates = RegisteredLogLevels.class,
+                description = "The desired log level. Valid values: ${COMPLETION-CANDIDATES}"
         )
         private Level logLevel;
-
-
         /**
          * Changes the logger to the specified level if valid.
          */
         @Override
-        public Integer call() throws ClientException {
+        public Integer call() {
             String oldLevelName = LOGGER.getLevel().name();
             final String newLevelName = logLevel.name();
             Configurator.setLevel(LogManager.getLogger(Shell.class).getName(), logLevel);
@@ -317,11 +317,21 @@ public class Shell {
 
             @Override
             public Level convert(String value) {
+                // TODO throw TypeconversionException
                 return Level.valueOf(value);
             }
 
         }
 
+        private static class RegisteredLogLevels extends ArrayList<String> {
+
+            private RegisteredLogLevels() {
+                super(Arrays.stream(Level.values())
+                        .map(Level::name)
+                        .collect(Collectors.toUnmodifiableList())
+                );
+            }
+        }
     }
 
     @Command(
