@@ -1,5 +1,6 @@
 package de.tum.i13.server.persistentStorage.btree;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,11 +10,21 @@ import java.util.List;
 class PersistentBtree<V> {
   public BTreeNode<V> root; // Pointer to root node
   public int minimumDegree; // Minimum degree
+  public String storageFolder;
 
   // Constructor (Initializes tree as empty)
-  PersistentBtree(int minimumDegree) {
+  PersistentBtree(int minimumDegree, String storageFolder) {
     this.root = null;
     this.minimumDegree = minimumDegree;
+    this.storageFolder = storageFolder;
+    this.createStorageFolder();
+  }
+
+  void createStorageFolder() {
+    File theDir = new File(this.storageFolder);
+    if (!theDir.exists()) {
+      theDir.mkdirs();
+    }
   }
 
   // function to traverse the tree
@@ -37,7 +48,7 @@ class PersistentBtree<V> {
     if (root == null) {
       // Create new node
       try {
-        root = new BTreeNode<V>(minimumDegree, true);
+        root = new BTreeNode<V>(this.storageFolder, this.minimumDegree, true);
       } catch (Exception e) {
         e.printStackTrace();
         return;
@@ -47,14 +58,14 @@ class PersistentBtree<V> {
 
       return;
     }
-  
+
     // If tree is not empty
     // If root is full, then tree grows in height
     if (root.getKeyCount() == 2 * this.minimumDegree - 1) {
       // Allocate memory for new root
       BTreeNode<V> s;
       try {
-        s = new BTreeNode<V>(this.minimumDegree, false);
+        s = new BTreeNode<V>(this.storageFolder, this.minimumDegree, false);
       } catch (Exception e) {
         e.printStackTrace();
         return;
@@ -82,6 +93,7 @@ class PersistentBtree<V> {
 
 // A BTree node
 class BTreeNode<V> {
+  private String storageFolder;
   private String fileName;
   private int minimumDegree; // Minimum degree (defines the range for number of keys)
   private List<BTreeNode<V>> children; // An array of child pointers
@@ -90,24 +102,25 @@ class BTreeNode<V> {
   public Chunk<V> chunk;
 
   // Constructor
-  BTreeNode(int t, boolean leaf) throws Exception {
+  BTreeNode(String storageFolder, int t, boolean leaf) throws Exception {
     this.minimumDegree = t;
     this.leaf = leaf;
     this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.keyCount = 0;
-    this.fileName = Integer.toString(this.hashCode());
+    this.storageFolder = storageFolder;
+    this.fileName = storageFolder + "/" + Integer.toString(this.hashCode());
     this.chunk = new ChunkProxy<V>(fileName, this.minimumDegree);
   }
 
-  BTreeNode(int t, boolean leaf, Pair<V> rootElement) throws Exception {
+  BTreeNode(String storageFolder, int t, boolean leaf, Pair<V> rootElement) throws Exception {
     this.minimumDegree = t;
     this.leaf = leaf;
     this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.keyCount = 0;
-    this.fileName = Integer.toString(this.hashCode());
-    this.chunk = new ChunkProxy<V>(fileName, this.minimumDegree, Arrays.asList(rootElement) );
+    this.storageFolder = storageFolder;
+    this.fileName = storageFolder + "/" + Integer.toString(this.hashCode());
+    this.chunk = new ChunkProxy<V>(fileName, this.minimumDegree, Arrays.asList(rootElement));
   }
-
 
   // A function to traverse all nodes in a subtree rooted with this node
   void traverse() {
@@ -125,7 +138,7 @@ class BTreeNode<V> {
 
       Pair<V> pair = this.chunk.get(i);
 
-      System.out.println(pair.key + " -> " + pair.value );
+      System.out.println(pair.key + " -> " + pair.value);
     }
 
     // Print the subtree rooted with last child
@@ -199,7 +212,7 @@ class BTreeNode<V> {
     // of y
     BTreeNode<V> newNode;
     try {
-      newNode = new BTreeNode<V>(child.minimumDegree, child.leaf);
+      newNode = new BTreeNode<V>(this.storageFolder, child.minimumDegree, child.leaf);
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -254,7 +267,7 @@ class BTreeNode<V> {
   }
 
   public static void main(String[] args) {
-    PersistentBtree<String> t = new PersistentBtree<String>(3); // A B-Tree with minimum degree 3
+    PersistentBtree<String> t = new PersistentBtree<String>(3, "database"); // A B-Tree with minimum degree 3
     t.insert("78", "a");
     t.insert("52", "b");
     t.insert("81", "c");
