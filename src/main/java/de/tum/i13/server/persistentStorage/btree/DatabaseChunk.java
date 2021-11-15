@@ -7,7 +7,6 @@ import java.util.List;
 
 class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
-  private int lastIndexRead = -1;
   private int keyCount;
 
   public DatabaseChunk(int minimumDegree) {
@@ -35,20 +34,14 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   public int findIndexOfFirstGreaterThen(String k) {
     int i = 0;
     int n = elements.size();
-    while (i < n && k.compareTo(elements.get(i).key) > 0)
+    while (i < n && k.compareTo(elements.get(i).key) >= 0)
       i++;
 
     return i;
   }
 
   @Override
-  public Pair<V> findValueOfFirstGreaterThen(String k) {
-    return this.get(this.findIndexOfFirstGreaterThen(k));
-  }
-
-  @Override
   public Pair<V> get(int index) {
-    this.lastIndexRead = index;
     return this.elements.get(index);
   }
 
@@ -56,11 +49,6 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   public Pair<V> set(int index, Pair<V> element) {
     this.keyCount++;
     return this.elements.set(index, element);
-  }
-
-  @Override
-  public int lastIndexRead() {
-    return this.lastIndexRead;
   }
 
   @Override

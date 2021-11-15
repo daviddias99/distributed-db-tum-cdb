@@ -1,6 +1,7 @@
 package de.tum.i13.server.persistentStorage.btree;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,13 +19,6 @@ class PersistentBtree<V> {
     this.minimumDegree = minimumDegree;
     this.storageFolder = storageFolder;
     this.createStorageFolder();
-  }
-
-  void createStorageFolder() {
-    File theDir = new File(this.storageFolder);
-    if (!theDir.exists()) {
-      theDir.mkdirs();
-    }
   }
 
   // function to traverse the tree
@@ -46,80 +40,92 @@ class PersistentBtree<V> {
   void insert(String key, V value) {
     // If tree is empty
     if (root == null) {
-      // Create new node
-      try {
-        root = new BTreeNode<V>(this.storageFolder, this.minimumDegree, true);
-      } catch (Exception e) {
-        e.printStackTrace();
-        return;
-      }
-      root.chunk.set(0, new Pair<V>(key, value));
-      root.incrementKeyCount(); // Update number of keys in root
-
+      this.createRoot(key, value);
       return;
     }
 
-    // If tree is not empty
     // If root is full, then tree grows in height
-    if (root.getKeyCount() == 2 * this.minimumDegree - 1) {
-      // Allocate memory for new root
-      BTreeNode<V> s;
-      try {
-        s = new BTreeNode<V>(this.storageFolder, this.minimumDegree, false);
-      } catch (Exception e) {
-        e.printStackTrace();
-        return;
-      }
-
-      // Make old root as child of new root
-      s.getChildren().set(0, root);
-
-      // Split the old root and move 1 key to the new root
-      s.splitChild(0, root);
-
-      // New root has two children now. Decide which of the
-      // two children is going to have new key
-      int i = 0;
-      if (s.chunk.get(0).key.compareTo(key) < 0)
-        i++;
-      s.getChildren().get(i).insertNonFull(key, value);
-
-      // Change root
-      root = s;
+    if (this.isRootFull()) {
+      this.insertFull(key, value);
     } else // If root is not full, call insertNonFull for root
       root.insertNonFull(key, value);
+  }
+
+  private void createStorageFolder() {
+    File theDir = new File(this.storageFolder);
+    if (!theDir.exists()) {
+      theDir.mkdirs();
+    }
+  }
+
+  private void createRoot(String key, V value) {
+    // Create new node
+    try {
+      root = new BTreeNode<V>(this.storageFolder, this.minimumDegree, true, new Pair<V>(key, value));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return;
+    }
+    root.incrementKeyCount(); // Update number of keys in root
+  }
+
+  private void insertFull(String key, V value) {
+    // Allocate memory for new root
+    BTreeNode<V> s;
+    try {
+      s = new BTreeNode<V>(this.storageFolder, this.minimumDegree, false);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return;
+    }
+
+    // Make old root as child of new root
+    s.getChildren().set(0, root);
+
+    // Split the old root and move 1 key to the new root
+    s.splitChild(0, root);
+
+    // New root has two children now. Decide which of the
+    // two children is going to have new key
+    int i = 0;
+    if (s.getKey(i).key.compareTo(key) < 0)
+      i++;
+    s.getChildren().get(i).insertNonFull(key, value);
+
+    // Change root
+    root = s;
+  }
+
+  private boolean isRootFull() {
+    return root.getKeyCount() == 2 * this.minimumDegree - 1;
   }
 }
 
 // A BTree node
 class BTreeNode<V> {
-  private String storageFolder;
-  private String fileName;
   private int minimumDegree; // Minimum degree (defines the range for number of keys)
   private List<BTreeNode<V>> children; // An array of child pointers
   private int keyCount; // Current number of keys
-  public boolean leaf; // Is true when node is leaf. Otherwise false
-  public Chunk<V> chunk;
+  private boolean leaf; // Is true when node is leaf. Otherwise false
+  private ChunkStorageHandler<V> storageInterface;
+  private String storageFolder;
 
   // Constructor
-  BTreeNode(String storageFolder, int t, boolean leaf) throws Exception {
-    this.minimumDegree = t;
-    this.leaf = leaf;
-    this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
-    this.keyCount = 0;
-    this.storageFolder = storageFolder;
-    this.fileName = storageFolder + "/" + Integer.toString(this.hashCode());
-    this.chunk = new ChunkProxy<V>(fileName, this.minimumDegree);
-  }
-
   BTreeNode(String storageFolder, int t, boolean leaf, Pair<V> rootElement) throws Exception {
     this.minimumDegree = t;
     this.leaf = leaf;
+    this.storageFolder = storageFolder;
     this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.keyCount = 0;
-    this.storageFolder = storageFolder;
-    this.fileName = storageFolder + "/" + Integer.toString(this.hashCode());
-    this.chunk = new ChunkProxy<V>(fileName, this.minimumDegree, Arrays.asList(rootElement));
+    String filePath = storageFolder + "/" + Integer.toString(this.hashCode());
+    this.storageInterface = new ChunkStorageHandler<>(filePath);
+
+    DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
+    this.setChunk(newChunk);
+  }
+
+  BTreeNode(String storageFolder, int t, boolean leaf) throws Exception {
+    this(storageFolder, t, leaf, null);
   }
 
   // A function to traverse all nodes in a subtree rooted with this node
@@ -136,8 +142,14 @@ class BTreeNode<V> {
         this.children.get(i).traverse();
       }
 
-      Pair<V> pair = this.chunk.get(i);
+      Chunk<V> chunk = this.getChunk();
 
+      if(chunk == null) {
+        return;
+      }
+
+      Pair<V> pair = chunk.get(i);
+      chunk = null;
       System.out.println(pair.key + " -> " + pair.value);
     }
 
@@ -150,7 +162,16 @@ class BTreeNode<V> {
   V search(String k) { // returns NULL if k is not present.
     // Find the first key greater than or equal to k
     // int i = chunk.findIndexOfFirstGreaterThen(k);
-    Pair<V> value = chunk.findValueOfFirstGreaterThen(k);
+
+    Chunk<V> chunk = this.getChunk();
+
+    if (chunk == null) {
+      return null;
+    }
+
+    int i = chunk.findIndexOfFirstGreaterThen(k);
+    Pair<V> value = chunk.get(i);
+    chunk = null;
 
     // If the found key is equal to k, return this node
     if (value.key.equals(k))
@@ -161,7 +182,7 @@ class BTreeNode<V> {
       return null;
 
     // Go to the appropriate child
-    return children.get(this.chunk.lastIndexRead()).search(k);
+    return children.get(i).search(k);
   }
 
   // A utility function to insert a new key in this node
@@ -170,6 +191,8 @@ class BTreeNode<V> {
   void insertNonFull(String key, V value) {
     // Initialize index as index of rightmost element
     int i = keyCount - 1;
+
+    Chunk<V> chunk = this.getChunk();
 
     // If this is a leaf node
     if (leaf == true) {
@@ -181,9 +204,14 @@ class BTreeNode<V> {
 
       // Insert the new key at found location
       chunk.set(i + 1, new Pair<V>(key, value));
+
+      this.setChunk(chunk);
+
+      chunk = null;
       keyCount++;
     } else // If this node is not leaf
     {
+
       // Find the child which is going to have the new key
       while (i >= 0 && chunk.get(i).key.compareTo(key) > 0)
         i--;
@@ -201,6 +229,7 @@ class BTreeNode<V> {
         if (chunk.get(i + 1).key.compareTo(key) < 0)
           i++;
       }
+      chunk = null;
       this.children.get(i + 1).insertNonFull(key, value);
     }
   }
@@ -219,11 +248,18 @@ class BTreeNode<V> {
     }
     newNode.keyCount = this.minimumDegree - 1;
 
+    Chunk<V> newNodeChunk = newNode.getChunk();
+    Chunk<V> childChunk = child.getChunk();
+
     // Copy the last (t-1) keys of y to z
     for (int j = 0; j < this.minimumDegree - 1; j++) {
-      newNode.chunk.set(j, child.chunk.remove(j + this.minimumDegree));
+      newNodeChunk.set(j, childChunk.remove(j + this.minimumDegree));
     }
 
+    newNode.setChunk(newNodeChunk);
+
+    newNodeChunk = null;
+    
     // Copy the last t children of y to z
     if (child.leaf == false) {
       for (int j = 0; j < this.minimumDegree; j++) {
@@ -242,12 +278,17 @@ class BTreeNode<V> {
     // Link the new child to this node
     this.children.set(i + 1, newNode);
 
+    Chunk<V> chunk = this.getChunk();
+
     // A key of y will move to this node. Find the location of
     // new key and move all greater keys one space ahead
-    this.chunk.shiftRightOne(i);
+    chunk.shiftRightOne(i);
 
     // Copy the middle key of y to this node
-    this.chunk.set(i, child.chunk.remove(this.minimumDegree - 1));
+    chunk.set(i, childChunk.remove(this.minimumDegree - 1));
+
+    child.setChunk(childChunk);
+    this.setChunk(chunk);;
 
     // Increment count of keys in this node
     this.keyCount++;
@@ -264,6 +305,37 @@ class BTreeNode<V> {
   int incrementKeyCount() {
     this.keyCount++;
     return this.keyCount;
+  }
+
+  Pair<V> getKey(int i) {
+
+    Chunk<V> chunk = this.getChunk();
+
+    if (chunk == null) {
+      return null;
+    }
+
+    return chunk.get(i);
+  }
+
+  Chunk<V> getChunk() {
+    try {
+      Chunk<V> chunk = storageInterface.readChunkFromMemory();
+      return chunk;
+    } catch (Exception e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  void setChunk(Chunk<V> chunk) {
+    try {
+      this.storageInterface.storeChunkInMemory(chunk);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public static void main(String[] args) {
