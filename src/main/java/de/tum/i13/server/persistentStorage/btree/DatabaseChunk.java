@@ -34,7 +34,7 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   public int findIndexOfFirstGreaterThen(String k) {
     int i = 0;
     int n = elements.size();
-    while (i < n && k.compareTo(elements.get(i).key) >= 0)
+    while (i < n && k.compareTo(elements.get(i).key) > 0)
       i++;
 
     return i;
@@ -47,7 +47,11 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
 
   @Override
   public Pair<V> set(int index, Pair<V> element) {
-    this.keyCount++;
+
+    if(this.elements.get(index) == null) {
+      this.keyCount++;
+    }
+
     return this.elements.set(index, element);
   }
 
@@ -63,18 +67,31 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   public void shiftRightOne(int startIndex) {
     for (int j = this.keyCount - 1; j >= startIndex; j--) {
       this.elements.set(j + 1, this.elements.get(j));
+      this.elements.set(j, null);
     }
   }
 
   @Override
   public int shiftRightOneAfterFirstGreaterThan(String key) {
-    int i = this.keyCount-1;
+    int i = this.keyCount - 1;
 
     while (i >= 0 && elements.get(i).key.compareTo(key) > 0) {
       elements.set(i + 1, elements.get(i));
+      elements.set(i, null);
       i--;
     }
 
-    return i;
+    if(i < 0) {
+      return i;
+    }
+
+    return elements.get(i).key.compareTo(key) == 0 ? i - 1 : i;
   }
+
+  @Override
+  public int getKeyCount() {
+    return this.keyCount;
+  }
+
+
 }

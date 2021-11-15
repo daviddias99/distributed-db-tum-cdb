@@ -12,4 +12,6 @@ interface Chunk<V> {
   public void shiftRightOne(int startIndex);
 
   public int shiftRightOneAfterFirstGreaterThan(String key);
+
+  public int getKeyCount();
 }

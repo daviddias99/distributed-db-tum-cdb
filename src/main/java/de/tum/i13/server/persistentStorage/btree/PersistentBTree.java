@@ -207,8 +207,8 @@ class BTreeNode<V> {
 
       this.setChunk(chunk);
 
+      this.setKeyCount(chunk.getKeyCount());
       chunk = null;
-      keyCount++;
     } else // If this node is not leaf
     {
 
@@ -306,6 +306,10 @@ class BTreeNode<V> {
     this.keyCount++;
     return this.keyCount;
   }
+  int setKeyCount(int newKeyCount) {
+    this.keyCount = newKeyCount;
+    return this.keyCount;
+  }
 
   Pair<V> getKey(int i) {
 
@@ -341,6 +345,7 @@ class BTreeNode<V> {
   public static void main(String[] args) {
     PersistentBtree<String> t = new PersistentBtree<String>(3, "database"); // A B-Tree with minimum degree 3
     t.insert("78", "a");
+    t.insert("78", "b");
     t.insert("52", "b");
     t.insert("81", "c");
     t.insert("40", "d");
