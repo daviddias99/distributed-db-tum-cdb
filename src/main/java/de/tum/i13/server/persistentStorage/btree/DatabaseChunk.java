@@ -9,6 +9,8 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
   private int keyCount;
 
+  private static final long serialVersionUID = 6529685098267757681L;
+
   public DatabaseChunk(int minimumDegree) {
     // this.elements = new ArrayList<Pair<V>>(2 * minimumDegree - 1);
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));

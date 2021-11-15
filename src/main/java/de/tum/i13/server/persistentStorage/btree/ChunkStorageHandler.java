@@ -5,8 +5,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-class ChunkStorageHandler<V> {
+class ChunkStorageHandler<V> implements Serializable{
+
+  private static final long serialVersionUID = 6529685098267757691L;
 
   private String filePath;
 

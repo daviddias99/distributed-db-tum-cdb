@@ -1,6 +1,7 @@
 package de.tum.i13.server.persistentStorage.btree;
 
 interface Chunk<V> {
+
   public int findIndexOfFirstGreaterThen(String k);
 
   public Pair<V> get(int index);

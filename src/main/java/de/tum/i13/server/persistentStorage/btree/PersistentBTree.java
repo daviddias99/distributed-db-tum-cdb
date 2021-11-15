@@ -1,23 +1,33 @@
 package de.tum.i13.server.persistentStorage.btree;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 // A BTree
-class PersistentBtree<V> {
+class PersistentBtree<V> implements Serializable {
   public BTreeNode<V> root; // Pointer to root node
   public int minimumDegree; // Minimum degree
   public String storageFolder;
+  private TreeStorageHandler<V> storageHandler;
+
+  private static final long serialVersionUID = 6529685098267757690L;
 
   // Constructor (Initializes tree as empty)
-  PersistentBtree(int minimumDegree, String storageFolder) {
+  PersistentBtree(int minimumDegree, String storageFolder, TreeStorageHandler<V> storageHandler) {
     this.root = null;
     this.minimumDegree = minimumDegree;
     this.storageFolder = storageFolder;
+    this.storageHandler = storageHandler;
     this.createStorageFolder();
   }
 
@@ -49,6 +59,8 @@ class PersistentBtree<V> {
       this.insertFull(key, value);
     } else // If root is not full, call insertNonFull for root
       root.insertNonFull(key, value);
+
+    this.storageHandler.saveToDisk(this);
   }
 
   private void createStorageFolder() {
@@ -102,7 +114,7 @@ class PersistentBtree<V> {
 }
 
 // A BTree node
-class BTreeNode<V> {
+class BTreeNode<V> implements Serializable {
   private int minimumDegree; // Minimum degree (defines the range for number of keys)
   private List<BTreeNode<V>> children; // An array of child pointers
   private int keyCount; // Current number of keys
@@ -120,7 +132,8 @@ class BTreeNode<V> {
     String filePath = storageFolder + "/" + Integer.toString(this.hashCode());
     this.storageInterface = new ChunkStorageHandler<>(filePath);
 
-    DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
+    DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree)
+        : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
     this.setChunk(newChunk);
   }
 
@@ -144,7 +157,7 @@ class BTreeNode<V> {
 
       Chunk<V> chunk = this.getChunk();
 
-      if(chunk == null) {
+      if (chunk == null) {
         return;
       }
 
@@ -259,7 +272,7 @@ class BTreeNode<V> {
     newNode.setChunk(newNodeChunk);
 
     newNodeChunk = null;
-    
+
     // Copy the last t children of y to z
     if (child.leaf == false) {
       for (int j = 0; j < this.minimumDegree; j++) {
@@ -288,7 +301,8 @@ class BTreeNode<V> {
     chunk.set(i, childChunk.remove(this.minimumDegree - 1));
 
     child.setChunk(childChunk);
-    this.setChunk(chunk);;
+    this.setChunk(chunk);
+    ;
 
     // Increment count of keys in this node
     this.keyCount++;
@@ -306,6 +320,7 @@ class BTreeNode<V> {
     this.keyCount++;
     return this.keyCount;
   }
+
   int setKeyCount(int newKeyCount) {
     this.keyCount = newKeyCount;
     return this.keyCount;
@@ -343,7 +358,10 @@ class BTreeNode<V> {
   }
 
   public static void main(String[] args) {
-    PersistentBtree<String> t = new PersistentBtree<String>(3, "database"); // A B-Tree with minimum degree 3
+    TreeStorageHandler<String> storageHandler = new TreeStorageHandler<String>("database");
+    PersistentBtree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
+                                                                                            // degree 3
+    t = t == null ? new PersistentBtree<String>(3, "database", storageHandler) : t;
     t.insert("78", "a");
     t.insert("78", "b");
     t.insert("52", "b");
