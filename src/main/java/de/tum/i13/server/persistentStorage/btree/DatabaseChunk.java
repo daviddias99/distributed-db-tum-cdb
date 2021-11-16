@@ -7,7 +7,6 @@ import java.util.List;
 
 class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
-  private int keyCount;
 
   private static final long serialVersionUID = 6529685098267757681L;
 
@@ -19,7 +18,6 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
   public DatabaseChunk(int minimumDegree, List<Pair<V>> newElements) {
 
     // TODO: do check for newElements.size() >= 2 * minimumDegree - 1
-    this.keyCount = 1;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
 
     for (int i = 0; i < newElements.size(); i++) {
@@ -49,33 +47,37 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
 
   @Override
   public Pair<V> set(int index, Pair<V> element) {
-
-    if(this.elements.get(index) == null) {
-      this.keyCount++;
-    }
-
     return this.elements.set(index, element);
   }
 
   @Override
   public Pair<V> remove(int index) {
-    this.keyCount--;
     Pair<V> elem = this.elements.get(index);
     this.elements.set(index, null);
     return elem;
   }
 
   @Override
-  public void shiftRightOne(int startIndex) {
-    for (int j = this.keyCount - 1; j >= startIndex; j--) {
+  public void shiftRightOne(int startIndex, int keyCount) {
+    for (int j = keyCount - 1; j >= startIndex; j--) {
       this.elements.set(j + 1, this.elements.get(j));
       this.elements.set(j, null);
+    }
+
+    // this.keyCount--;
+  }
+
+  @Override
+  public void shiftLeftOne(int startIndex, int keyCount) {
+    // Move all the keys after the idx-th pos one place backward
+    for (int i = startIndex + 1; i < keyCount; ++i) {
+      this.elements.set(i - 1, this.elements.get(i));
     }
   }
 
   @Override
-  public int shiftRightOneAfterFirstGreaterThan(String key) {
-    int i = this.keyCount - 1;
+  public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount) {
+    int i = keyCount - 1;
 
     while (i >= 0 && elements.get(i).key.compareTo(key) > 0) {
       elements.set(i + 1, elements.get(i));
@@ -83,17 +85,10 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
       i--;
     }
 
-    if(i < 0) {
+    if (i < 0) {
       return i;
     }
 
     return elements.get(i).key.compareTo(key) == 0 ? i - 1 : i;
   }
-
-  @Override
-  public int getKeyCount() {
-    return this.keyCount;
-  }
-
-
 }

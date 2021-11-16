@@ -1,5 +1,6 @@
 package de.tum.i13.server.persistentStorage.btree;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -14,9 +15,24 @@ class TreeStorageHandler<V> implements Serializable{
 
   private String filePath;
 
-  TreeStorageHandler(String storageFolder) {
+  TreeStorageHandler(String storageFolder, boolean reset) {
     this.filePath = storageFolder + "/root";
+
+    if(reset) {
+      this.deleteDirectory(new File(storageFolder));
+    }
+
   }
+
+  boolean deleteDirectory(File directoryToBeDeleted) {
+    File[] allContents = directoryToBeDeleted.listFiles();
+    if (allContents != null) {
+        for (File file : allContents) {
+            deleteDirectory(file);
+        }
+    }
+    return directoryToBeDeleted.delete();
+}
 
   void saveToDisk(PersistentBtree<V> tree) {
     try {
@@ -42,8 +58,6 @@ class TreeStorageHandler<V> implements Serializable{
       objectIn.close();
       return tree;
     } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

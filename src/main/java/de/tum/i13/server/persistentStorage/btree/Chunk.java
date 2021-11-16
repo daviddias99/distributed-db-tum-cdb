@@ -10,9 +10,9 @@ interface Chunk<V> {
 
   public Pair<V> set(int index,  Pair<V> element);
 
-  public void shiftRightOne(int startIndex);
+  public void shiftRightOne(int startIndex, int keyCount);
+  
+  public void shiftLeftOne(int startIndex, int keyCount);
 
-  public int shiftRightOneAfterFirstGreaterThan(String key);
-
-  public int getKeyCount();
+  public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount);
 }
