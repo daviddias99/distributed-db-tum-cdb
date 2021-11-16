@@ -1,12 +1,7 @@
 package de.tum.i13.server.persistentStorage.btree;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,7 +48,7 @@ class PersistentBtree<V> implements Serializable {
       this.root.traverseSpecial();
     System.out.println();
   }
-  
+
   // function to search a key in this tree
   V search(String key) {
     if (this.root == null)
@@ -107,16 +102,20 @@ class PersistentBtree<V> implements Serializable {
       return;
     }
 
+    Chunk<V> chunk = s.getChunk();
+
     // Make old root as child of new root
     s.getChildren().set(0, root);
 
     // Split the old root and move 1 key to the new root
-    s.splitChild(0, root);
+    s.splitChild(0, root, chunk);
+
+    s.setChunk(chunk);
 
     // New root has two children now. Decide which of the
     // two children is going to have new key
     int i = 0;
-    if (s.getKey(i).key.compareTo(key) < 0)
+    if (chunk.get(i).key.compareTo(key) < 0)
       i++;
     s.getChildren().get(i).insertNonFull(key, value);
 
@@ -158,7 +157,7 @@ class BTreeNode<V> implements Serializable {
   private List<BTreeNode<V>> children; // An array of child pointers
   private int keyCount; // Current number of keys
   private boolean leaf; // Is true when node is leaf. Otherwise false
-  private ChunkStorageMock<V> storageInterface;
+  private ChunkStorageHandler<V> storageInterface;
   private String storageFolder;
   private int id;
 
@@ -171,7 +170,7 @@ class BTreeNode<V> implements Serializable {
     this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.keyCount = 0;
     String filePath = storageFolder + "/" + Integer.toString(this.id);
-    this.storageInterface = new ChunkStorageMock<>(filePath);
+    this.storageInterface = new ChunkStorageHandler<>(filePath);
 
     DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree)
         : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
@@ -216,35 +215,35 @@ class BTreeNode<V> implements Serializable {
       this.children.get(i).traverse();
   }
 
-    // A function to traverse all nodes in a subtree rooted with this node
-    void traverseCondensed() {
+  // A function to traverse all nodes in a subtree rooted with this node
+  void traverseCondensed() {
 
-      // There are n keys and n+1 children, traverse through n keys
-      // and first n children
-      int i = 0;
-      for (i = 0; i < this.keyCount; i++) {
-  
-        // If this is not leaf, then before printing key[i],
-        // traverse the subtree rooted with child C[i].
-        if (this.leaf == false) {
-          this.children.get(i).traverseCondensed();
-        }
-  
-        Chunk<V> chunk = this.getChunk();
-  
-        if (chunk == null) {
-          return;
-        }
-  
-        Pair<V> pair = chunk.get(i);
-        chunk = null;
-        System.out.print(pair.key + " ");
-      }
-  
-      // Print the subtree rooted with last child
-      if (leaf == false)
+    // There are n keys and n+1 children, traverse through n keys
+    // and first n children
+    int i = 0;
+    for (i = 0; i < this.keyCount; i++) {
+
+      // If this is not leaf, then before printing key[i],
+      // traverse the subtree rooted with child C[i].
+      if (this.leaf == false) {
         this.children.get(i).traverseCondensed();
+      }
+
+      Chunk<V> chunk = this.getChunk();
+
+      if (chunk == null) {
+        return;
+      }
+
+      Pair<V> pair = chunk.get(i);
+      chunk = null;
+      System.out.print(pair.key + " ");
     }
+
+    // Print the subtree rooted with last child
+    if (leaf == false)
+      this.children.get(i).traverseCondensed();
+  }
 
   void traverseSpecial() {
 
@@ -252,7 +251,7 @@ class BTreeNode<V> implements Serializable {
     System.out.println("Node(" + Integer.toString(this.id) + ")");
     System.out.println("Key count: " + this.keyCount);
     System.out.print("Keys: ");
-    
+
     // There are n keys and n+1 children, traverse through n keys
     // and first n children
     int i = 0;
@@ -263,13 +262,13 @@ class BTreeNode<V> implements Serializable {
       }
 
       Pair<V> pair = chunk.get(i);
-      System.out.print(pair.key + " " );
+      System.out.print(pair.key + " ");
     }
     chunk = null;
     System.out.print("\n");
-    
+
     System.out.print("Children: ");
-    
+
     for (BTreeNode<V> bTreeNode : children) {
 
       if (bTreeNode == null) {
@@ -326,7 +325,7 @@ class BTreeNode<V> implements Serializable {
     int i = keyCount - 1;
 
     Chunk<V> chunk = this.getChunk();
-
+    
     // If this is a leaf node
     if (leaf == true) {
       // The following loop does two things
@@ -344,6 +343,8 @@ class BTreeNode<V> implements Serializable {
     } else // If this node is not leaf
     {
 
+      // Chunk<V> chunk = this.getChunk();
+
       // Find the child which is going to have the new key
       while (i >= 0 && chunk.get(i).key.compareTo(key) > 0)
         i--;
@@ -353,13 +354,17 @@ class BTreeNode<V> implements Serializable {
       // See if the found child is full
       if (child.keyCount == 2 * this.minimumDegree - 1) {
         // If the child is full, then split it
-        splitChild(i + 1, child);
+        splitChild(i + 1, child, chunk);
 
         // After split, the middle key of C[i] goes up and
         // C[i] is splitted into two. See which of the two
         // is going to have the new key
+        // chunk = this.getChunk();
+
         if (chunk.get(i + 1).key.compareTo(key) < 0)
           i++;
+        
+        this.setChunk(chunk);
       }
       chunk = null;
       this.children.get(i + 1).insertNonFull(key, value);
@@ -368,7 +373,7 @@ class BTreeNode<V> implements Serializable {
 
   // A utility function to split the child y of this node
   // Note that y must be full when this function is called
-  void splitChild(int i, BTreeNode<V> child) {
+  void splitChild(int i, BTreeNode<V> child, Chunk<V> parentChunk) {
     // Create a new node which is going to store (t-1) keys
     // of y
     BTreeNode<V> newNode;
@@ -411,17 +416,14 @@ class BTreeNode<V> implements Serializable {
     // Link the new child to this node
     this.children.set(i + 1, newNode);
 
-    Chunk<V> chunk = this.getChunk();
-
     // A key of y will move to this node. Find the location of
     // new key and move all greater keys one space ahead
-    chunk.shiftRightOne(i, this.keyCount);
+    parentChunk.shiftRightOne(i, this.keyCount);
 
     // Copy the middle key of y to this node
-    chunk.set(i, childChunk.remove(this.minimumDegree - 1));
+    parentChunk.set(i, childChunk.remove(this.minimumDegree - 1));
 
     child.setChunk(childChunk);
-    this.setChunk(chunk);
 
     // Increment count of keys in this node
     this.keyCount++;
@@ -448,17 +450,6 @@ class BTreeNode<V> implements Serializable {
   int setKeyCount(int newKeyCount) {
     this.keyCount = newKeyCount;
     return this.keyCount;
-  }
-
-  Pair<V> getKey(int i) {
-
-    Chunk<V> chunk = this.getChunk();
-
-    if (chunk == null) {
-      return null;
-    }
-
-    return chunk.get(i);
   }
 
   Chunk<V> getChunk() {
@@ -661,7 +652,7 @@ class BTreeNode<V> implements Serializable {
     Chunk<V> childChunk = child.getChunk();
 
     // Moving all key in C[idx] one step ahead
-    for (int i=child.getKeyCount()-1; i>=0; --i) {
+    for (int i = child.getKeyCount() - 1; i >= 0; --i) {
       childChunk.set(i + 1, childChunk.get(i));
     }
 
@@ -771,12 +762,12 @@ class BTreeNode<V> implements Serializable {
 
     // Moving all keys after idx in the current node one step before -
     // to fill the gap created by moving keys[idx] to C[idx]
-    for (int i = idx + 1; i < this.getKeyCount(); ++i) 
+    for (int i = idx + 1; i < this.getKeyCount(); ++i)
       chunk.set(i - 1, chunk.get(i));
 
     // Moving the child pointers after (idx+1) in the current node one
     // step before
-    for (int i = idx + 2; i <= this.keyCount; ++i) 
+    for (int i = idx + 2; i <= this.keyCount; ++i)
       this.getChildren().set(i - 1, this.getChildren().get(i));
 
     // Updating the key count of child and the current node
@@ -792,86 +783,84 @@ class BTreeNode<V> implements Serializable {
   }
 
   public static void main(String[] args) {
-    TreeStorageHandler<String> storageHandler = new TreeStorageHandler<String>("database", true);
+    TreeStorageHandler<String> storageHandler = new TreeStorageHandler<String>("database", false);
     PersistentBtree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
                                                               // degree 3
-    t = t == null ? new PersistentBtree<String>(3, "database", storageHandler) : t;
-    // t.insert("78", "a");
-    // t.insert("78", "b");
-    // t.insert("52", "b");
-    // t.insert("81", "c");
-    // t.insert("40", "d");
-    // t.insert("33", "e");
-    // t.insert("90", "f");
-    // t.insert("35", "g");
-    // t.insert("20", "h");
-    // t.insert("52", "c");
-    // t.insert("38", "h");
+    // t = t == null ? new PersistentBtree<String>(3, "database", storageHandler) : t;
+    // // t.insert("78", "a");
+    // // t.insert("78", "b");
+    // // t.insert("52", "b");
+    // // t.insert("81", "c");
+    // // t.insert("40", "d");
+    // // t.insert("33", "e");
+    // // t.insert("90", "f");
+    // // t.insert("35", "g");
+    // // t.insert("20", "h");
+    // // t.insert("52", "c");
+    // // t.insert("38", "h");
 
-    // BTree t(3); // A B-Tree with minimum degree 3
-  
-    t.insert("A", "a");
-    t.insert("C", "a");
-    t.insert("G", "a");
-    t.insert("J", "a");
-    t.insert("K", "a");
-    t.insert("M", "a");
-    t.insert("N", "a");
-    t.insert("O", "a");
-    t.insert("R", "a");
-    t.insert("P", "a");
-    t.insert("S", "a");
-    t.insert("X", "a");
-    t.insert("Y", "a");
-    t.insert("Z", "a");
-    t.insert("U", "a");
-    t.insert("D", "a");
-    t.insert("E", "a");
-    t.insert("T", "a");
-    t.insert("V", "a");
-    t.insert("B", "a");
-    t.insert("Q", "a");
-    // t.traverseSpecial();
-    t.insert("L", "a");
-    // t.traverseSpecial();
-    t.insert("F", "a");
+    // // BTree t(3); // A B-Tree with minimum degree 3
+
+    // t.insert("A", "a");
     // t.traverseSpecial();
 
+    // t.insert("C", "a");
+    // t.insert("G", "a");
+    // t.insert("J", "a");
+    // t.insert("K", "a");
+    // t.insert("M", "a");
+    // t.insert("N", "a");
+    // t.insert("O", "a");
+    // t.traverseSpecial();
+
+    // t.insert("R", "a");
+    // t.insert("P", "a");
+    // t.insert("S", "a");
+    // t.insert("X", "a");
+    // t.insert("Y", "a");
+    // t.insert("Z", "a");
+    // t.insert("U", "a");
+    // t.insert("D", "a");
+    // t.insert("E", "a");
+    // t.insert("T", "a");
+    // t.insert("V", "a");
+    // t.insert("B", "a");
+    // t.insert("Q", "a");
+    // // t.traverseSpecial();
+    // t.insert("L", "a");
+    // // t.traverseSpecial();
+    // t.insert("F", "a");
+    // // t.traverseSpecial();
+
+    // // t.traverseCondensed();
+
+    // System.out.println("Traversal of tree constructed is");
     // t.traverseCondensed();
 
-    System.out.println("Traversal of tree constructed is");
-    t.traverseCondensed();
-    
-  
-    t.remove("F");
-    System.out.println("Traversal of tree after removing F");
-    t.traverseCondensed();
-    // t.traverseSpecial();
-  
-  
-    t.remove("M");
-    System.out.println("Traversal of tree after removing M");
-    t.traverseCondensed();
-    
-  
-    t.remove("G");
-    System.out.println("Traversal of tree after removing G");
-    t.traverseCondensed();
-    
-  
-    t.remove("D");
-    System.out.println("Traversal of tree after removing D");
-    t.traverseCondensed();
-    
-  
-    t.remove("B");
-    System.out.println("Traversal of tree after removing B");
-    t.traverseCondensed();
-    
-  
-    t.remove("P");
-    System.out.println("Traversal of tree after removing P");
-    t.traverseCondensed();
+    // t.remove("F");
+    // System.out.println("Traversal of tree after removing F");
+    // t.traverseCondensed();
+    // // t.traverseSpecial();
+
+    // t.remove("M");
+    // System.out.println("Traversal of tree after removing M");
+    // t.traverseCondensed();
+
+    // t.remove("G");
+    // System.out.println("Traversal of tree after removing G");
+    // t.traverseCondensed();
+
+    // t.remove("D");
+    // System.out.println("Traversal of tree after removing D");
+    // t.traverseCondensed();
+
+    // t.remove("B");
+    // System.out.println("Traversal of tree after removing B");
+    // t.traverseCondensed();
+
+    // t.remove("P");
+    // System.out.println("Traversal of tree after removing P");
+    // t.traverseCondensed();
 
     // System.out.println("Traversal of the constructed tree is ");
     // t.traverse();
@@ -890,7 +879,7 @@ class BTreeNode<V> implements Serializable {
     else
       System.out.println("\nNot Present");
 
-    t.insert("ZETOINO", "ABUTRE");
+    // t.insert("ZETOINO", "ABUTRE");
 
     t.traverseSpecial();
     t.traverseCondensed();

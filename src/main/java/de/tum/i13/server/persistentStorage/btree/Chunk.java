@@ -15,4 +15,6 @@ interface Chunk<V> {
   public void shiftLeftOne(int startIndex, int keyCount);
 
   public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount);
+
+  public Chunk<V> clone();
 }

@@ -7,27 +7,25 @@ import java.util.List;
 
 class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
+  private int minimumDegree;
 
   private static final long serialVersionUID = 6529685098267757681L;
 
   public DatabaseChunk(int minimumDegree) {
     // this.elements = new ArrayList<Pair<V>>(2 * minimumDegree - 1);
+    this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
   }
 
   public DatabaseChunk(int minimumDegree, List<Pair<V>> newElements) {
-
     // TODO: do check for newElements.size() >= 2 * minimumDegree - 1
+    this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
 
     for (int i = 0; i < newElements.size(); i++) {
       this.elements.set(i, newElements.get(i));
     }
 
-  }
-
-  public DatabaseChunk(List<Pair<V>> elements) {
-    this.elements = elements;
   }
 
   @Override
@@ -90,5 +88,11 @@ class DatabaseChunk<V> implements Chunk<V>, Serializable {
     }
 
     return elements.get(i).key.compareTo(key) == 0 ? i - 1 : i;
+  }
+
+  @Override
+  public DatabaseChunk<V> clone(){
+    DatabaseChunk<V> chunkClone = new DatabaseChunk<>(this.minimumDegree, this.elements);
+    return chunkClone;
   }
 }

@@ -12,8 +12,9 @@ class ChunkStorageMock<V> implements Serializable{
   ChunkStorageMock(String filePath) {
   }
 
-  Chunk<V> readChunkFromMemory() throws Exception {
-    return this.chunk;
+  Chunk<V> readChunkFromMemory() throws Exception {    
+
+    return this.chunk.clone();
   }
 
   // TODO: change exception type;
