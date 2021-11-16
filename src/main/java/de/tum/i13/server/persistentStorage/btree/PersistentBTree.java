@@ -39,6 +39,12 @@ class PersistentBtree<V> implements Serializable {
     System.out.println();
   }
 
+  void traverseCondensed() {
+    if (this.root != null)
+      this.root.traverseCondensed();
+    System.out.println();
+  }
+
   void traverseSpecial() {
 
     System.out.println("Tree Structure");
@@ -210,10 +216,41 @@ class BTreeNode<V> implements Serializable {
       this.children.get(i).traverse();
   }
 
+    // A function to traverse all nodes in a subtree rooted with this node
+    void traverseCondensed() {
+
+      // There are n keys and n+1 children, traverse through n keys
+      // and first n children
+      int i = 0;
+      for (i = 0; i < this.keyCount; i++) {
+  
+        // If this is not leaf, then before printing key[i],
+        // traverse the subtree rooted with child C[i].
+        if (this.leaf == false) {
+          this.children.get(i).traverseCondensed();
+        }
+  
+        Chunk<V> chunk = this.getChunk();
+  
+        if (chunk == null) {
+          return;
+        }
+  
+        Pair<V> pair = chunk.get(i);
+        chunk = null;
+        System.out.print(pair.key + " ");
+      }
+  
+      // Print the subtree rooted with last child
+      if (leaf == false)
+        this.children.get(i).traverseCondensed();
+    }
+
   void traverseSpecial() {
 
     System.out.println("--");
     System.out.println("Node(" + Integer.toString(this.id) + ")");
+    System.out.println("Key count: " + this.keyCount);
     System.out.print("Keys: ");
     
     // There are n keys and n+1 children, traverse through n keys
@@ -621,12 +658,14 @@ class BTreeNode<V> implements Serializable {
     // from parent is inserted as the first key in C[idx]. Thus, the loses
     // sibling one key and child gains one key
 
+    Chunk<V> childChunk = child.getChunk();
+
     // Moving all key in C[idx] one step ahead
-    // for (int i=child.getKeyCount()-1; i>=0; --i)
-    // child->keys[i+1] = child->keys[i];
+    for (int i=child.getKeyCount()-1; i>=0; --i) {
+      childChunk.set(i + 1, childChunk.get(i));
+    }
 
     Chunk<V> chunk = this.getChunk();
-    Chunk<V> childChunk = child.getChunk();
     Chunk<V> siblingChunk = sibling.getChunk();
 
     // If C[idx] is not a leaf, move all its child pointers one step ahead
@@ -636,7 +675,7 @@ class BTreeNode<V> implements Serializable {
     }
 
     // Setting child's first key equal to keys[idx-1] from the current node
-    childChunk.set(0, childChunk.get(idx - 1));
+    childChunk.set(0, chunk.get(idx - 1));
 
     // Moving sibling's last child as C[idx]'s first child
     if (!child.isLeaf()) {
@@ -718,23 +757,26 @@ class BTreeNode<V> implements Serializable {
     childChunk.set(this.minimumDegree - 1, chunk.get(idx));
 
     // Copying the keys from C[idx+1] to C[idx] at the end
-    for (int i = 0; i < sibling.getKeyCount(); ++i)
-      chunk.set(i + this.minimumDegree, siblingChunk.get(i));
+    for (int i = 0; i < sibling.getKeyCount(); ++i) {
+      childChunk.set(i + this.minimumDegree, siblingChunk.get(i));
+      siblingChunk.set(i, null);
+    }
 
     // Copying the child pointers from C[idx+1] to C[idx]
     if (!child.isLeaf()) {
-      for (int i = 0; i <= sibling.getKeyCount(); ++i)
+      for (int i = 0; i <= sibling.getKeyCount(); ++i) {
         child.getChildren().set(i + this.minimumDegree, sibling.getChildren().get(i));
+      }
     }
 
     // Moving all keys after idx in the current node one step before -
     // to fill the gap created by moving keys[idx] to C[idx]
-    for (int i = idx + 1; i < this.getKeyCount(); ++i)
+    for (int i = idx + 1; i < this.getKeyCount(); ++i) 
       chunk.set(i - 1, chunk.get(i));
 
     // Moving the child pointers after (idx+1) in the current node one
     // step before
-    for (int i = idx + 2; i <= this.keyCount; ++i)
+    for (int i = idx + 2; i <= this.keyCount; ++i) 
       this.getChildren().set(i - 1, this.getChildren().get(i));
 
     // Updating the key count of child and the current node
@@ -791,59 +833,66 @@ class BTreeNode<V> implements Serializable {
     t.insert("Q", "a");
     // t.traverseSpecial();
     t.insert("L", "a");
-    t.traverseSpecial();
-    // t.insert("F", "a");
+    // t.traverseSpecial();
+    t.insert("F", "a");
+    // t.traverseSpecial();
 
-    t.traverse();
+    // t.traverseCondensed();
 
-    // System.out.println("Traversal of tree constructed is");
-    // t.traverse();
+    System.out.println("Traversal of tree constructed is");
+    t.traverseCondensed();
     
   
-    t.remove("Q");
-    System.out.println("Traversal of tree after removing 6");
-    t.traverse();
+    t.remove("F");
+    System.out.println("Traversal of tree after removing F");
+    t.traverseCondensed();
+    // t.traverseSpecial();
+  
+  
+    t.remove("M");
+    System.out.println("Traversal of tree after removing M");
+    t.traverseCondensed();
     
   
-    // t.remove("13");
-    // System.out.println("Traversal of tree after removing 13");
-    // t.traverse();
+    t.remove("G");
+    System.out.println("Traversal of tree after removing G");
+    t.traverseCondensed();
     
   
-    // t.remove("7");
-    // System.out.println("Traversal of tree after removing 7");
-    // t.traverse();
+    t.remove("D");
+    System.out.println("Traversal of tree after removing D");
+    t.traverseCondensed();
     
   
-    // t.remove("4");
-    // System.out.println("Traversal of tree after removing 4");
-    // t.traverse();
+    t.remove("B");
+    System.out.println("Traversal of tree after removing B");
+    t.traverseCondensed();
     
   
-    // t.remove("2");
-    // System.out.println("Traversal of tree after removing 2");
-    // t.traverse();
-    
-  
-    // t.remove("16");
-    // System.out.println("Traversal of tree after removing 16");
-    // t.traverse();
+    t.remove("P");
+    System.out.println("Traversal of tree after removing P");
+    t.traverseCondensed();
 
     // System.out.println("Traversal of the constructed tree is ");
     // t.traverse();
 
-    // String k = "52";
+    String k = "E";
 
-    // if (t.search(k) != null) {
-    //   System.out.println("\nPresent");
-    // } else {
-    //   System.out.println("\nNot Present");
-    // }
+    if (t.search(k) != null) {
+      System.out.println("\nPresent");
+    } else {
+      System.out.println("\nNot Present");
+    }
 
-    // k = "15";
-    // if (t.search(k) != null)
-    //   System.out.println("\nPresent");
-    // else
-    //   System.out.println("\nNot Present");
+    k = "F";
+    if (t.search(k) != null)
+      System.out.println("\nPresent");
+    else
+      System.out.println("\nNot Present");
+
+    t.insert("ZETOINO", "ABUTRE");
+
+    t.traverseSpecial();
+    t.traverseCondensed();
   }
 }
