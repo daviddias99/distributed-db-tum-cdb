@@ -1,6 +1,7 @@
 package de.tum.i13.client;
 
 import de.tum.i13.client.exceptions.ClientException;
+import de.tum.i13.client.exceptions.ShellException;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -102,7 +103,7 @@ public class Shell {
             try {
                 systemRegistry.execute(Constants.HELP_COMMAND);
             } catch (Exception e) {
-                final RuntimeException rethrownException = new RuntimeException("Could not execute help command", e);
+                final var rethrownException = new ShellException("Could not execute help command", e);
                 LOGGER.fatal(rethrownException);
                 throw rethrownException;
             }
