@@ -51,6 +51,17 @@ class PersistentBTreeNode<V> implements Serializable {
     return this.leaf;
   }
 
+  public int getChildrenCount() {
+    int i = 0;
+    for (PersistentBTreeNode<V> persistentBTreeNode : children) {
+      if(persistentBTreeNode != null) {
+        i++;
+      }
+    }
+
+    return i;
+  }
+
   // A function to traverse all nodes in a subtree rooted with this node
   void traverse() {
 

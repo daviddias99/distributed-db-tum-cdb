@@ -95,4 +95,22 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
     DatabaseChunk<V> chunkClone = new DatabaseChunk<>(this.minimumDegree, this.elements);
     return chunkClone;
   }
+
+  @Override
+  public int getKeyCount() {
+    int i = 0;
+
+    for (Pair<V> pair : elements) {
+      if(pair != null) {
+        i += 1;
+      }
+    }
+
+    return i;
+  }
+
+  @Override
+  public List<Pair<V>> getKeys() {
+    return this.elements;
+  }
 }

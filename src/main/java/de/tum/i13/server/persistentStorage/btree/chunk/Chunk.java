@@ -1,5 +1,7 @@
 package de.tum.i13.server.persistentStorage.btree.chunk;
 
+import java.util.List;
+
 public interface Chunk<V> {
 
   public int findIndexOfFirstGreaterThen(String k);
@@ -17,4 +19,8 @@ public interface Chunk<V> {
   public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount);
 
   public Chunk<V> clone();
+
+  public int getKeyCount();
+
+  public List<Pair<V>> getKeys();
 }
