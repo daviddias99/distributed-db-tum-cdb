@@ -14,6 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +57,7 @@ class TestPersistentBTree {
         return false;
       }
 
-      if (node.getChildrenCount() > 2 * minimumDegree - 1) {
+      if (node.getChildrenCount() > 2 * minimumDegree) {
         return false;
       }
 
@@ -88,6 +90,20 @@ class TestPersistentBTree {
       assertThat(tree.search("A")).isEqualTo("Value");
       assertThat(validTree()).isTrue();
     }
+  
+    @Test
+    void testInsert2() {
+      char[] alphabet = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+      Collections.shuffle(Arrays.asList(alphabet));
+      for (char c : alphabet) {
+        tree.insert(c + "", c + "");
+        assertThat(validTree()).isTrue();
+      }
+
+      for (char c : alphabet) {
+        assertThat( tree.search(c + "")).isEqualTo(c + "");
+      }
+    }
 
     @Test
     void testMissingSearch() {
@@ -96,7 +112,7 @@ class TestPersistentBTree {
     }
 
     @Test
-    void testInsertDoubleInsert() {
+    void testInsertDoubleInsert1() {
 
       tree.insert("A", "Value");
       assertThat(validTree()).isTrue();
@@ -106,5 +122,49 @@ class TestPersistentBTree {
       assertThat(validTree()).isTrue();
       assertThat(tree.search("A")).isEqualTo("Value2");
       assertThat(validTree()).isTrue();
+    }
+
+    @Test
+    void testInsertDoubleInsert2() {
+
+      tree.insert("A", "Value");
+      tree.insert("B", "Value");
+      tree.insert("C", "Value1");
+      tree.insert("D", "Value");
+      tree.insert("E", "Value");
+      assertThat(validTree()).isTrue();
+      assertThat(tree.search("C")).isEqualTo("Value1");
+      assertThat(validTree()).isTrue();
+      tree.insert("C", "Value2");
+      assertThat(validTree()).isTrue();
+      assertThat(tree.search("C")).isEqualTo("Value2");
+      assertThat(validTree()).isTrue();
+    }
+
+    @Test
+    void testDelete1() {
+
+      tree.insert("A", "Value");
+      assertThat(validTree()).isTrue();
+      tree.remove("C");
+      assertThat(validTree()).isTrue();
+      assertThat(tree.search("C")).isEqualTo(null);
+    }
+
+    @Test
+    void testDelete2() {
+      tree.insert("A", "Value");
+      tree.insert("C", "Value");
+      tree.insert("B", "Value");
+      tree.insert("D", "Value");
+      assertThat(validTree()).isTrue();
+      tree.remove("C");
+      tree.traverseSpecial();
+      boolean valid = validTree();
+      assertThat(validTree()).isTrue();
+      assertThat(tree.search("C")).isEqualTo(null);
+      assertThat(tree.search("B")).isNotEqualTo(null);
+      assertThat(tree.search("A")).isNotEqualTo(null);
+      assertThat(tree.search("D")).isNotEqualTo(null);
     }
 }

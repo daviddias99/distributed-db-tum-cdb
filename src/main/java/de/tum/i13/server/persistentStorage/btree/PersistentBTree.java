@@ -56,6 +56,12 @@ public class PersistentBTree<V> implements Serializable {
       return;
     }
 
+    boolean existed = searchAndInsert(key, value);
+
+    if(existed) {
+      return;
+    }
+
     // If root is full, then tree grows in height
     if (root.isFull())
       this.insertFull(key, value);
@@ -64,6 +70,13 @@ public class PersistentBTree<V> implements Serializable {
       root.insertNonFull(key, value);
 
     this.storageHandler.saveToDisk(this);
+  }
+
+  private boolean searchAndInsert(String key, V value) {
+    if (this.root == null)
+      return false;
+    else
+      return this.root.searchAndInsert(key, value);
   }
 
   private void createRoot(String key, V value) {
@@ -132,11 +145,11 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   public static void main(String[] args) {
-    PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeDiskStorageHandler<String>("database", false);
-    // PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeMockStorageHandler<>();
+    // PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeDiskStorageHandler<String>("database", false);
+    PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeMockStorageHandler<>();
     PersistentBTree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
                                                               // degree 3
-    // t = t == null ? new PersistentBTree<String>(3, storageHandler) : t;
+    t = t == null ? new PersistentBTree<String>(3, storageHandler) : t;
     // TODO: problem with double inser
     // // t.insert("78", "a");
     // // t.insert("78", "b");
@@ -152,7 +165,8 @@ public class PersistentBTree<V> implements Serializable {
 
     // // BTree t(3); // A B-Tree with minimum degree 3
 
-    // t.insert("A", "a");
+    t.insert("A", "a");
+    t.insert("A", "a");
     // t.insert("C", "a");
     // t.insert("G", "a");
     // t.insert("J", "a");

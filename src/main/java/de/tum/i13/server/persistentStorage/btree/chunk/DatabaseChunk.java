@@ -31,7 +31,7 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   @Override
   public int findIndexOfFirstGreaterThen(String k) {
     int i = 0;
-    int n = elements.size();
+    int n = this.getKeyCount();
     while (i < n && k.compareTo(elements.get(i).key) > 0)
       i++;
 

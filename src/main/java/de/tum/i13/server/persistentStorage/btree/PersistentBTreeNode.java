@@ -24,12 +24,13 @@ class PersistentBTreeNode<V> implements Serializable {
   private int id;
 
   // Constructor
-  PersistentBTreeNode(int t, boolean leaf, Pair<V> rootElement, PersistentBTreeStorageHandler<V> treeStorageHandler) throws Exception {
+  PersistentBTreeNode(int t, boolean leaf, Pair<V> rootElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
+      throws Exception {
     this.minimumDegree = t;
     this.keyCount = 0;
     this.leaf = leaf;
     this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
-    
+
     this.id = PersistentBTree.id++;
     this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
     this.treeStorageInterface = treeStorageHandler;
@@ -54,7 +55,7 @@ class PersistentBTreeNode<V> implements Serializable {
   public int getChildrenCount() {
     int i = 0;
     for (PersistentBTreeNode<V> persistentBTreeNode : children) {
-      if(persistentBTreeNode != null) {
+      if (persistentBTreeNode != null) {
         i++;
       }
     }
@@ -182,9 +183,11 @@ class PersistentBTreeNode<V> implements Serializable {
     Pair<V> value = chunk.get(i);
     chunk = null;
 
-    // If the found key is equal to k, return this node
-    if (value.key.equals(k))
-      return value.value;
+    if (i < this.keyCount) {
+      // If the found key is equal to k, return this node
+      if (value != null && value.key.equals(k))
+        return value.value;
+    }
 
     // If the key is not found here and this is a leaf node
     if (leaf == true)
@@ -192,6 +195,36 @@ class PersistentBTreeNode<V> implements Serializable {
 
     // Go to the appropriate child
     return children.get(i).search(k);
+  }
+
+  protected boolean searchAndInsert(String key, V value) {
+    // Find the first key greater than or equal to k
+    // int i = chunk.findIndexOfFirstGreaterThen(k);
+
+    Chunk<V> chunk = this.getChunk();
+
+    if (chunk == null) {
+      return false;
+    }
+
+    int i = chunk.findIndexOfFirstGreaterThen(key);
+
+    if (i < this.keyCount) {
+      Pair<V> pair = chunk.get(i);
+      // If the found key is equal to k, return this node
+      if (pair != null && pair.key.equals(key)) {
+        chunk.set(i, new Pair<>(key, value));
+        this.setChunk(chunk);
+        return true;
+      }
+    }
+
+    // If the key is not found here and this is a leaf node
+    if (leaf == true)
+      return false;
+
+    // Go to the appropriate child
+    return children.get(i).searchAndInsert(key, value);
   }
 
   // A utility function to insert a new key in this node
@@ -202,7 +235,7 @@ class PersistentBTreeNode<V> implements Serializable {
     int i = keyCount - 1;
 
     Chunk<V> chunk = this.getChunk();
-    
+
     // If this is a leaf node
     if (leaf == true) {
       // The following loop does two things
@@ -215,7 +248,7 @@ class PersistentBTreeNode<V> implements Serializable {
       chunk.set(i + 1, new Pair<V>(key, value));
 
       this.setChunk(chunk);
-      this.incrementKeyCount();
+      this.setKeyCount(chunk.getKeyCount());
       chunk = null;
     } else // If this node is not leaf
     {
@@ -240,7 +273,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
         if (chunk.get(i + 1).key.compareTo(key) < 0)
           i++;
-        
+
         this.setChunk(chunk);
       }
       chunk = null;
