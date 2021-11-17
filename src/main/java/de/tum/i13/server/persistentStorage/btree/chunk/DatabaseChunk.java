@@ -1,11 +1,11 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentStorage.btree.chunk;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class DatabaseChunk<V> implements Chunk<V>, Serializable {
+public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
   private int minimumDegree;
 

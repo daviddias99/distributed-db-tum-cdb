@@ -7,34 +7,40 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentStorage.btree.chunk.DatabaseChunk;
+import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
+
 // A BTree node
-class BTreeNode<V> implements Serializable {
+class PersistentBTreeNode<V> implements Serializable {
   private int minimumDegree; // Minimum degree (defines the range for number of keys)
-  private List<BTreeNode<V>> children; // An array of child pointers
+  private List<PersistentBTreeNode<V>> children; // An array of child pointers
   private int keyCount; // Current number of keys
   private boolean leaf; // Is true when node is leaf. Otherwise false
-  private ChunkStorageHandler<V> storageInterface;
-  private String storageFolder;
+  private ChunkStorageHandler<V> chunkStorageInterface;
+  private PersistentBTreeStorageHandler<V> treeStorageInterface;
   private int id;
 
   // Constructor
-  BTreeNode(String storageFolder, int t, boolean leaf, Pair<V> rootElement) throws Exception {
+  PersistentBTreeNode(int t, boolean leaf, Pair<V> rootElement, PersistentBTreeStorageHandler<V> treeStorageHandler) throws Exception {
     this.minimumDegree = t;
-    this.id = PersistentBtree.id++;
-    this.leaf = leaf;
-    this.storageFolder = storageFolder;
-    this.children = new ArrayList<BTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.keyCount = 0;
-    String filePath = storageFolder + "/" + Integer.toString(this.id);
-    this.storageInterface = new ChunkStorageHandler<>(filePath);
+    this.leaf = leaf;
+    this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
+    
+    this.id = PersistentBTree.id++;
+    this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
+    this.treeStorageInterface = treeStorageHandler;
 
     DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree)
         : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
     this.setChunk(newChunk);
   }
 
-  BTreeNode(String storageFolder, int t, boolean leaf) throws Exception {
-    this(storageFolder, t, leaf, null);
+  PersistentBTreeNode(int t, boolean leaf, PersistentBTreeStorageHandler<V> treeStorageHandler) throws Exception {
+    this(t, leaf, null, treeStorageHandler);
   }
 
   public boolean isFull() {
@@ -129,7 +135,7 @@ class BTreeNode<V> implements Serializable {
 
     System.out.print("Children: ");
 
-    for (BTreeNode<V> bTreeNode : children) {
+    for (PersistentBTreeNode<V> bTreeNode : children) {
 
       if (bTreeNode == null) {
         break;
@@ -140,7 +146,7 @@ class BTreeNode<V> implements Serializable {
 
     System.out.print("\n");
 
-    for (BTreeNode<V> bTreeNode : children) {
+    for (PersistentBTreeNode<V> bTreeNode : children) {
 
       if (bTreeNode == null) {
         break;
@@ -209,7 +215,7 @@ class BTreeNode<V> implements Serializable {
       while (i >= 0 && chunk.get(i).key.compareTo(key) > 0)
         i--;
 
-      BTreeNode<V> child = this.children.get(i + 1);
+      PersistentBTreeNode<V> child = this.children.get(i + 1);
 
       // See if the found child is full
       if (child.isFull()) {
@@ -233,12 +239,12 @@ class BTreeNode<V> implements Serializable {
 
   // A utility function to split the child y of this node
   // Note that y must be full when this function is called
-  void splitChild(int i, BTreeNode<V> child, Chunk<V> parentChunk) {
+  void splitChild(int i, PersistentBTreeNode<V> child, Chunk<V> parentChunk) {
     // Create a new node which is going to store (t-1) keys
     // of y
-    BTreeNode<V> newNode;
+    PersistentBTreeNode<V> newNode;
     try {
-      newNode = new BTreeNode<V>(this.storageFolder, child.minimumDegree, child.leaf);
+      newNode = new PersistentBTreeNode<V>(child.minimumDegree, child.leaf, this.treeStorageInterface);
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -289,7 +295,7 @@ class BTreeNode<V> implements Serializable {
     this.keyCount++;
   }
 
-  List<BTreeNode<V>> getChildren() {
+  List<PersistentBTreeNode<V>> getChildren() {
     return this.children;
   }
 
@@ -314,7 +320,7 @@ class BTreeNode<V> implements Serializable {
 
   Chunk<V> getChunk() {
     try {
-      Chunk<V> chunk = storageInterface.readChunkFromMemory();
+      Chunk<V> chunk = chunkStorageInterface.readChunkFromMemory();
       return chunk;
     } catch (Exception e) {
       // TODO Auto-generated catch block
@@ -325,7 +331,7 @@ class BTreeNode<V> implements Serializable {
 
   void setChunk(Chunk<V> chunk) {
     try {
-      this.storageInterface.storeChunkInMemory(chunk);
+      this.chunkStorageInterface.storeChunkInMemory(chunk);
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -371,7 +377,7 @@ class BTreeNode<V> implements Serializable {
       // with the last child of this node
       boolean flag = ((idx == this.keyCount) ? true : false);
 
-      List<BTreeNode<V>> children = this.getChildren();
+      List<PersistentBTreeNode<V>> children = this.getChildren();
 
       // If the child where the key is supposed to exist has less that t keys,
       // we fill that child
@@ -450,7 +456,7 @@ class BTreeNode<V> implements Serializable {
   // A function to get predecessor of keys[idx]
   Pair<V> getPred(int idx) {
     // Keep moving to the right most node until we reach a leaf
-    BTreeNode<V> cur = this.getChildren().get(idx);
+    PersistentBTreeNode<V> cur = this.getChildren().get(idx);
     Chunk<V> chunk = cur.getChunk();
 
     while (!cur.isLeaf())
@@ -463,7 +469,7 @@ class BTreeNode<V> implements Serializable {
   Pair<V> getSucc(int idx) {
 
     // Keep moving the left most node starting from C[idx+1] until we reach a leaf
-    BTreeNode<V> cur = this.getChildren().get(idx + 1);
+    PersistentBTreeNode<V> cur = this.getChildren().get(idx + 1);
     Chunk<V> chunk = cur.getChunk();
 
     while (!cur.isLeaf())
@@ -502,8 +508,8 @@ class BTreeNode<V> implements Serializable {
   // into C[idx]
   void borrowFromPrev(int idx) {
 
-    BTreeNode<V> child = this.getChildren().get(idx);
-    BTreeNode<V> sibling = this.getChildren().get(idx - 1);
+    PersistentBTreeNode<V> child = this.getChildren().get(idx);
+    PersistentBTreeNode<V> sibling = this.getChildren().get(idx - 1);
 
     // The last key from C[idx-1] goes up to the parent and key[idx-1]
     // from parent is inserted as the first key in C[idx]. Thus, the loses
@@ -551,8 +557,8 @@ class BTreeNode<V> implements Serializable {
   // it in C[idx]
   void borrowFromNext(int idx) {
 
-    BTreeNode<V> child = this.children.get(idx);
-    BTreeNode<V> sibling = this.children.get(idx + 1);
+    PersistentBTreeNode<V> child = this.children.get(idx);
+    PersistentBTreeNode<V> sibling = this.children.get(idx + 1);
 
     Chunk<V> chunk = this.getChunk();
     Chunk<V> childChunk = child.getChunk();
@@ -596,8 +602,8 @@ class BTreeNode<V> implements Serializable {
   // A function to merge C[idx] with C[idx+1]
   // C[idx+1] is freed after merging
   void merge(int idx) {
-    BTreeNode<V> child = this.getChildren().get(idx);
-    BTreeNode<V> sibling = this.getChildren().get(idx + 1);
+    PersistentBTreeNode<V> child = this.getChildren().get(idx);
+    PersistentBTreeNode<V> sibling = this.getChildren().get(idx + 1);
 
     Chunk<V> chunk = this.getChunk();
     Chunk<V> childChunk = child.getChunk();

@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentStorage.btree.storage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,32 +9,49 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-class TreeStorageHandler<V> implements Serializable{
+import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkDiskStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkStorageHandler;
+
+public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
 
   private static final long serialVersionUID = 6523685098267757691L;
 
   private String filePath;
+  private String storageFolder;
 
-  TreeStorageHandler(String storageFolder, boolean reset) {
+  public PersistentBTreeDiskStorageHandler(String storageFolder, boolean reset) {
     this.filePath = storageFolder + "/root";
+    this.storageFolder = storageFolder;
 
-    if(reset) {
+    if (reset) {
       this.deleteDirectory(new File(storageFolder));
     }
-
+    this.createDirectory(storageFolder);
   }
 
-  boolean deleteDirectory(File directoryToBeDeleted) {
+  public PersistentBTreeDiskStorageHandler(String storageFolder) {
+    this(storageFolder, false);
+  }
+
+  private void createDirectory(String storageFolder) {
+    File theDir = new File(storageFolder);
+    if (!theDir.exists()) {
+      theDir.mkdirs();
+    }
+  }
+
+  private boolean deleteDirectory(File directoryToBeDeleted) {
     File[] allContents = directoryToBeDeleted.listFiles();
     if (allContents != null) {
-        for (File file : allContents) {
-            deleteDirectory(file);
-        }
+      for (File file : allContents) {
+        deleteDirectory(file);
+      }
     }
     return directoryToBeDeleted.delete();
-}
+  }
 
-  void saveToDisk(PersistentBtree<V> tree) {
+  public void saveToDisk(PersistentBTree<V> tree) {
     try {
       FileOutputStream fileOut = new FileOutputStream(this.filePath);
       var objectOut = new ObjectOutputStream(fileOut);
@@ -49,12 +66,12 @@ class TreeStorageHandler<V> implements Serializable{
     }
   }
 
-  PersistentBtree<V> readFromDisk() {
+  public PersistentBTree<V> readFromDisk() {
     try {
       FileInputStream fileIn = new FileInputStream(this.filePath);
       ObjectInputStream objectIn = new ObjectInputStream(fileIn);
       @SuppressWarnings("unchecked")
-      PersistentBtree<V> tree = (PersistentBtree<V>) objectIn.readObject();
+      PersistentBTree<V> tree = (PersistentBTree<V>) objectIn.readObject();
       objectIn.close();
       return tree;
     } catch (FileNotFoundException e) {
@@ -66,5 +83,9 @@ class TreeStorageHandler<V> implements Serializable{
       e.printStackTrace();
     }
     return null;
+  }
+
+  public ChunkStorageHandler<V> createChunkStorageHandler(String chunkId) {
+    return new ChunkDiskStorageHandler<>(this.storageFolder + "/" + chunkId);
   }
 }

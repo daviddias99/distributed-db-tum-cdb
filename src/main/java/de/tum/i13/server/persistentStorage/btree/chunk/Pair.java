@@ -1,13 +1,13 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentStorage.btree.chunk;
 
 import java.io.Serializable;
 
-class Pair<V> implements Serializable {
+public class Pair<V> implements Serializable {
 
   private static final long serialVersionUID = 6529685098267755681L;
 
-  final String key;
-  final V value;
+  public final String key;
+  public final V value;
 
   public Pair(String key, V value) {
     this.key = key;

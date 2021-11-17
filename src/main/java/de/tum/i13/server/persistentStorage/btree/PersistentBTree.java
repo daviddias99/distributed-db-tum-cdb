@@ -1,25 +1,27 @@
 package de.tum.i13.server.persistentStorage.btree;
 
-import java.io.File;
 import java.io.Serializable;
 
+import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeDiskStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeMockStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
+
 // A BTree
-class PersistentBtree<V> implements Serializable {
-  public BTreeNode<V> root; // Pointer to root node
+public class PersistentBTree<V> implements Serializable {
+  public PersistentBTreeNode<V> root; // Pointer to root node
   public int minimumDegree; // Minimum degree
-  public String storageFolder;
-  private TreeStorageHandler<V> storageHandler;
+  private PersistentBTreeStorageHandler<V> storageHandler;
   public static int id = 0;
 
   private static final long serialVersionUID = 6529685098267757690L;
 
   // Constructor (Initializes tree as empty)
-  PersistentBtree(int minimumDegree, String storageFolder, TreeStorageHandler<V> storageHandler) {
+  PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler) {
     this.root = null;
     this.minimumDegree = minimumDegree;
-    this.storageFolder = storageFolder;
     this.storageHandler = storageHandler;
-    this.createStorageFolder();
   }
 
   void remove(String key) {
@@ -64,17 +66,10 @@ class PersistentBtree<V> implements Serializable {
     this.storageHandler.saveToDisk(this);
   }
 
-  private void createStorageFolder() {
-    File theDir = new File(this.storageFolder);
-    if (!theDir.exists()) {
-      theDir.mkdirs();
-    }
-  }
-
   private void createRoot(String key, V value) {
     // Create new node
     try {
-      root = new BTreeNode<V>(this.storageFolder, this.minimumDegree, true, new Pair<V>(key, value));
+      root = new PersistentBTreeNode<V>(this.minimumDegree, true, new Pair<V>(key, value), this.storageHandler);
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -84,9 +79,9 @@ class PersistentBtree<V> implements Serializable {
 
   private void insertFull(String key, V value) {
     // Allocate memory for new root
-    BTreeNode<V> s;
+    PersistentBTreeNode<V> s;
     try {
-      s = new BTreeNode<V>(this.storageFolder, this.minimumDegree, false);
+      s = new PersistentBTreeNode<V>(this.minimumDegree, false, this.storageHandler);
     } catch (Exception e) {
       e.printStackTrace();
       return;
@@ -137,11 +132,12 @@ class PersistentBtree<V> implements Serializable {
   }
 
   public static void main(String[] args) {
-    TreeStorageHandler<String> storageHandler = new TreeStorageHandler<String>("database", true);
-    PersistentBtree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
+    PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeDiskStorageHandler<String>("database", false);
+    // PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeMockStorageHandler<>();
+    PersistentBTree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
                                                               // degree 3
-    // t = t == null ? new PersistentBtree<String>(3, "database", storageHandler) :
-    // t;
+    // t = t == null ? new PersistentBTree<String>(3, storageHandler) : t;
+    // TODO: problem with double inser
     // // t.insert("78", "a");
     // // t.insert("78", "b");
     // // t.insert("52", "b");
@@ -157,8 +153,6 @@ class PersistentBtree<V> implements Serializable {
     // // BTree t(3); // A B-Tree with minimum degree 3
 
     // t.insert("A", "a");
-    // t.traverseSpecial();
-
     // t.insert("C", "a");
     // t.insert("G", "a");
     // t.insert("J", "a");
@@ -189,36 +183,36 @@ class PersistentBtree<V> implements Serializable {
 
     // // t.traverseCondensed();
 
-    // System.out.println("Traversal of tree constructed is");
-    // t.traverseCondensed();
+    System.out.println("Traversal of tree constructed is");
+    t.traverseCondensed();
 
-    // t.remove("F");
-    // System.out.println("Traversal of tree after removing F");
-    // t.traverseCondensed();
-    // // t.traverseSpecial();
+    t.remove("F");
+    System.out.println("Traversal of tree after removing F");
+    t.traverseCondensed();
+    // t.traverseSpecial();
 
-    // t.remove("M");
-    // System.out.println("Traversal of tree after removing M");
-    // t.traverseCondensed();
+    t.remove("M");
+    System.out.println("Traversal of tree after removing M");
+    t.traverseCondensed();
 
-    // t.remove("G");
-    // System.out.println("Traversal of tree after removing G");
-    // t.traverseCondensed();
+    t.remove("G");
+    System.out.println("Traversal of tree after removing G");
+    t.traverseCondensed();
 
-    // t.remove("D");
-    // System.out.println("Traversal of tree after removing D");
-    // t.traverseCondensed();
+    t.remove("D");
+    System.out.println("Traversal of tree after removing D");
+    t.traverseCondensed();
 
-    // t.remove("B");
-    // System.out.println("Traversal of tree after removing B");
-    // t.traverseCondensed();
+    t.remove("B");
+    System.out.println("Traversal of tree after removing B");
+    t.traverseCondensed();
 
-    // t.remove("P");
-    // System.out.println("Traversal of tree after removing P");
-    // t.traverseCondensed();
+    t.remove("P");
+    System.out.println("Traversal of tree after removing P");
+    t.traverseCondensed();
 
-    // System.out.println("Traversal of the constructed tree is ");
-    // t.traverse();
+    System.out.println("Traversal of the constructed tree is ");
+    t.traverse();
 
     String k = "E";
 
