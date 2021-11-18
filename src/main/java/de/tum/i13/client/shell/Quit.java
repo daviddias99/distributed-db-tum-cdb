@@ -34,6 +34,7 @@ class Quit implements Callable<Integer> {
     public Integer call() throws ClientException {
         if (parent.client.isConnected()) {
             LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
+            commandSpec.commandLine().getOut().println("Disconnecting from server");
             parent.client.disconnect();
         }
 
