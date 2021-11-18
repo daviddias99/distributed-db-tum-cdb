@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @CommandLine.Command(
         name = Constants.LOG_COMMAND,
@@ -42,15 +41,13 @@ class ChangeLogLevel implements Callable<Integer> {
      */
     @Override
     public Integer call() {
-        String oldLevelName = LOGGER.getLevel().name();
-        final String newLevelName = logLevel.name();
-        Stream.of(ChangeLogLevel.class, CLICommands.class, ClientExceptionHandler.class, Connect.class,
-                        Disconnect.class, Quit.class, Send.class, Shell.class, ParameterExceptionHandler.class)
-                .map(LogManager::getLogger)
-                .forEach(logger -> Configurator.setLevel(logger.getName(), logLevel));
+        Configurator.setRootLevel(logLevel);
 
+        String oldLevelName = LogManager.getRootLogger().getLevel().name();
+        final String newLevelName = logLevel.name();
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
         commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
+
         return ExitCode.SUCCESS.getValue();
     }
 
