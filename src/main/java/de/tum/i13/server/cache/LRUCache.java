@@ -10,7 +10,7 @@ public class LRUCache extends AbstractLinkedHashMapCache {
      *
      * @param size the size of the cache
      */
-    protected LRUCache(int size) {
+    public LRUCache(int size) {
         super(size, true);
     }
 

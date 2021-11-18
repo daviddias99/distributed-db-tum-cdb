@@ -10,7 +10,7 @@ public class FIFOCache extends AbstractLinkedHashMapCache {
      *
      * @param size the size of the cache
      */
-    protected FIFOCache(int size) {
+    public FIFOCache(int size) {
         super(size, false);
     }
 
