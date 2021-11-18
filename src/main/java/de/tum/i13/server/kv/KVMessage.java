@@ -9,8 +9,10 @@ public interface KVMessage {
      * The type and status of the {@link KVMessage}
      */
     enum StatusType {
-        UNDEFINED,
-        ECHO,
+        /**
+         * Undefined status, for example unprocessable command
+         */
+        UNDEFINED(true),
         /**
          * Get - request
          */
