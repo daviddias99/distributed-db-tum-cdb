@@ -42,6 +42,7 @@ public class Shell {
     public static void main(String[] args) {
         final CLICommands commands = new CLICommands();
         final CommandLine cmd = new CommandLine(commands)
+                .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())
                 .setExecutionExceptionHandler(new ClientExceptionHandler());
 

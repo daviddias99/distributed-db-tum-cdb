@@ -21,8 +21,9 @@ class ClientExceptionHandler implements CommandLine.IExecutionExceptionHandler {
             commandLine.getOut().printf("Error: %s%n", exception.getReason());
             return ExitCode.CLIENT_EXCEPTION.getValue();
         } else {
-            LOGGER.fatal("Caught unexpected exception", ex);
-            // TODO Map exit code
+            LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);
+            commandLine.getOut().println("An unexpected error occurred" +
+                    ". Please contact the administrator or consult the logs");
             throw ex;
         }
     }
