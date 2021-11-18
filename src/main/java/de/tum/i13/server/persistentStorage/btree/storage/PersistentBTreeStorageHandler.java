@@ -10,4 +10,6 @@ public interface PersistentBTreeStorageHandler<V> {
   public PersistentBTree<V> load();
 
   public ChunkStorageHandler<V> createChunkStorageHandler(String chunkId);
+
+  public void delete();
 }

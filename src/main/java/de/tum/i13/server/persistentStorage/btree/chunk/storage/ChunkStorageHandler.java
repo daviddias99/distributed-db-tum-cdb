@@ -10,4 +10,6 @@ public interface ChunkStorageHandler<V> {
 
   // TODO: change exception type;
   public void storeChunkInMemory(Chunk<V> chunk) throws IOException;
+  
+  public void storeChunkInMemoryForce(Chunk<V> chunk) throws IOException;
 }

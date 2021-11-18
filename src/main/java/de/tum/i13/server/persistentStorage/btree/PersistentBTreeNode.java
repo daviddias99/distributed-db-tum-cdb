@@ -24,7 +24,7 @@ class PersistentBTreeNode<V> implements Serializable {
   private int id;
 
   // Constructor
-  PersistentBTreeNode(int t, boolean leaf, Pair<V> rootElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
+  PersistentBTreeNode(int t, boolean leaf, Pair<V> initialElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
       throws Exception {
     this.minimumDegree = t;
     this.keyCount = 0;
@@ -35,9 +35,8 @@ class PersistentBTreeNode<V> implements Serializable {
     this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
     this.treeStorageInterface = treeStorageHandler;
 
-    DatabaseChunk<V> newChunk = rootElement == null ? new DatabaseChunk<V>(minimumDegree)
-        : new DatabaseChunk<V>(minimumDegree, Arrays.asList(rootElement));
-    this.setChunk(newChunk);
+    DatabaseChunk<V> newChunk = initialElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(initialElement));
+    this.storeChunkInMemoryForce(newChunk);
   }
 
   PersistentBTreeNode(int t, boolean leaf, PersistentBTreeStorageHandler<V> treeStorageHandler) throws Exception {
@@ -377,6 +376,15 @@ class PersistentBTreeNode<V> implements Serializable {
   void setChunk(Chunk<V> chunk) {
     try {
       this.chunkStorageInterface.storeChunkInMemory(chunk);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+
+  void storeChunkInMemoryForce(Chunk<V> chunk) {
+    try {
+      this.chunkStorageInterface.storeChunkInMemoryForce(chunk);
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

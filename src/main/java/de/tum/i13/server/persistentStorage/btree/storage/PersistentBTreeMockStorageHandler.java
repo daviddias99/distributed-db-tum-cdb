@@ -11,14 +11,21 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
 
   }
 
+  @Override
   public void save(PersistentBTree<V> tree) {
   };
 
+  @Override
   public PersistentBTree<V> load() {
     return null;
   }
 
+  @Override
   public ChunkStorageHandler<V> createChunkStorageHandler(String chunkId) {
     return new ChunkMockStorageHandler<V>();
+  }
+
+  @Override
+  public void delete() {
   }
 }

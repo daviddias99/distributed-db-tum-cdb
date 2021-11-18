@@ -33,8 +33,26 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     return chunk;
   }
 
+  private void deleteChunk() {
+    File file = new File(this.filePath);
+    file.delete();
+  }
+
   // TODO: change exception type;
   public void storeChunkInMemory(Chunk<V> chunk) throws IOException {
+
+    if(chunk.getKeyCount() == 0) {
+      this.deleteChunk();
+      return;
+    }
+
+    FileOutputStream fileOut = new FileOutputStream(this.filePath);
+    var objectOut = new ObjectOutputStream(fileOut);
+    objectOut.writeObject(chunk);
+    objectOut.close();
+  }
+
+  public void storeChunkInMemoryForce(Chunk<V> chunk) throws IOException {
     FileOutputStream fileOut = new FileOutputStream(this.filePath);
     var objectOut = new ObjectOutputStream(fileOut);
     objectOut.writeObject(chunk);

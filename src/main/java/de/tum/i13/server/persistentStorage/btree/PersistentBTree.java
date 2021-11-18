@@ -43,6 +43,7 @@ public class PersistentBTree<V> implements Serializable {
     }
 
     this.readWriteLock.writeLock().unlock();
+    this.storageHandler.save(this);
     return;
   }
 
@@ -70,6 +71,7 @@ public class PersistentBTree<V> implements Serializable {
     // If tree is empty
     if (root == null) {
       this.createRoot(key, value);
+      this.storageHandler.save(this);
       this.readWriteLock.writeLock().unlock();
       return;
     }
@@ -77,6 +79,7 @@ public class PersistentBTree<V> implements Serializable {
     boolean existed = searchAndInsert(key, value);
 
     if(existed) {
+      this.storageHandler.save(this);
       this.readWriteLock.writeLock().unlock();
       return;
     }
@@ -139,6 +142,10 @@ public class PersistentBTree<V> implements Serializable {
 
     // Change root
     root = s;
+  }
+
+  public void delete() {
+    this.storageHandler.delete();
   }
 
   /*

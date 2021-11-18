@@ -51,6 +51,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     return directoryToBeDeleted.delete();
   }
 
+  @Override
   public void save(PersistentBTree<V> tree) {
     try {
       FileOutputStream fileOut = new FileOutputStream(this.filePath);
@@ -66,6 +67,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     }
   }
 
+  @Override
   public PersistentBTree<V> load() {
     try {
       FileInputStream fileIn = new FileInputStream(this.filePath);
@@ -85,7 +87,13 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     return null;
   }
 
+  @Override
   public ChunkStorageHandler<V> createChunkStorageHandler(String chunkId) {
     return new ChunkDiskStorageHandler<>(this.storageFolder + "/" + chunkId);
+  }
+
+  @Override
+  public void delete() {
+    this.deleteDirectory(new File(storageFolder));
   }
 }

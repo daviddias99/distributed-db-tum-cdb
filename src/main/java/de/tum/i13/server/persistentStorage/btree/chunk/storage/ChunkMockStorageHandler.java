@@ -23,4 +23,9 @@ public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   public void storeChunkInMemory(Chunk<V> chunk) throws IOException {
     this.chunk = chunk;
   }
+
+  @Override
+  public void storeChunkInMemoryForce(Chunk<V> chunk) throws IOException {
+    this.chunk = chunk;    
+  }
 }
