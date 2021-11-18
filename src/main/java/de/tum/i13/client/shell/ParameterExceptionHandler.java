@@ -10,10 +10,9 @@ class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandle
 
     private static final Logger LOGGER = LogManager.getLogger(ParameterExceptionHandler.class);
 
-
     @Override
     public int handleParseException(CommandLine.ParameterException ex, String[] args) {
-        LOGGER.info("Command not recognized", ex);
+        LOGGER.info("Command parsing failed", ex);
 
         final CommandLine cmd = ex.getCommandLine();
         final PrintWriter err = cmd.getErr();
@@ -21,7 +20,7 @@ class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandle
 
         err.println(colorScheme.errorText(ex.getMessage()));
         cmd.usage(err, colorScheme);
-        return ExitCode.COMMAND_NOT_FOUND.getValue();
+        return ExitCode.COMMAND_PARSING_FAILED.getValue();
     }
 
 }
