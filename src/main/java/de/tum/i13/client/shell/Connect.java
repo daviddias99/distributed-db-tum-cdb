@@ -50,7 +50,7 @@ class Connect implements Callable<Integer> {
         String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
         commandSpec.commandLine().getOut().println(confirmation);
         LOGGER.info("Connection to {}:{} successful.", address, port);
-        return 0;
+        return ExitCode.SUCCESS.getValue();
         // TODO Handle faulty command
 //            handleFaultyCommand("Unrecognized command. Port number in wrong format.");
     }

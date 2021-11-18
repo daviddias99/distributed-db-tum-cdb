@@ -39,7 +39,7 @@ class Quit implements Callable<Integer> {
 
         LOGGER.info("Quitting application.");
         commandSpec.commandLine().getOut().println("Application exit!");
-        return 0;
+        return ExitCode.QUIT_PROGRAMM.getValue();
     }
 
 }

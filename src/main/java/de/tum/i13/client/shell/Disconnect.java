@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         subcommands = CommandLine.HelpCommand.class
 )
-class Disconnect implements Callable<Void> {
+class Disconnect implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(Disconnect.class);
 
@@ -30,11 +30,11 @@ class Disconnect implements Callable<Void> {
      * @throws ClientException in case the disconnect is unsuccessful
      */
     @Override
-    public Void call() throws ClientException {
+    public Integer call() throws ClientException {
         LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
         parent.client.disconnect();
         commandSpec.commandLine().getOut().println("Successfully disconnected.");
-        return null;
+        return ExitCode.SUCCESS.getValue();
     }
 
 }

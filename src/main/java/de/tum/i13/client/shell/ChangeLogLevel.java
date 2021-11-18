@@ -52,7 +52,7 @@ class ChangeLogLevel implements Callable<Integer> {
 
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
         commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
-        return 0;
+        return ExitCode.SUCCESS.getValue();
     }
 
     private static class LogLevelConverter implements CommandLine.ITypeConverter<Level> {

@@ -3,7 +3,8 @@ package de.tum.i13.client.shell;
 enum ExitCode {
     SUCCESS(20),
     COMMAND_PARSING_FAILED(21),
-    QUIT_PROGRAMM(22);
+    QUIT_PROGRAMM(22),
+    CLIENT_EXCEPTION(23);
 
     private final int value;
 

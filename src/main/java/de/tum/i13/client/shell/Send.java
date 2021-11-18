@@ -41,7 +41,7 @@ class Send implements Callable<Integer> {
         LOGGER.info("Sending message to {}:{}", parent.address, parent.port);
         parent.client.send((input + Constants.TERMINATING_STR).getBytes());
         receiveMessage();
-        return 0;
+        return ExitCode.SUCCESS.getValue();
     }
 
     /**
