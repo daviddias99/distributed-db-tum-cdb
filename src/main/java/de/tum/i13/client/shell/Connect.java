@@ -25,16 +25,17 @@ class Connect implements Callable<Integer> {
     private CLICommands parent;
 
     @CommandLine.Parameters(
+            index = "0",
+            description = "The address of the server to connect to"
+    )
+    private String address;
+
+    @CommandLine.Parameters(
             index = "1",
             description = "The port to of the server to connect to"
     )
     private int port;
 
-    @CommandLine.Parameters(
-            index = "0",
-            description = "The address of the server to connect to"
-    )
-    private String address;
 
     /**
      * Initiates connection of client to server using the EchoClient instance if the provided

@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.jline.utils.Log;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ class ChangeLogLevel implements Callable<Integer> {
         String oldLevelName = LOGGER.getLevel().name();
         final String newLevelName = logLevel.name();
         Stream.of(ChangeLogLevel.class, CLICommands.class, ClientExceptionHandler.class, Connect.class,
-                Disconnect.class, Quit.class, Send.class, Shell.class, ParameterExceptionHandler.class)
+                        Disconnect.class, Quit.class, Send.class, Shell.class, ParameterExceptionHandler.class)
                 .map(LogManager::getLogger)
                 .forEach(logger -> Configurator.setLevel(logger.getName(), logLevel));
 
