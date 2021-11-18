@@ -32,7 +32,7 @@ class Connect implements Callable<Integer> {
 
     @CommandLine.Parameters(
             index = "1",
-            description = "The port to of the server to connect to"
+            description = "The port to of the server to connect to. Must be an integer"
     )
     private int port;
 
@@ -52,8 +52,6 @@ class Connect implements Callable<Integer> {
         commandSpec.commandLine().getOut().println(confirmation);
         LOGGER.info("Connection to {}:{} successful.", address, port);
         return ExitCode.SUCCESS.getValue();
-        // TODO Handle faulty command
-//            handleFaultyCommand("Unrecognized command. Port number in wrong format.");
     }
 
 }

@@ -23,7 +23,6 @@ class Send implements Callable<Integer> {
     @CommandLine.ParentCommand
     private CLICommands parent;
 
-    // TODO Make sure that input with spaces are possible
     @CommandLine.Parameters(
             index = "0",
             description = "The input to send"
