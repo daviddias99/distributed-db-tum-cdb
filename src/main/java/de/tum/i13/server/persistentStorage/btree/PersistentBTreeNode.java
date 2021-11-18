@@ -180,15 +180,16 @@ class PersistentBTreeNode<V> implements Serializable {
     }
 
     int i = chunk.findIndexOfFirstGreaterThen(k);
-    Pair<V> value = chunk.get(i);
-    chunk = null;
 
     if (i < this.keyCount) {
+      Pair<V> value = chunk.get(i);
+      chunk = null;
       // If the found key is equal to k, return this node
       if (value != null && value.key.equals(k))
         return value.value;
     }
 
+    chunk = null;
     // If the key is not found here and this is a leaf node
     if (leaf == true)
       return null;
@@ -445,7 +446,13 @@ class PersistentBTreeNode<V> implements Serializable {
     Chunk<V> chunk = this.getChunk();
 
     // Move all the keys after the idx-th pos one place backward
-    chunk.shiftLeftOne(idx, keyCount);
+
+    if(idx < this.keyCount - 1) {
+      chunk.shiftLeftOne(idx);
+    } else {
+      chunk.set(this.keyCount - 1, null);
+    }
+
 
     this.setChunk(chunk);
 
@@ -470,6 +477,8 @@ class PersistentBTreeNode<V> implements Serializable {
       Pair<V> pred = getPred(idx);
       chunk.set(idx, pred);
       this.getChildren().get(idx).remove(pred.key);
+      this.setChunk(chunk);
+
     }
 
     // If the child C[idx] has less that t keys, examine C[idx+1].
@@ -481,6 +490,8 @@ class PersistentBTreeNode<V> implements Serializable {
       Pair<V> succ = getSucc(idx);
       chunk.set(idx, succ);
       this.getChildren().get(idx + 1).remove(succ.key);
+      this.setChunk(chunk);
+
     }
 
     // If both C[idx] and C[idx+1] has less that t keys,merge k and all of C[idx+1]
@@ -491,8 +502,6 @@ class PersistentBTreeNode<V> implements Serializable {
       merge(idx);
       this.getChildren().get(idx).remove(k.key);
     }
-
-    this.setChunk(chunk);
 
     return;
   }
@@ -581,11 +590,13 @@ class PersistentBTreeNode<V> implements Serializable {
     // Moving sibling's last child as C[idx]'s first child
     if (!child.isLeaf()) {
       child.getChildren().set(0, sibling.getChildren().get(sibling.keyCount));
+      sibling.getChildren().set(sibling.keyCount, null);
     }
 
     // Moving the key from the sibling to the parent
     // This reduces the number of keys in the sibling
     chunk.set(idx - 1, siblingChunk.get(sibling.keyCount - 1));
+    siblingChunk.set(sibling.keyCount - 1, null);
 
     child.incrementKeyCount();
     sibling.decrementKeyCount();
@@ -620,14 +631,17 @@ class PersistentBTreeNode<V> implements Serializable {
     chunk.set(idx, siblingChunk.get(0));
 
     // Moving all keys in sibling one step behind
-    for (int i = 1; i < sibling.keyCount; ++i) {
-      siblingChunk.set(i - 1, siblingChunk.get(i));
-    }
+    siblingChunk.shiftLeftOne(0);
+    // for (int i = 1; i < sibling.keyCount; ++i) {
+    // siblingChunk.set(i - 1, siblingChunk.get(i));
+    // }
 
     // Moving the child pointers one step behind
     if (!sibling.leaf) {
-      for (int i = 1; i <= sibling.keyCount; ++i)
+      for (int i = 1; i <= sibling.keyCount; ++i) {
         sibling.getChildren().set(i - 1, sibling.getChildren().get(i));
+        sibling.getChildren().set(i, null);
+      }
     }
 
     // Increasing and decreasing the key count of C[idx] and C[idx+1]
@@ -656,6 +670,7 @@ class PersistentBTreeNode<V> implements Serializable {
     // Pulling a key from the current node and inserting it into (t-1)th
     // position of C[idx]
     childChunk.set(this.minimumDegree - 1, chunk.get(idx));
+    chunk.set(idx, null);
 
     // Copying the keys from C[idx+1] to C[idx] at the end
     for (int i = 0; i < sibling.getKeyCount(); ++i) {
@@ -672,13 +687,21 @@ class PersistentBTreeNode<V> implements Serializable {
 
     // Moving all keys after idx in the current node one step before -
     // to fill the gap created by moving keys[idx] to C[idx]
-    for (int i = idx + 1; i < this.getKeyCount(); ++i)
+    for (int i = idx + 1; i < this.getKeyCount(); ++i) {
       chunk.set(i - 1, chunk.get(i));
+      chunk.set(i, null);
+    }
 
     // Moving the child pointers after (idx+1) in the current node one
     // step before
-    for (int i = idx + 2; i <= this.keyCount; ++i)
+    for (int i = idx + 2; i <= this.keyCount; ++i) {
       this.getChildren().set(i - 1, this.getChildren().get(i));
+      this.getChildren().set(i, null);
+    }
+
+    if(idx + 2 > this.keyCount) {
+      this.getChildren().set(this.keyCount, null);
+    }
 
     // Updating the key count of child and the current node
     child.setKeyCount(child.getKeyCount() + sibling.getKeyCount() + 1);

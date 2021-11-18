@@ -14,7 +14,7 @@ public interface Chunk<V> {
 
   public void shiftRightOne(int startIndex, int keyCount);
   
-  public void shiftLeftOne(int startIndex, int keyCount);
+  public void shiftLeftOne(int startIndex);
 
   public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount);
 

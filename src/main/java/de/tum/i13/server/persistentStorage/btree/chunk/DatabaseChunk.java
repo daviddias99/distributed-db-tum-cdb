@@ -66,10 +66,11 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public void shiftLeftOne(int startIndex, int keyCount) {
+  public void shiftLeftOne(int startIndex) {
     // Move all the keys after the idx-th pos one place backward
-    for (int i = startIndex + 1; i < keyCount; ++i) {
+    for (int i = startIndex + 1; i < this.elements.size(); ++i) {
       this.elements.set(i - 1, this.elements.get(i));
+      this.elements.set(i, null);
     }
   }
 
