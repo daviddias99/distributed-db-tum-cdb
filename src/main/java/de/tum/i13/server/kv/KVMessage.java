@@ -3,6 +3,8 @@ package de.tum.i13.server.kv;
 public interface KVMessage {
 
     public enum StatusType {
+        UNDEFINED,
+        ECHO,
         GET, 			/* Get - request */
         GET_ERROR, 		/* requested tuple (i.e. value) not found */
         GET_SUCCESS, 	/* requested tuple (i.e. value) found */

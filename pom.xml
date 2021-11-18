@@ -64,7 +64,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.tum.i13.server.nio.StartSimpleNioServer</mainClass> <!-- Point this to your implementation-->
+                                    <mainClass>de.tum.i13.server.threadperconnection.Main</mainClass> <!-- Point this to your implementation-->
                                 </manifest>
                             </archive>
                             <descriptorRefs>
