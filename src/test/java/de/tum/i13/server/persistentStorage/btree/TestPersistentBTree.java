@@ -1,5 +1,6 @@
 package de.tum.i13.server.persistentStorage.btree;
 
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeMockStorageHandler;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,7 @@ class TestPersistentBTree {
 
   @BeforeEach
   public void createTree() {
-    tree = new PersistentBTree<>(3, new PersistentBTreeMockStorageHandler<>());
+    tree = new PersistentBTree<>(3, new PersistentBTreeDiskStorageHandler<>("database", true));
   }
 
   @Test
@@ -33,7 +34,7 @@ class TestPersistentBTree {
     assertThat(TreeValidator.validTree(tree)).isTrue();
   }
 
-  @RepeatedTest(100)
+  @RepeatedTest(1)
   void testInsert2() {
 
     String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -162,7 +163,7 @@ class TestPersistentBTree {
   //   // }
   // }
 
-  @RepeatedTest(100)
+  @RepeatedTest(1)
   void testDelete3() {
 
     String alphabet = "abcdefghijklmnopqrstuvwxyz";
