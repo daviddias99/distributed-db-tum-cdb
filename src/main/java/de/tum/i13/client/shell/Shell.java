@@ -48,7 +48,6 @@ public class Shell {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         final PrintWriter out = cmd.getOut();
-        cmd.setErr(out);
 
         boolean quit = false;
         while (!quit) {

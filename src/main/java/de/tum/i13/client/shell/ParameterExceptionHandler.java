@@ -15,11 +15,11 @@ class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandle
         LOGGER.info("Command parsing failed", ex);
 
         final CommandLine cmd = ex.getCommandLine();
-        final PrintWriter err = cmd.getErr();
+        final PrintWriter out = cmd.getOut();
         final CommandLine.Help.ColorScheme colorScheme = cmd.getColorScheme();
 
-        err.println(colorScheme.errorText(ex.getMessage()));
-        cmd.usage(err, colorScheme);
+        out.println(colorScheme.errorText(ex.getMessage()));
+        cmd.usage(out, colorScheme);
         return ExitCode.COMMAND_PARSING_FAILED.getValue();
     }
 
