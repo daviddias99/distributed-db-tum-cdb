@@ -25,9 +25,6 @@ class ChangeLogLevel implements Callable<Integer> {
     @CommandLine.Spec
     CommandLine.Model.CommandSpec commandSpec;
 
-    @CommandLine.ParentCommand
-    private CLICommands parent;
-
     @CommandLine.Parameters(
             index = "0",
             converter = LogLevelConverter.class,
