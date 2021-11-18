@@ -56,6 +56,8 @@ class ChangeLogLevel implements Callable<Integer> {
 
     private static class LogLevelConverter implements CommandLine.ITypeConverter<Level> {
 
+        private static final Logger LOGGER = LogManager.getLogger(LogLevelConverter.class);
+
         @Override
         public Level convert(String value) {
             try {
