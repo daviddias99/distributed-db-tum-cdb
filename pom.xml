@@ -41,7 +41,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.tum.i13.client.Shell</mainClass>
+                            <mainClass>de.tum.i13.client.shell.Shell</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -185,7 +185,7 @@
                         <image>${env.CI_REGISTRY_IMAGE}</image>
                     </to>
                     <container>
-                        <mainClass>de.tum.i13.client.Shell</mainClass>
+                        <mainClass>de.tum.i13.client.shell.Shell</mainClass>
                     </container>
                 </configuration>
             </plugin>
