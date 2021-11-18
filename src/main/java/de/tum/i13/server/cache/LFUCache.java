@@ -55,6 +55,9 @@ public class LFUCache implements Cache {
                 .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR));
     }
 
+    /**
+     * Increase the frequency of the key and potentially move it forward in the frequency list
+     */
     private KVMessage updateKeyFrequency(String key, MapNode mapNode) {
         LOGGER.debug("Updating frequency of key {}", key);
 
@@ -134,6 +137,7 @@ public class LFUCache implements Cache {
     private KVMessage putPresentKey(String key, String value, MapNode mapNode) {
         LOGGER.debug("Putting key {} with previously present value {} to value {}", key, mapNode.value, value);
         mapNode.value = value;
+        updateKeyFrequency(key, mapNode);
         return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
     }
 
