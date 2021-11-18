@@ -2,6 +2,8 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.client.exceptions.ClientException;
 import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -12,6 +14,8 @@ import java.util.concurrent.Callable;
         subcommands = CommandLine.HelpCommand.class
 )
 class Disconnect implements Callable<Void> {
+
+    private static final Logger LOGGER = LogManager.getLogger(Disconnect.class);
 
     @CommandLine.ParentCommand
     private CLICommands parent;
@@ -24,7 +28,7 @@ class Disconnect implements Callable<Void> {
      */
     @Override
     public Void call() throws ClientException {
-        Shell.LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
+        LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
         parent.client.disconnect();
         parent.out.println("Successfully disconnected.");
         return null;

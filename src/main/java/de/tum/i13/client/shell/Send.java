@@ -2,6 +2,8 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.client.exceptions.ClientException;
 import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -12,6 +14,8 @@ import java.util.concurrent.Callable;
         subcommands = CommandLine.HelpCommand.class
 )
 class Send implements Callable<Integer> {
+
+    private static final Logger LOGGER = LogManager.getLogger(Send.class);
 
     @CommandLine.ParentCommand
     private CLICommands parent;
@@ -31,7 +35,7 @@ class Send implements Callable<Integer> {
     @Override
     public Integer call() throws ClientException {
         //send the message in bytes after appending the delimiter
-        Shell.LOGGER.info("Sending message to {}:{}", parent.address, parent.port);
+        LOGGER.info("Sending message to {}:{}", parent.address, parent.port);
         parent.client.send((input.substring(5) + Constants.TERMINATING_STR).getBytes());
         receiveMessage();
         return 0;
@@ -45,7 +49,7 @@ class Send implements Callable<Integer> {
      */
     private void receiveMessage() throws ClientException {
         //receive and print server response
-        Shell.LOGGER.info("Receiving message from server.");
+        LOGGER.info("Receiving message from server.");
         byte[] response = parent.client.receive();
         String responseStr = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
         parent.out.println(responseStr);

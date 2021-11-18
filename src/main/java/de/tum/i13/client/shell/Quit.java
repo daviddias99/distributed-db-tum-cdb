@@ -2,6 +2,8 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.client.exceptions.ClientException;
 import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -13,6 +15,8 @@ import java.util.concurrent.Callable;
         subcommands = CommandLine.HelpCommand.class
 )
 class Quit implements Callable<Integer> {
+
+    private static final Logger LOGGER = LogManager.getLogger(Quit.class);
 
     @CommandLine.ParentCommand
     private CLICommands parent;
@@ -26,11 +30,11 @@ class Quit implements Callable<Integer> {
     @Override
     public Integer call() throws ClientException {
         if (parent.client.isConnected()) {
-            Shell.LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
+            LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
             parent.client.disconnect();
         }
 
-        Shell.LOGGER.info("Quitting application.");
+        LOGGER.info("Quitting application.");
         parent.out.println("Application exit!");
         return 0;
     }

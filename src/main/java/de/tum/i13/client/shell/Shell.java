@@ -27,8 +27,7 @@ import java.util.function.Supplier;
 
 public class Shell {
 
-    // TODO Turn private again
-    static final Logger LOGGER = LogManager.getLogger(Shell.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(Shell.class);
 
     private Shell() {
     }
