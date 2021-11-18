@@ -110,45 +110,47 @@ class TestPersistentBTree {
     assertThat(tree.search("D")).isNotEqualTo(null);
   }
 
-  // @Test
-  // void testDelete4() {
-  //   List<Character> alphabet1 = "crxtfubgydnzslvkpomwehqjia".chars().mapToObj(e -> (char) e)
-  //       .collect(Collectors.toList());
-  //   for (char c : alphabet1) {
-  //     tree.insert(c + "", c + "");
-  //   }
-  //   // tree.traverseSpecial();
-  //   //kunqyamxrwjbcflstedzvhipog
-  //   tree.remove("k");
-  //   tree.remove("u");
-  //   tree.remove("n");
-  //   tree.remove("q");
-  //   tree.remove("y");
-  //   tree.remove("a");
-  //   tree.traverseSpecial();
-  //   tree.remove("m");
-  //   boolean valid = TreeValidator.validTree(tree);
-  //   tree.remove("x");
-  //   tree.remove("r");
-  //   tree.traverseSpecial();
-  //   tree.remove("w");
-  //   tree.traverseSpecial();
-  //   tree.remove("j");
-  //   tree.remove("b");
-  //   tree.remove("c");
-  //   tree.remove("f");
-  //   tree.remove("l");
-  //   tree.traverseSpecial();
-  //   tree.remove("s");
-  //   // boolean valid = TreeValidator.validTree(tree);
-  //   // if (!valid) {
-  //   //   // tree.traverseSpecial();
-  //   //   TreeValidator.validTree(tree);
-  //   // }
-  // }
+  @Test
+  void testDelete4() {
+    List<Character> alphabet1 = "kgotjyandicpbxlshwzfuqemrv".chars().mapToObj(e -> (char) e)
+        .collect(Collectors.toList());
+    for (char c : alphabet1) {
+      tree.insert(c + "", c + "");
+    }
+    // tree.traverseSpecial();
+    //kunqyamxrwjbcflstedzvhipog
+    tree.traverseSpecial();
+    tree.remove("k");
+    tree.remove("u");
+    String find = tree.search("n");
+    boolean valid = TreeValidator.validTree(tree);
+    tree.remove("n");
+    tree.remove("q");
+    tree.remove("y");
+    tree.remove("a");
+    tree.remove("m");
+    tree.remove("x");
+    tree.remove("r");
+    tree.traverseSpecial();
+    tree.remove("w");
+    tree.traverseSpecial();
+    tree.remove("j");
+    tree.remove("b");
+    tree.remove("c");
+    tree.remove("f");
+    tree.remove("l");
+    tree.traverseSpecial();
+    tree.remove("s");
+    // boolean valid = TreeValidator.validTree(tree);
+    // if (!valid) {
+    //   // tree.traverseSpecial();
+    //   TreeValidator.validTree(tree);
+    // }
+  }
 
   @RepeatedTest(100)
   void testDelete3() {
+    
     List<Character> alphabet1 = "abcdefghijklmnopqrstuvwxyz".chars().mapToObj(e -> (char) e)
         .collect(Collectors.toList());
     Collections.shuffle(alphabet1);
@@ -171,7 +173,7 @@ class TestPersistentBTree {
 
     List<Character> alphabet2 = "kunqyamxrwjbcflstedzvhipog".chars().mapToObj(e -> (char) e)
         .collect(Collectors.toList());
-    // Collections.shuffle(alphabet2);
+    Collections.shuffle(alphabet2);
 
     // create object of StringBuilder class
     StringBuilder sb = new StringBuilder();
@@ -186,6 +188,12 @@ class TestPersistentBTree {
 
     for (char c : string.toCharArray()) {
       
+      String searchResult = tree.search(c + "");
+
+      if(searchResult == null) {
+        System.out.println("---->" + string1 + " - " + c);
+      }
+
       assertThat(tree.search(c + "")).isEqualTo(c + "");
       tree.remove(c + "");
       boolean valid = TreeValidator.validTree(tree);

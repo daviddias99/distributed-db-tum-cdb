@@ -510,26 +510,24 @@ class PersistentBTreeNode<V> implements Serializable {
   Pair<V> getPred(int idx) {
     // Keep moving to the right most node until we reach a leaf
     PersistentBTreeNode<V> cur = this.getChildren().get(idx);
-    Chunk<V> chunk = cur.getChunk();
 
     while (!cur.isLeaf())
       cur = cur.getChildren().get(cur.getKeyCount());
 
     // Return the last key of the leaf
-    return chunk.get(cur.getKeyCount() - 1);
+    return cur.getChunk().get(cur.getKeyCount() - 1);
   }
 
   Pair<V> getSucc(int idx) {
 
     // Keep moving the left most node starting from C[idx+1] until we reach a leaf
     PersistentBTreeNode<V> cur = this.getChildren().get(idx + 1);
-    Chunk<V> chunk = cur.getChunk();
 
     while (!cur.isLeaf())
       cur = cur.getChildren().get(0);
 
     // Return the first key of the leaf
-    return chunk.get(0);
+    return cur.getChunk().get(0);
   }
 
   // A function to fill child C[idx] which has less than t-1 keys
