@@ -2,7 +2,6 @@ package de.tum.i13.server.persistentStorage.btree;
 
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeMockStorageHandler;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -36,17 +35,32 @@ class TestPersistentBTree {
 
   @RepeatedTest(100)
   void testInsert2() {
-    List<Character> alphabet = "abcdefghijklmnopqrstuvwxyz".chars().mapToObj(e -> (char) e)
-        .collect(Collectors.toList());
-    Collections.shuffle(alphabet);
-    for (char c : alphabet) {
-      tree.insert(c + "", c + "");
-      assertThat(TreeValidator.validTree(tree)).isTrue();
-    }
 
-    for (char c : alphabet) {
-      assertThat(tree.search(c + "")).isEqualTo(c + "");
+    String letters = "abcdefghijklmnopqrstuvwxyz";
+
+    for (int i = 0; i < letters.length(); i++) {
+      String sub = letters.substring(i);
+      List<Character> alphabet = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+      Collections.shuffle(alphabet);
+      for (char c : alphabet) {
+        tree.insert(c + "", c + "");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+      }
+
+      for (char c : alphabet) {
+        assertThat(tree.search(c + "")).isEqualTo(c + "");
+      }
     }
+  }
+
+  @Test
+  void testSearchOnEmpty() {
+    assertThat(tree.search("a")).isEqualTo(null);
+  }
+
+  @Test
+  void testdeleteOnEmpty() {
+    assertDoesNotThrow( () -> tree.remove("a"));
   }
 
   @Test
@@ -110,104 +124,93 @@ class TestPersistentBTree {
     assertThat(tree.search("D")).isNotEqualTo(null);
   }
 
-  @Test
-  void testDelete4() {
-    List<Character> alphabet1 = "kgotjyandicpbxlshwzfuqemrv".chars().mapToObj(e -> (char) e)
-        .collect(Collectors.toList());
-    for (char c : alphabet1) {
-      tree.insert(c + "", c + "");
-    }
-    // tree.traverseSpecial();
-    //kunqyamxrwjbcflstedzvhipog
-    tree.traverseSpecial();
-    tree.remove("k");
-    tree.remove("u");
-    String find = tree.search("n");
-    boolean valid = TreeValidator.validTree(tree);
-    tree.remove("n");
-    tree.remove("q");
-    tree.remove("y");
-    tree.remove("a");
-    tree.remove("m");
-    tree.remove("x");
-    tree.remove("r");
-    tree.traverseSpecial();
-    tree.remove("w");
-    tree.traverseSpecial();
-    tree.remove("j");
-    tree.remove("b");
-    tree.remove("c");
-    tree.remove("f");
-    tree.remove("l");
-    tree.traverseSpecial();
-    tree.remove("s");
-    // boolean valid = TreeValidator.validTree(tree);
-    // if (!valid) {
-    //   // tree.traverseSpecial();
-    //   TreeValidator.validTree(tree);
-    // }
-  }
+  // @Test
+  // void testDelete4() {
+  //   List<Character> alphabet1 = "kgotjyandicpbxlshwzfuqemrv".chars().mapToObj(e -> (char) e)
+  //       .collect(Collectors.toList());
+  //   for (char c : alphabet1) {
+  //     tree.insert(c + "", c + "");
+  //   }
+  //   // tree.traverseSpecial();
+  //   // kunqyamxrwjbcflstedzvhipog
+  //   tree.traverseSpecial();
+  //   tree.remove("k");
+  //   tree.remove("u");
+  //   String find = tree.search("n");
+  //   boolean valid = TreeValidator.validTree(tree);
+  //   tree.remove("n");
+  //   tree.remove("q");
+  //   tree.remove("y");
+  //   tree.remove("a");
+  //   tree.remove("m");
+  //   tree.remove("x");
+  //   tree.remove("r");
+  //   tree.traverseSpecial();
+  //   tree.remove("w");
+  //   tree.traverseSpecial();
+  //   tree.remove("j");
+  //   tree.remove("b");
+  //   tree.remove("c");
+  //   tree.remove("f");
+  //   tree.remove("l");
+  //   tree.traverseSpecial();
+  //   tree.remove("s");
+  //   // boolean valid = TreeValidator.validTree(tree);
+  //   // if (!valid) {
+  //   // // tree.traverseSpecial();
+  //   // TreeValidator.validTree(tree);
+  //   // }
+  // }
 
   @RepeatedTest(100)
   void testDelete3() {
-    
-    List<Character> alphabet1 = "abcdefghijklmnopqrstuvwxyz".chars().mapToObj(e -> (char) e)
-        .collect(Collectors.toList());
-    Collections.shuffle(alphabet1);
-    for (char c : alphabet1) {
-      tree.insert(c + "", c + "");
-      assertThat(TreeValidator.validTree(tree)).isTrue();
-    }
 
-    StringBuilder sb1 = new StringBuilder();
+    String alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-    // Appends characters one by one
-    for (Character ch : alphabet1) {
-      sb1.append(ch);
-    }
-
-    // convert in string
-    String string1 = sb1.toString();
-
-    System.out.println(string1);
-
-    List<Character> alphabet2 = "kunqyamxrwjbcflstedzvhipog".chars().mapToObj(e -> (char) e)
-        .collect(Collectors.toList());
-    Collections.shuffle(alphabet2);
-
-    // create object of StringBuilder class
-    StringBuilder sb = new StringBuilder();
-
-    // Appends characters one by one
-    for (Character ch : alphabet2) {
-      sb.append(ch);
-    }
-
-    // convert in string
-    String string = sb.toString();
-
-    for (char c : string.toCharArray()) {
-      
-      String searchResult = tree.search(c + "");
-
-      if(searchResult == null) {
-        System.out.println("---->" + string1 + " - " + c);
+    for (int i = 0; i < alphabet.length(); i++) {
+      String sub = alphabet.substring(i);
+      List<Character> alphabet1 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+      Collections.shuffle(alphabet1);
+      for (char c : alphabet1) {
+        tree.insert(c + "", c + "");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
       }
 
-      assertThat(tree.search(c + "")).isEqualTo(c + "");
-      tree.remove(c + "");
-      boolean valid = TreeValidator.validTree(tree);
+      StringBuilder sb1 = new StringBuilder();
 
-      if (!valid) {
-        System.out.println(string);
-        System.out.println(c);
-        boolean b = TreeValidator.validTree(tree);
-        tree.traverseSpecial();
+      // Appends characters one by one
+      for (Character ch : alphabet1) {
+        sb1.append(ch);
       }
 
-      assertThat(valid).isTrue();
-      assertThat(tree.search(c + "")).isEqualTo(null);
+      // convert in string
+      String string1 = sb1.toString();
+
+      // System.out.println(string1);
+
+      List<Character> alphabet2 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+      Collections.shuffle(alphabet2);
+
+      // create object of StringBuilder class
+      StringBuilder sb = new StringBuilder();
+
+      // Appends characters one by one
+      for (Character ch : alphabet2) {
+        sb.append(ch);
+      }
+
+      // convert in string
+      String string = sb.toString();
+
+      for (char c : string.toCharArray()) {
+        assertThat(tree.search(c + "")).isEqualTo(c + "");
+        tree.remove(c + "");
+        boolean valid = TreeValidator.validTree(tree);
+        assertThat(valid).isTrue();
+        assertThat(tree.search(c + "")).isEqualTo(null);
+      }
     }
+
   }
 
 }

@@ -51,7 +51,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     return directoryToBeDeleted.delete();
   }
 
-  public void saveToDisk(PersistentBTree<V> tree) {
+  public void save(PersistentBTree<V> tree) {
     try {
       FileOutputStream fileOut = new FileOutputStream(this.filePath);
       var objectOut = new ObjectOutputStream(fileOut);
@@ -66,7 +66,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     }
   }
 
-  public PersistentBTree<V> readFromDisk() {
+  public PersistentBTree<V> load() {
     try {
       FileInputStream fileIn = new FileInputStream(this.filePath);
       ObjectInputStream objectIn = new ObjectInputStream(fileIn);

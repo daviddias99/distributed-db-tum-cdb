@@ -11,10 +11,10 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
 
   }
 
-  public void saveToDisk(PersistentBTree<V> tree) {
+  public void save(PersistentBTree<V> tree) {
   };
 
-  public PersistentBTree<V> readFromDisk() {
+  public PersistentBTree<V> load() {
     return null;
   }
 

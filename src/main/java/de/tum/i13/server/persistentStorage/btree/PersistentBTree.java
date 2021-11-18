@@ -69,7 +69,7 @@ public class PersistentBTree<V> implements Serializable {
     else 
       root.insertNonFull(key, value);
 
-    this.storageHandler.saveToDisk(this);
+    this.storageHandler.save(this);
   }
 
   private boolean searchAndInsert(String key, V value) {
@@ -147,7 +147,7 @@ public class PersistentBTree<V> implements Serializable {
   public static void main(String[] args) {
     // PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeDiskStorageHandler<String>("database", false);
     PersistentBTreeStorageHandler<String> storageHandler = new PersistentBTreeMockStorageHandler<>();
-    PersistentBTree<String> t = storageHandler.readFromDisk();// A B-Tree with minimum
+    PersistentBTree<String> t = storageHandler.load();// A B-Tree with minimum
                                                               // degree 3
     t = t == null ? new PersistentBTree<String>(3, storageHandler) : t;
     // TODO: problem with double inser

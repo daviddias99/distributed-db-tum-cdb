@@ -5,9 +5,9 @@ import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkStorageHandl
 
 public interface PersistentBTreeStorageHandler<V> {
 
-  public void saveToDisk(PersistentBTree<V> tree);
+  public void save(PersistentBTree<V> tree);
 
-  public PersistentBTree<V> readFromDisk();
+  public PersistentBTree<V> load();
 
   public ChunkStorageHandler<V> createChunkStorageHandler(String chunkId);
 }
