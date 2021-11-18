@@ -18,7 +18,11 @@ class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandle
         final PrintWriter out = cmd.getOut();
         final CommandLine.Help.ColorScheme colorScheme = cmd.getColorScheme();
 
-        out.println(colorScheme.errorText(ex.getMessage()));
+        String errorMessage = ex.getMessage();
+        if (ex instanceof CommandLine.UnmatchedArgumentException) {
+            errorMessage = "Unknown command. " + errorMessage;
+        }
+        out.println(colorScheme.errorText(errorMessage));
         cmd.usage(out, colorScheme);
         return ExitCode.COMMAND_PARSING_FAILED.getValue();
     }
