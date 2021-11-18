@@ -2,14 +2,12 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.client.EchoClient;
 import picocli.CommandLine;
-import picocli.shell.jline3.PicocliCommands;
 
 @CommandLine.Command(name = "",
         description = "CLI application for interacting with a server on the client side",
         mixinStandardHelpOptions = true,
-        subcommands = {PicocliCommands.ClearScreen.class, CommandLine.HelpCommand.class,
-                Disconnect.class, Send.class, Connect.class, ChangeLogLevel.class,
-                Quit.class
+        subcommands = {CommandLine.HelpCommand.class, Connect.class, Disconnect.class, Quit.class,
+                Send.class, ChangeLogLevel.class
         })
 class CLICommands {
 

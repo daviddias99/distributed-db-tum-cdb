@@ -196,23 +196,8 @@
         <!-- Application Dependencies -->
         <dependency>
             <groupId>info.picocli</groupId>
-            <artifactId>picocli-shell-jline3</artifactId>
+            <artifactId>picocli</artifactId>
             <version>4.6.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>3.21.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jline</groupId>
-            <artifactId>jline-console</artifactId>
-            <version>3.21.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>2.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
