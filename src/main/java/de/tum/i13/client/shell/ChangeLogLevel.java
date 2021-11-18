@@ -46,7 +46,7 @@ class ChangeLogLevel implements Callable<Integer> {
         String oldLevelName = LOGGER.getLevel().name();
         final String newLevelName = logLevel.name();
         Stream.of(ChangeLogLevel.class, CLICommands.class, ClientExceptionHandler.class, Connect.class,
-                Disconnect.class, Quit.class, Send.class, Shell.class)
+                Disconnect.class, Quit.class, Send.class, Shell.class, ParameterExceptionHandler.class)
                 .map(LogManager::getLogger)
                 .forEach(logger -> Configurator.setLevel(logger.getName(), logLevel));
 

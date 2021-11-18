@@ -42,12 +42,14 @@ public class Shell {
     public static void main(String[] args) {
         final CLICommands commands = new CLICommands();
         final CommandLine cmd = new CommandLine(commands)
-                .setExecutionExceptionHandler(new ClientExceptionHandler())
-                .setErr(new PrintWriter(System.out));
+                .setParameterExceptionHandler(new ParameterExceptionHandler())
+                .setExecutionExceptionHandler(new ClientExceptionHandler());
 
-        BufferedReader cons = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         final PrintWriter out = cmd.getOut();
+        cmd.setErr(out);
+
         boolean quit = false;
         while (!quit) {
             //print prompt
@@ -56,10 +58,10 @@ public class Shell {
 
             //read user input from console
             try {
-                String input = cons.readLine();
-                String[] tokens = input.trim().split("\\s+");
+                String line = reader.readLine();
+                String[] tokens = line.trim().split("\\s+");
                 if (tokens.length >= 2 && Constants.SEND_COMMAND.equals(tokens[0])) {
-                    tokens = new String[]{Constants.SEND_COMMAND, input.split("\\s", 2)[1]};
+                    tokens = new String[]{Constants.SEND_COMMAND, line.split("\\s", 2)[1]};
 
                 }
                 final int exitCode = cmd.execute(tokens);
