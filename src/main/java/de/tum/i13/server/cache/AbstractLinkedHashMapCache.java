@@ -20,11 +20,14 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
     private final FixedSizeLinkedHashMap<String, String> cache;
 
     /**
-     * Constructs an empty cache with the given size and {@link CachingStrategy}
+     * Constructs an empty cache with the given size and {@link CachingStrategy}.
+     *
+     * It uses a {@link LinkedHashMap} with a fixed size as its base with its default load factor of {@code 0.75f}.
      *
      * @param size            the size of the cache, must be greater than 0
      * @param cachingStrategy the caching strategy - true for {@link CachingStrategy#LRU}, false for
      * {@link CachingStrategy#FIFO}
+     * @see LinkedHashMap
      */
     protected AbstractLinkedHashMapCache(int size, boolean cachingStrategy) {
         Preconditions.check(size > 0, "Cache must have a size greater than 0");
