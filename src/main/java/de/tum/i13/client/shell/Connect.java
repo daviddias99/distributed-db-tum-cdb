@@ -18,6 +18,9 @@ class Connect implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(Connect.class);
 
+    @CommandLine.Spec
+    CommandLine.Model.CommandSpec commandSpec;
+
     @CommandLine.ParentCommand
     private CLICommands parent;
 
@@ -45,7 +48,7 @@ class Connect implements Callable<Integer> {
         LOGGER.info("Initiating connection to {}:{}", address, port);
         byte[] response = parent.client.connectAndReceive(address, port);
         String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-        parent.out.println(confirmation);
+        commandSpec.commandLine().getOut().println(confirmation);
         LOGGER.info("Connection to {}:{} successful.", address, port);
         return 0;
         // TODO Handle faulty command

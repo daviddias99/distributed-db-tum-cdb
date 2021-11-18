@@ -18,6 +18,9 @@ class Quit implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(Quit.class);
 
+    @CommandLine.Spec
+    CommandLine.Model.CommandSpec commandSpec;
+
     @CommandLine.ParentCommand
     private CLICommands parent;
 
@@ -35,7 +38,7 @@ class Quit implements Callable<Integer> {
         }
 
         LOGGER.info("Quitting application.");
-        parent.out.println("Application exit!");
+        commandSpec.commandLine().getOut().println("Application exit!");
         return 0;
     }
 

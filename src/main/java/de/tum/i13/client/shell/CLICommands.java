@@ -16,7 +16,7 @@ import java.io.PrintWriter;
 class CLICommands {
 
     final EchoClient client;
-    PrintWriter out;
+
     /**
      * Server address of current connection
      */
@@ -28,10 +28,6 @@ class CLICommands {
 
     CLICommands() {
         client = new EchoClient();
-    }
-
-    void setWriter(PrintWriter writer) {
-        out = writer;
     }
 
 }

@@ -24,6 +24,8 @@ class ChangeLogLevel implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(ChangeLogLevel.class);
 
+    @CommandLine.Spec
+    CommandLine.Model.CommandSpec commandSpec;
 
     @CommandLine.ParentCommand
     private CLICommands parent;
@@ -49,7 +51,7 @@ class ChangeLogLevel implements Callable<Integer> {
                 .forEach(logger -> Configurator.setLevel(logger.getName(), logLevel));
 
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
-        parent.out.printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
+        commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
         return 0;
     }
 

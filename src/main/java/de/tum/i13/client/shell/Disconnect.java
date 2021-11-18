@@ -17,6 +17,9 @@ class Disconnect implements Callable<Void> {
 
     private static final Logger LOGGER = LogManager.getLogger(Disconnect.class);
 
+    @CommandLine.Spec
+    CommandLine.Model.CommandSpec commandSpec;
+
     @CommandLine.ParentCommand
     private CLICommands parent;
 
@@ -30,7 +33,7 @@ class Disconnect implements Callable<Void> {
     public Void call() throws ClientException {
         LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
         parent.client.disconnect();
-        parent.out.println("Successfully disconnected.");
+        commandSpec.commandLine().getOut().println("Successfully disconnected.");
         return null;
     }
 

@@ -17,6 +17,9 @@ class Send implements Callable<Integer> {
 
     private static final Logger LOGGER = LogManager.getLogger(Send.class);
 
+    @CommandLine.Spec
+    CommandLine.Model.CommandSpec commandSpec;
+
     @CommandLine.ParentCommand
     private CLICommands parent;
 
@@ -36,7 +39,7 @@ class Send implements Callable<Integer> {
     public Integer call() throws ClientException {
         //send the message in bytes after appending the delimiter
         LOGGER.info("Sending message to {}:{}", parent.address, parent.port);
-        parent.client.send((input.substring(5) + Constants.TERMINATING_STR).getBytes());
+        parent.client.send((input + Constants.TERMINATING_STR).getBytes());
         receiveMessage();
         return 0;
     }
@@ -52,7 +55,7 @@ class Send implements Callable<Integer> {
         LOGGER.info("Receiving message from server.");
         byte[] response = parent.client.receive();
         String responseStr = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-        parent.out.println(responseStr);
+        commandSpec.commandLine().getOut().println(responseStr);
     }
 
 }
