@@ -80,7 +80,7 @@ public class KVCommandProcessor implements CommandProcessor {
 
     private KVMessage delete(String key){
         try{
-            return kvStore.delete(key);
+            return kvStore.put(key, null);
         }
         catch(Exception e){
             return new KVMessageForStub(StatusType.DELETE_ERROR);

@@ -15,11 +15,5 @@ public class KVStoreStub implements KVStore {
         // TODO actual work on database
         return new KVMessageForStub(StatusType.GET_SUCCESS, key, null);
     }
-
-    @Override
-    public KVMessage delete(String key) throws Exception {
-        // TODO actual work on database
-        return new KVMessageForStub(StatusType.DELETE_SUCCESS, key, null);
-    }
     
 }

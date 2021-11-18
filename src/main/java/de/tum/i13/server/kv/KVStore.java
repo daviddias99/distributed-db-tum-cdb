@@ -23,14 +23,4 @@ public interface KVStore {
      */
     KVMessage get(String key) throws Exception;
 
-    /**
-     * Deltes the key-value pair from the KVServer.
-     *
-     * @param key the key that identifies the tuple to be deleted.
-     * @return a message that confirms the deletion of the tuple or an error
-     * @throws Exception if delete command cannot be executed (e.g. not connected to any
-     *                   KV server).
-     */
-    public KVMessage delete(String key) throws Exception;
-
 }
