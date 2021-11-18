@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
+/**
+ * Interactive shell to use on the client side for communication with the server.
+ */
 public class Shell {
 
     private static final Logger LOGGER = LogManager.getLogger(Shell.class);
@@ -21,6 +24,8 @@ public class Shell {
     /**
      * Starts shell. Reads user commands from the console and maintains connection of our Client to a Server.
      * Client can connect to {@code <address>:<port>} , disconnect, send a message to the server, change logging level.
+     *
+     * @param args command line arguments of the program. Unused in this class
      */
     public static void main(String[] args) {
         final CLICommands commands = new CLICommands();
@@ -45,8 +50,8 @@ public class Shell {
                 String[] tokens = line.trim().split("\\s+");
                 if (tokens.length >= 2 && Constants.SEND_COMMAND.equals(tokens[0])) {
                     tokens = new String[]{Constants.SEND_COMMAND, line.split("\\s", 2)[1]};
-
                 }
+
                 final int exitCode = cmd.execute(tokens);
                 if (exitCode == ExitCode.QUIT_PROGRAMM.getValue()) {
                     quit = true;
