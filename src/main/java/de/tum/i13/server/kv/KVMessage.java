@@ -10,6 +10,10 @@ public interface KVMessage {
      */
     enum StatusType {
         /**
+         * Undefined status, for example unprocessable command
+         */
+        UNDEFINED(true),
+        /**
          * Get - request
          */
         GET(true),

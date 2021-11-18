@@ -19,7 +19,7 @@ public class Constants {
     public static final String LOG_COMMAND = "logLevel";
     public static final String TERMINATING_STR = "\r\n";
     public static final String THROWING_EXCEPTION_LOG_MESSAGE = "Throwing exception";
-
+    public static final int CORE_POOL_SIZE = 3;
     private Constants() {
     }
 

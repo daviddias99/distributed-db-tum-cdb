@@ -1,6 +1,8 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.server.echo.EchoLogic;
+import de.tum.i13.server.kv.KVCommandProcessor;
+//import de.tum.i13.server.kv.KVStore;
+import de.tum.i13.server.kv.KVStoreStub;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Config;
 
@@ -8,9 +10,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 import static de.tum.i13.shared.Config.parseCommandlineArgs;
 import static de.tum.i13.shared.LogSetup.setupLogging;
+import de.tum.i13.shared.Constants;
 
 /**
  * Created by chris on 09.01.15.
@@ -40,14 +45,21 @@ public class Main {
 
         //Replace with your Key value server logic.
         // If you use multithreading you need locking
-        CommandProcessor logic = new EchoLogic();
+        CommandProcessor logic = new KVCommandProcessor(new KVStoreStub());
 
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
+        //Use ThreadPool
+        ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
 
-            //When we accept a connection, we start a new Thread for this connection
-            Thread th = new ConnectionHandleThread(logic, clientSocket);
-            th.start();
+        try{
+            while (true) {
+                //accept a connection
+                Socket clientSocket = serverSocket.accept();
+    
+                //start a new Thread for this connection
+                executorService.submit(new ConnectionHandleThread(logic, clientSocket, (InetSocketAddress) serverSocket.getLocalSocketAddress()));
+            }
+        } catch(IOException e){
+            executorService.shutdown();
         }
     }
 }

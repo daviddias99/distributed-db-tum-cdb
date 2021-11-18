@@ -20,6 +20,8 @@ public class Milestone1Main {
                 case "connect": activeConnection = buildconnection(command); break;
                 case "send": sendmessage(activeConnection, command, line); break;
                 case "disconnect": closeConnection(activeConnection); break;
+                case "get": getValueFromKey(activeConnection, command, line); break;
+                case "put": putValueToKey(activeConnection, command, line); break;
                 case "help": printHelp(); break;
                 case "quit": printEchoLine("Application exit!"); return;
                 default: printEchoLine("Unknown command");
@@ -72,6 +74,47 @@ public class Milestone1Main {
         } catch (IOException e) {
             printEchoLine("Error! Not connected!");
         }
+    }
+
+    private static void getValueFromKey(ActiveConnection activeConnection, String[] command, String line){
+        if(activeConnection == null) {
+            printEchoLine("Error! Not connected!");
+            return;
+        }
+
+        //TODO Can key contain spaces?
+        if(command.length != 2){
+            printEchoLine("Error! Key not valid!");
+            return;
+        }
+
+        try {
+            activeConnection.write(line);
+            printEchoLine(activeConnection.readline());
+        } catch (IOException e) {
+            printEchoLine("Error! Not connected!");
+        }
+    }
+
+    private static void putValueToKey(ActiveConnection activeConnection, String[] command, String line){
+        if(activeConnection == null) {
+            printEchoLine("Error! Not connected!");
+            return;
+        }
+
+        //TODO Can value contain spaces? Can value be empty?
+        if(command.length < 3){
+            printEchoLine("Error! Key-Value not valid!");
+            return;
+        }
+
+        try {
+            activeConnection.write(line);
+            printEchoLine(activeConnection.readline());
+        } catch (IOException e) {
+            printEchoLine("Error! Not connected!");
+        }
+
     }
 
     private static ActiveConnection buildconnection(String[] command) {
