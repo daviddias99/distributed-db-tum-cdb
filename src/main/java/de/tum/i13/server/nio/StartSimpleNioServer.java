@@ -1,8 +1,8 @@
 package de.tum.i13.server.nio;
 
+import de.tum.i13.server.Config;
 import de.tum.i13.server.echo.EchoLogic;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.server.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,7 +16,7 @@ public class StartSimpleNioServer {
 
     public static void main(String[] args) throws IOException {
         Config cfg = Config.parseCommandlineArgs(args);  //Do not change this
-        setupLogging(cfg.logfile);
+        setupLogging(cfg.logfile, cfg.logLevel);
         LOGGER.info("Config: {}", cfg);
 
         LOGGER.info("starting server");

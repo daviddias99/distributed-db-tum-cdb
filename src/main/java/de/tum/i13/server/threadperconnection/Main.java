@@ -22,7 +22,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Config cfg = Config.parseCommandlineArgs(args);  //Do not change this
-        setupLogging(cfg.logfile);
+        setupLogging(cfg.logfile, cfg.logLevel);
 
         final ServerSocket serverSocket = new ServerSocket();
 
