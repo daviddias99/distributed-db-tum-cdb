@@ -1,5 +1,7 @@
 package de.tum.i13.server;
 
+import de.tum.i13.server.cache.CachingStrategy;
+import org.apache.logging.log4j.spi.StandardLevel;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -47,6 +49,27 @@ public class Config {
     public Path logfile;
 
     @CommandLine.Option(
+            names = "-ll",
+            description = "Log level. Default: ${DEFAULT-VALUE}. Valid values: ${COMPLETION-CANDIDATES}",
+            defaultValue = "ALL"
+    )
+    public StandardLevel logLevel;
+
+    @CommandLine.Option(
+            names = "-c",
+            description = "Size of the cache, e.g., 100 keys. Default: ${DEFAULT-VALUE}",
+            defaultValue = "100"
+    )
+    public int cacheSize;
+
+    @CommandLine.Option(
+            names = "-s",
+            description = "Cache displacement strategy. Default: ${DEFAULT-VALUE}",
+            defaultValue = "FIFO"
+    )
+    public CachingStrategy cachingStrategy;
+
+    @CommandLine.Option(
             names = "-h",
             description = "Displays help",
             usageHelp = true
@@ -56,6 +79,7 @@ public class Config {
     public static Config parseCommandlineArgs(String[] args) {
         Config cfg = new Config();
         final CommandLine cmd = new CommandLine(cfg)
+                .setCaseInsensitiveEnumValuesAllowed(true)
                 .registerConverter(InetSocketAddress.class, new InetSocketAddressTypeConverter());
         final PrintWriter out = cmd.getOut();
         final PrintWriter err = cmd.getErr();
