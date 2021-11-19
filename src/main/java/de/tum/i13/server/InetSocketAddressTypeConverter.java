@@ -7,10 +7,11 @@ import java.net.InetSocketAddress;
 
 /// ported from : https://github.com/zegelin/cassandra-exporter/blob/master/common/src/main/java/com/zegelin/picocli/InetSocketAddressTypeConverter.java
 public class InetSocketAddressTypeConverter implements CommandLine.ITypeConverter<InetSocketAddress> {
+
     @Override
     public InetSocketAddress convert(final String value) throws Exception {
         String[] addressParts = value.split(":");
-        if(addressParts.length != 2) {
+        if (addressParts.length != 2) {
             throw new CommandLine.TypeConversionException("Need a host:port combination");
         }
 
@@ -35,4 +36,5 @@ public class InetSocketAddressTypeConverter implements CommandLine.ITypeConverte
             throw new CommandLine.TypeConversionException(e.getLocalizedMessage());
         }
     }
+
 }
