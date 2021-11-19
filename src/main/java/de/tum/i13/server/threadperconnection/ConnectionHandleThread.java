@@ -9,7 +9,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.lang.Runnable;
 
 public class ConnectionHandleThread implements Runnable {
     private CommandProcessor cp;
