@@ -1,36 +1,91 @@
 package de.tum.i13.server.kv;
 
+/**
+ * A message that is interchanged between a {@link KVStore} and a caller
+ */
 public interface KVMessage {
 
-    public enum StatusType {
-        GET, 			/* Get - request */
-        GET_ERROR, 		/* requested tuple (i.e. value) not found */
-        GET_SUCCESS, 	/* requested tuple (i.e. value) found */
-        PUT, 			/* Put - request */
-        PUT_SUCCESS, 	/* Put - request successful, tuple inserted */
-        PUT_UPDATE, 	/* Put - request successful, i.e. value updated */
-        PUT_ERROR, 		/* Put - request not successful */
-        DELETE, 		/* Delete - request */
-        DELETE_SUCCESS, /* Delete - request successful */
-        DELETE_ERROR 	/* Delete - request successful */
+    /**
+     * The type and status of the {@link KVMessage}
+     */
+    enum StatusType {
+        /**
+         * Undefined status, for example unprocessable command
+         */
+        UNDEFINED(true),
+        /**
+         * Get - request
+         */
+        GET(true),
+        /**
+         * requested tuple (i.e. value) not found
+         */
+        GET_ERROR(true),
+        /**
+         * requested tuple (i.e. value) found
+         */
+        GET_SUCCESS(false),
+        /**
+         * Put - request
+         */
+        PUT(true),
+        /**
+         * Put - request successful, tuple inserted
+         */
+        PUT_SUCCESS(false),
+        /**
+         * Put - request successful, i.e. value updated
+         */
+        PUT_UPDATE(false),
+        /**
+         * Put - request not successful
+         */
+        PUT_ERROR(false),
+        /**
+         * Delete - request
+         */
+        DELETE(true),
+        /**
+         * Delete - request successful
+         */
+        DELETE_SUCCESS(true),
+        /**
+         * Delete - request successful
+         */
+        DELETE_ERROR(true);
+
+        private final boolean canHavEmptyValue;
+
+        StatusType(boolean canHavEmptyValue) {
+            this.canHavEmptyValue = canHavEmptyValue;
+        }
+
+        /**
+         * Check if this type of {@link KVMessage} can have an empty value
+         *
+         * @return if it can have an empty value
+         */
+        public boolean canHaveEmptyValue() {
+            return this.canHavEmptyValue;
+        }
     }
 
     /**
      * @return the key that is associated with this message,
      * null if not key is associated.
      */
-    public String getKey();
+    String getKey();
 
     /**
      * @return the value that is associated with this message,
      * null if not value is associated.
      */
-    public String getValue();
+    String getValue();
 
     /**
      * @return a status string that is used to identify request types,
      * response types and error types associated to the message.
      */
-    public StatusType getStatus();
+    StatusType getStatus();
 
 }
