@@ -82,7 +82,7 @@ class TestPersistentBTree {
     assertThat(TreeValidator.validTree(tree)).isTrue();
     assertThat(tree.search("A")).isEqualTo("Value");
     assertThat(TreeValidator.validTree(tree)).isTrue();
-    tree.insert("A", "Value2");
+    assertThat(tree.insert("A", "Value2")).isEqualTo("Value");
     assertThat(TreeValidator.validTree(tree)).isTrue();
     assertThat(tree.search("A")).isEqualTo("Value2");
     assertThat(TreeValidator.validTree(tree)).isTrue();
@@ -91,11 +91,11 @@ class TestPersistentBTree {
   @Test
   void testInsertDoubleInsert2() {
 
-    tree.insert("A", "Value");
-    tree.insert("B", "Value");
-    tree.insert("C", "Value1");
-    tree.insert("D", "Value");
-    tree.insert("E", "Value");
+    assertThat(tree.insert("A", "Value")).isEqualTo(null);
+    assertThat(tree.insert("B", "Value")).isEqualTo(null);
+    assertThat(tree.insert("C", "Value1")).isEqualTo(null);
+    assertThat(tree.insert("D", "Value")).isEqualTo(null);
+    assertThat(tree.insert("E", "Value")).isEqualTo(null);
     assertThat(TreeValidator.validTree(tree)).isTrue();
     assertThat(tree.search("C")).isEqualTo("Value1");
     assertThat(TreeValidator.validTree(tree)).isTrue();

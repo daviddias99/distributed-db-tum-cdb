@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
