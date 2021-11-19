@@ -25,7 +25,7 @@ public class StartSimpleNioServer {
         CommandProcessor echoLogic = new EchoLogic();
 
         SimpleNioServer sn = new SimpleNioServer(echoLogic);
-        sn.bindSockets(cfg.listenaddr, cfg.port);
+        sn.bindSockets(cfg.listenAddress, cfg.port);
         sn.start();
     }
 }

@@ -22,7 +22,7 @@ public class Config {
             description = "which address the server should listen to. Default: ${DEFAULT-VALUE}",
             defaultValue = "127.0.0.1")
 
-    public String listenaddr;
+    public String listenAddress;
 
     @CommandLine.Option(
             names = "-b",
@@ -98,11 +98,11 @@ public class Config {
     public String toString() {
         return "Config{" +
                 "port=" + port +
-                ", listenaddr='" + listenaddr + "'" +
+                ", listenAddress='" + listenAddress + "'" +
                 ", bootstrap=" + bootstrap +
                 ", dataDir=" + dataDir +
                 ", logfile=" + logfile +
-                ", usagehelp=" + usageHelp +
+                ", usageHelp=" + usageHelp +
                 '}';
     }
 

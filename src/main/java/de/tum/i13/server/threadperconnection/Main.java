@@ -39,7 +39,7 @@ public class Main {
         });
 
         //bind to localhost only
-        serverSocket.bind(new InetSocketAddress(cfg.listenaddr, cfg.port));
+        serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
         //Replace with your Key value server logic.
         // If you use multithreading you need locking
