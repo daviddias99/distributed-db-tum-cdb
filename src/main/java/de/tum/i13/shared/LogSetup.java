@@ -1,32 +1,26 @@
 package de.tum.i13.shared;
 
-import java.io.IOException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+
 import java.nio.file.Path;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
+/**
+ * Sets up the logging in the application
+ */
 public class LogSetup {
+
+    private LogSetup() {}
+
+    /**
+     * Configure the path of the logging file with a system property.
+     * The default value is {@code logs/cdb.log} in the current directory.
+     *
+     * @param logfile the path of the file where to log to
+     */
     public static void setupLogging(Path logfile) {
-        Logger logger = LogManager.getLogManager().getLogger("");
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %4$-7s [%3$s] %5$s %6$s%n");
-
-        FileHandler fileHandler = null;
-        try {
-            fileHandler = new FileHandler(logfile.getFileName().toString(), true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        fileHandler.setFormatter(new SimpleFormatter());
-        logger.addHandler(fileHandler);
-
-        for (Handler h : logger.getHandlers()) {
-            h.setLevel(Level.ALL);
-        }
-        logger.setLevel(Level.ALL); //we want log everything
+        System.setProperty("logFilename", logfile.toString());
+        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        ctx.reconfigure();
     }
 }
