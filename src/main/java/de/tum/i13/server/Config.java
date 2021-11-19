@@ -12,14 +12,14 @@ public class Config {
 
     @CommandLine.Option(
             names = "-p",
-            description = "sets the port of the server",
+            description = "sets the port of the server. Default: ${DEFAULT-VALUE}",
             defaultValue = "5153"
     )
     public int port;
 
     @CommandLine.Option(
             names = "-a",
-            description = "which address the server should listen to",
+            description = "which address the server should listen to. Default: ${DEFAULT-VALUE}",
             defaultValue = "127.0.0.1")
 
     public String listenaddr;
@@ -27,21 +27,21 @@ public class Config {
     @CommandLine.Option(
             names = "-b",
             description = "bootstrap broker where clients and other brokers connect first to retrieve configuration, " +
-                    "port and ip, e.g., 192.168.1.1:5153",
+                    "port and ip, e.g., 192.168.1.1:5153. Default: ${DEFAULT-VALUE}",
             defaultValue = "clouddatabases.i13.in.tum.de:5153"
     )
     public InetSocketAddress bootstrap;
 
     @CommandLine.Option(
             names = "-d",
-            description = "Directory for files",
+            description = "Directory for files. Default: ${DEFAULT-VALUE}",
             defaultValue = "data/"
     )
     public Path dataDir;
 
     @CommandLine.Option(
             names = "-l",
-            description = "Logfile",
+            description = "Logfile. Default: ${DEFAULT-VALUE}",
             defaultValue = "logs/server.log"
     )
     public Path logfile;
