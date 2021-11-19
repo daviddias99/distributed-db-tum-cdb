@@ -1,4 +1,4 @@
-package de.tum.i13.shared;
+package de.tum.i13.server;
 
 import picocli.CommandLine;
 

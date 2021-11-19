@@ -1,21 +1,19 @@
 package de.tum.i13.server.threadperconnection;
 
+import de.tum.i13.server.Config;
 import de.tum.i13.server.kv.KVCommandProcessor;
-//import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.server.kv.KVStoreStub;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.shared.Config;
+import de.tum.i13.shared.Constants;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static de.tum.i13.shared.Config.parseCommandlineArgs;
 import static de.tum.i13.shared.LogSetup.setupLogging;
-import de.tum.i13.shared.Constants;
 
 /**
  * Created by chris on 09.01.15.
@@ -23,7 +21,7 @@ import de.tum.i13.shared.Constants;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        Config cfg = parseCommandlineArgs(args);  //Do not change this
+        Config cfg = Config.parseCommandlineArgs(args);  //Do not change this
         setupLogging(cfg.logfile);
 
         final ServerSocket serverSocket = new ServerSocket();
