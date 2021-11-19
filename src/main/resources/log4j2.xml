@@ -4,13 +4,13 @@
         <Console name="Console" target="SYSTEM_ERR">
             <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %msg%n"/>
         </Console>
-        <File name="LogFile" fileName="logs/cdb.log">
+        <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
             <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %msg%n"/>
         </File>
     </Appenders>
     <Loggers>
         <Root level="all">
-            <AppenderRef ref="Console" />
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="LogFile"/>
         </Root>
     </Loggers>
