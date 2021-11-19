@@ -3,6 +3,7 @@ package de.tum.i13.server;
 import picocli.CommandLine;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,7 +42,7 @@ public class Config {
     @CommandLine.Option(
             names = "-l",
             description = "Logfile",
-            defaultValue = "echo.log"
+            defaultValue = "logs/server.log"
     )
     public Path logfile;
 
@@ -54,30 +55,43 @@ public class Config {
 
     public static Config parseCommandlineArgs(String[] args) {
         Config cfg = new Config();
-        CommandLine.ParseResult parseResult = new CommandLine(cfg)
-                .registerConverter(InetSocketAddress.class, new InetSocketAddressTypeConverter())
-                .parseArgs(args);
+        final CommandLine cmd = new CommandLine(cfg)
+                .registerConverter(InetSocketAddress.class, new InetSocketAddressTypeConverter());
+        final PrintWriter out = cmd.getOut();
+        final PrintWriter err = cmd.getErr();
 
-        if (!Files.exists(cfg.dataDir)) {
-            try {
-                Files.createDirectory(cfg.dataDir);
-            } catch (IOException e) {
-                System.out.println("Could not create directory");
-                e.printStackTrace();
-                System.exit(-1);
-            }
-        }
-
-        if (!parseResult.errors().isEmpty()) {
-            for (Exception ex : parseResult.errors()) {
-                ex.printStackTrace();
-            }
-
-            CommandLine.usage(new Config(), System.out);
+        try {
+            cmd.parseArgs(args);
+        } catch (CommandLine.ParameterException ex) {
+            final CommandLine exCmd = ex.getCommandLine();
+            ex.printStackTrace(exCmd.getErr());
+            exCmd.usage(exCmd.getOut());
             System.exit(-1);
         }
 
+        showHelpAndExitIfRequested(cmd, out);
+        ensureDataDirectoryExistence(cfg.dataDir, out, err);
+
         return cfg;
+    }
+
+    private static void showHelpAndExitIfRequested(CommandLine cmd, PrintWriter out) {
+        if (cmd.isUsageHelpRequested()) {
+            cmd.usage(out);
+            System.exit(0);
+        }
+    }
+
+    private static void ensureDataDirectoryExistence(Path dataDir, PrintWriter out, PrintWriter err) {
+        if (!Files.exists(dataDir)) {
+            try {
+                Files.createDirectory(dataDir);
+            } catch (IOException ex) {
+                out.println("Could not create directory");
+                ex.printStackTrace(err);
+                System.exit(-1);
+            }
+        }
     }
 
     @Override
