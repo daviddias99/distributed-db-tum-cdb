@@ -63,7 +63,6 @@ public class Main {
         //Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
 
-
         try{
             while (true) {
                 //accept a connection
