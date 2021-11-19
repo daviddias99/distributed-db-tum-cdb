@@ -196,14 +196,14 @@ class PersistentBTreeNode<V> implements Serializable {
     return children.get(i).search(k);
   }
 
-  protected boolean searchAndInsert(String key, V value) {
+  protected V searchAndInsert(String key, V value) {
     // Find the first key greater than or equal to k
     // int i = chunk.findIndexOfFirstGreaterThen(k);
 
     Chunk<V> chunk = this.getChunk();
 
     if (chunk == null) {
-      return false;
+      return null;
     }
 
     int i = chunk.findIndexOfFirstGreaterThen(key);
@@ -214,13 +214,13 @@ class PersistentBTreeNode<V> implements Serializable {
       if (pair != null && pair.key.equals(key)) {
         chunk.set(i, new Pair<>(key, value));
         this.setChunk(chunk);
-        return true;
+        return pair.value;
       }
     }
 
     // If the key is not found here and this is a leaf node
     if (leaf == true)
-      return false;
+      return null;
 
     // Go to the appropriate child
     return children.get(i).searchAndInsert(key, value);

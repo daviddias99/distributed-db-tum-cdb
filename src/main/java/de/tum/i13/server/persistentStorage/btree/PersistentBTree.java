@@ -64,7 +64,7 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   // The main function that inserts a new key in this B-Tree
-  public void insert(String key, V value) {
+  public V insert(String key, V value) {
     this.readWriteLock.writeLock().lock();
 
     // If tree is empty
@@ -72,15 +72,15 @@ public class PersistentBTree<V> implements Serializable {
       this.createRoot(key, value);
       this.storageHandler.save(this);
       this.readWriteLock.writeLock().unlock();
-      return;
+      return null;
     }
 
-    boolean existed = searchAndInsert(key, value);
+    V previousValue = searchAndInsert(key, value);
 
-    if(existed) {
+    if(previousValue != null) {
       this.storageHandler.save(this);
       this.readWriteLock.writeLock().unlock();
-      return;
+      return previousValue;
     }
 
     // If root is full, then tree grows in height
@@ -92,11 +92,13 @@ public class PersistentBTree<V> implements Serializable {
 
     this.storageHandler.save(this);
     this.readWriteLock.writeLock().unlock();
+
+    return null;
   }
 
-  private boolean searchAndInsert(String key, V value) {
+  private V searchAndInsert(String key, V value) {
     if (this.root == null)
-      return false;
+      return null;
     else
       return this.root.searchAndInsert(key, value);
   }
