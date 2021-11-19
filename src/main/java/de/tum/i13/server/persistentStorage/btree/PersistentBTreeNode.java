@@ -15,13 +15,13 @@ import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageH
 
 // A BTree node
 class PersistentBTreeNode<V> implements Serializable {
-  private int minimumDegree; // Minimum degree (defines the range for number of keys)
-  private List<PersistentBTreeNode<V>> children; // An array of child pointers
-  private int keyCount; // Current number of keys
-  private boolean leaf; // Is true when node is leaf. Otherwise false
-  private ChunkStorageHandler<V> chunkStorageInterface;
-  private PersistentBTreeStorageHandler<V> treeStorageInterface;
-  private int id;
+  int minimumDegree; // Minimum degree (defines the range for number of keys)
+  List<PersistentBTreeNode<V>> children; // An array of child pointers
+  int keyCount; // Current number of keys
+  boolean leaf; // Is true when node is leaf. Otherwise false
+  ChunkStorageHandler<V> chunkStorageInterface;
+  PersistentBTreeStorageHandler<V> treeStorageInterface;
+  int id;
 
   // Constructor
   PersistentBTreeNode(int t, boolean leaf, Pair<V> initialElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
@@ -30,8 +30,8 @@ class PersistentBTreeNode<V> implements Serializable {
     this.keyCount = 0;
     this.leaf = leaf;
     this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
-
-    this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.hashCode()));
+    this.id = this.hashCode();
+    this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
     this.treeStorageInterface = treeStorageHandler;
 
     DatabaseChunk<V> newChunk = initialElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(initialElement));
@@ -59,111 +59,6 @@ class PersistentBTreeNode<V> implements Serializable {
     }
 
     return i;
-  }
-
-  // A function to traverse all nodes in a subtree rooted with this node
-  void traverse() {
-
-    // There are n keys and n+1 children, traverse through n keys
-    // and first n children
-    int i = 0;
-    for (i = 0; i < this.keyCount; i++) {
-
-      // If this is not leaf, then before printing key[i],
-      // traverse the subtree rooted with child C[i].
-      if (this.leaf == false) {
-        this.children.get(i).traverse();
-      }
-
-      Chunk<V> chunk = this.getChunk();
-
-      if (chunk == null) {
-        return;
-      }
-
-      Pair<V> pair = chunk.get(i);
-      chunk = null;
-      System.out.println(pair.key + " -> " + pair.value);
-    }
-
-    // Print the subtree rooted with last child
-    if (leaf == false)
-      this.children.get(i).traverse();
-  }
-
-  // A function to traverse all nodes in a subtree rooted with this node
-  void traverseCondensed() {
-
-    // There are n keys and n+1 children, traverse through n keys
-    // and first n children
-    int i = 0;
-    for (i = 0; i < this.keyCount; i++) {
-
-      // If this is not leaf, then before printing key[i],
-      // traverse the subtree rooted with child C[i].
-      if (this.leaf == false) {
-        this.children.get(i).traverseCondensed();
-      }
-
-      Chunk<V> chunk = this.getChunk();
-
-      if (chunk == null) {
-        return;
-      }
-
-      Pair<V> pair = chunk.get(i);
-      chunk = null;
-      System.out.print(pair.key + " ");
-    }
-
-    // Print the subtree rooted with last child
-    if (leaf == false)
-      this.children.get(i).traverseCondensed();
-  }
-
-  void traverseSpecial() {
-
-    System.out.println("--");
-    System.out.println("Node(" + Integer.toString(this.id) + ")");
-    System.out.println("Key count: " + this.keyCount);
-    System.out.print("Keys: ");
-
-    // There are n keys and n+1 children, traverse through n keys
-    // and first n children
-    int i = 0;
-    Chunk<V> chunk = this.getChunk();
-    for (i = 0; i < this.keyCount; i++) {
-      if (chunk == null) {
-        break;
-      }
-
-      Pair<V> pair = chunk.get(i);
-      System.out.print(pair.key + " ");
-    }
-    chunk = null;
-    System.out.print("\n");
-
-    System.out.print("Children: ");
-
-    for (PersistentBTreeNode<V> bTreeNode : children) {
-
-      if (bTreeNode == null) {
-        break;
-      }
-
-      System.out.print(Integer.toString(bTreeNode.id) + " ");
-    }
-
-    System.out.print("\n");
-
-    for (PersistentBTreeNode<V> bTreeNode : children) {
-
-      if (bTreeNode == null) {
-        break;
-      }
-
-      bTreeNode.traverseSpecial();
-    }
   }
 
   // A function to search a key in the subtree rooted with this node.

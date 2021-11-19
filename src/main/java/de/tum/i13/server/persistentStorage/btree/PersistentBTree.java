@@ -12,7 +12,7 @@ import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageH
 public class PersistentBTree<V> implements Serializable {
   private static final long serialVersionUID = 6529685098267757690L;
 
-  public PersistentBTreeNode<V> root; // Root node
+  PersistentBTreeNode<V> root; // Root node
   public int minimumDegree; // Minimum degree
   private PersistentBTreeStorageHandler<V> storageHandler;
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -147,28 +147,5 @@ public class PersistentBTree<V> implements Serializable {
 
   public void delete() {
     this.storageHandler.delete();
-  }
-
-  /*
-   * Display functions
-   */
-
-  // function to traverse the tree
-  void traverse() {
-    if (this.root != null)
-      this.root.traverse();
-    System.out.println();
-  }
-
-  void traverseCondensed() {
-    if (this.root != null)
-      this.root.traverseCondensed();
-    System.out.println();
-  }
-
-  void traverseSpecial() {
-    if (this.root != null)
-      this.root.traverseSpecial();
-    System.out.println();
   }
 }
