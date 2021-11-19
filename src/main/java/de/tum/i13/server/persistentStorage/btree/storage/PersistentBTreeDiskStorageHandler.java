@@ -10,8 +10,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
-import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkDiskStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkStorageHandler;
 
 public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
 

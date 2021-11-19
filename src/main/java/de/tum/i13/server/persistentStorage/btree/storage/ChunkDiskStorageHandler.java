@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree.chunk.storage;
+package de.tum.i13.server.persistentStorage.btree.storage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +21,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     this.filePath = filePath;
   }
 
+  @Override
   public Chunk<V> readChunkFromMemory() throws Exception {
 
     FileInputStream fileIn = new FileInputStream(this.filePath);
@@ -39,6 +40,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   }
 
   // TODO: change exception type;
+  @Override
   public void storeChunkInMemory(Chunk<V> chunk) throws IOException {
 
     if(chunk.getKeyCount() == 0) {
@@ -52,6 +54,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     objectOut.close();
   }
 
+  @Override
   public void storeChunkInMemoryForce(Chunk<V> chunk) throws IOException {
     FileOutputStream fileOut = new FileOutputStream(this.filePath);
     var objectOut = new ObjectOutputStream(fileOut);

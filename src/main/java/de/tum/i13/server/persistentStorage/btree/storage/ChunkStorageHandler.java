@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree.chunk.storage;
+package de.tum.i13.server.persistentStorage.btree.storage;
 
 import java.io.IOException;
 

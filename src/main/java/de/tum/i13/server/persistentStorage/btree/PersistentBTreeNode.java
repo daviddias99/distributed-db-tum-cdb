@@ -10,7 +10,7 @@ import java.util.List;
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.DatabaseChunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentStorage.btree.chunk.storage.ChunkStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.ChunkStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
 
 // A BTree node
@@ -24,9 +24,9 @@ class PersistentBTreeNode<V> implements Serializable {
   int id;
 
   // Constructor
-  PersistentBTreeNode(int t, boolean leaf, Pair<V> initialElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
+  PersistentBTreeNode(int minimumDegree, boolean leaf, Pair<V> initialElement, PersistentBTreeStorageHandler<V> treeStorageHandler)
       throws Exception {
-    this.minimumDegree = t;
+    this.minimumDegree = minimumDegree;
     this.keyCount = 0;
     this.leaf = leaf;
     this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
