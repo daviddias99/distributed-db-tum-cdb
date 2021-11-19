@@ -23,6 +23,16 @@
                 <configuration>
                     <source>14</source>
                     <target>14</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>info.picocli</groupId>
+                            <artifactId>picocli-codegen</artifactId>
+                            <version>4.6.2</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -31,7 +41,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>de.tum.i13.client.Shell</mainClass>
+                            <mainClass>de.tum.i13.client.shell.Shell</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -175,7 +185,7 @@
                         <image>${env.CI_REGISTRY_IMAGE}</image>
                     </to>
                     <container>
-                        <mainClass>de.tum.i13.client.Shell</mainClass>
+                        <mainClass>de.tum.i13.client.shell.Shell</mainClass>
                     </container>
                 </configuration>
             </plugin>
@@ -187,7 +197,7 @@
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
-            <version>4.6.1</version>
+            <version>4.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
