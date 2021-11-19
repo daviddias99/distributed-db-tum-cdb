@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
@@ -12,7 +13,6 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   private static final long serialVersionUID = 6529685098267757681L;
 
   public DatabaseChunk(int minimumDegree) {
-    // this.elements = new ArrayList<Pair<V>>(2 * minimumDegree - 1);
     this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
   }
@@ -61,8 +61,6 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
       this.elements.set(j + 1, this.elements.get(j));
       this.elements.set(j, null);
     }
-
-    // this.keyCount--;
   }
 
   @Override
@@ -106,7 +104,7 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
         i += 1;
       }
     }
-
+  
     return i;
   }
 

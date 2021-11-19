@@ -10,14 +10,13 @@ import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageH
 
 // A BTree
 public class PersistentBTree<V> implements Serializable {
-  public PersistentBTreeNode<V> root; // Pointer to root node
+  private static final long serialVersionUID = 6529685098267757690L;
+
+  public PersistentBTreeNode<V> root; // Root node
   public int minimumDegree; // Minimum degree
   private PersistentBTreeStorageHandler<V> storageHandler;
-  public static int id = 0;
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-
-  private static final long serialVersionUID = 6529685098267757690L;
 
   // Constructor (Initializes tree as empty)
   PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler) {
@@ -26,7 +25,7 @@ public class PersistentBTree<V> implements Serializable {
     this.storageHandler = storageHandler;
   }
 
-  void remove(String key) {
+  public void remove(String key) {
 
     this.readWriteLock.writeLock().lock();
 
@@ -48,7 +47,7 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   // function to search a key in this tree
-  V search(String key) {
+  public V search(String key) {
 
     this.readWriteLock.readLock().lock();
 
@@ -65,7 +64,7 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   // The main function that inserts a new key in this B-Tree
-  void insert(String key, V value) {
+  public void insert(String key, V value) {
     this.readWriteLock.writeLock().lock();
 
     // If tree is empty

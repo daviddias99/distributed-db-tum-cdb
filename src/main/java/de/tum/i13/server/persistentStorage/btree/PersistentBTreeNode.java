@@ -31,8 +31,7 @@ class PersistentBTreeNode<V> implements Serializable {
     this.leaf = leaf;
     this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
 
-    this.id = PersistentBTree.id++;
-    this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
+    this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.hashCode()));
     this.treeStorageInterface = treeStorageHandler;
 
     DatabaseChunk<V> newChunk = initialElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(initialElement));
