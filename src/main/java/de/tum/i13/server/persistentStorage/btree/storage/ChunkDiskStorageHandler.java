@@ -44,7 +44,6 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     }
   }
 
-  // TODO: change exception type;
   @Override
   public void storeChunkInMemory(Chunk<V> chunk) throws StorageException {
 
