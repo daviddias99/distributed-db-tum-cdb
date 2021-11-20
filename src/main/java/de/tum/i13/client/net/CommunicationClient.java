@@ -11,8 +11,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-// TODO Use Autoclosable
-public class CommunicationClient implements NetworkMessageServer {
+public class CommunicationClient implements NetworkMessageServer, AutoCloseable {
 
     private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
     private static final Logger LOGGER = LogManager.getLogger(CommunicationClient.class);
@@ -165,6 +164,11 @@ public class CommunicationClient implements NetworkMessageServer {
     @Override
     public int getPort() {
         return isConnected() ? this.connection.getPort() : -1;
+    }
+
+    @Override
+    public void close() throws ClientException {
+        disconnect();
     }
 
 }
