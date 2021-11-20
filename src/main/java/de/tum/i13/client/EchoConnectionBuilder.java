@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import de.tum.i13.shared.ActiveConnection;
 
 /**
  * Created by chris on 19.10.15.

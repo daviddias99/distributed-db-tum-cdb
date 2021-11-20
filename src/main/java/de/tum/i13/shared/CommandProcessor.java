@@ -10,4 +10,6 @@ public interface CommandProcessor {
     String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress);
 
     void connectionClosed(InetAddress address);
+
+    void connectionInterrupted(InetAddress address);
 }

@@ -26,7 +26,7 @@ public class KVCommandProcessor implements CommandProcessor {
             switch (tokens[0]){
                 case "get": message = this.get(tokens[1]); break;
                 case "put": message = this.put(tokens[1], tokens[2]); break;
-                case "delete": message = this.delete(tokens[1]);
+                //case "delete": message = this.delete(tokens[1]);
                 default: message = new KVMessageForStub(StatusType.UNDEFINED);
             }
 
@@ -42,13 +42,17 @@ public class KVCommandProcessor implements CommandProcessor {
     public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
         LOGGER.info("new connection: {}", remoteAddress);
 
-        return "Connection to KVServer established: " + address.toString() + "\r\n";
+        return "Connection to KVServer established: " + address.toString();
     }
 
     @Override
     public void connectionClosed(InetAddress remoteAddress) {
         LOGGER.info("connection closed: {}", remoteAddress);
-        //System.out.println("Connection Closed");
+    }
+
+    @Override
+    public void connectionInterrupted(InetAddress remoteAddress){
+        LOGGER.info("connection interrupted: {}", remoteAddress);
     }
 
     /**
