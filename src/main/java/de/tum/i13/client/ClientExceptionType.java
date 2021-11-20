@@ -1,4 +1,4 @@
-package de.tum.i13.client.exceptions;
+package de.tum.i13.client;
 
 public enum ClientExceptionType {
     SOCKET_CREATION_ERROR,

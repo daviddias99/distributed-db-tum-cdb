@@ -1,7 +1,5 @@
 package de.tum.i13.client;
 
-import de.tum.i13.client.exceptions.ClientException;
-import de.tum.i13.client.exceptions.ClientExceptionType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

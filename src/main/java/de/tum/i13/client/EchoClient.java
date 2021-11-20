@@ -1,7 +1,5 @@
 package de.tum.i13.client;
 
-import de.tum.i13.client.exceptions.ClientException;
-import de.tum.i13.client.exceptions.ClientExceptionType;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
