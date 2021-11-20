@@ -13,11 +13,11 @@ public class RemotePersistentStorage implements PersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
 
-    private final CommunicationClient communicationClient;
+    private final NetworkMessageServer networkConnection;
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
 
-    public RemotePersistentStorage(CommunicationClient communicationClient) {
-        this.communicationClient = communicationClient;
+    public RemotePersistentStorage(NetworkMessageServer networkConnection) {
+        this.networkConnection = networkConnection;
     }
 
     // TODO Add logging
@@ -45,7 +45,7 @@ public class RemotePersistentStorage implements PersistentStorage {
 
     private KVMessage sendAndReceive(KVMessage message) throws ClientException {
         LOGGER.debug("Sending message to server: {}", message.packMessage());
-        communicationClient.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
+        networkConnection.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
         return KVMessage.unpackMessage(receiveMessage());
     }
 
@@ -58,16 +58,12 @@ public class RemotePersistentStorage implements PersistentStorage {
      */
     private String receiveMessage() throws ClientException {
         LOGGER.debug("Receiving message from server.");
-        byte[] response = communicationClient.receive();
+        byte[] response = networkConnection.receive();
         return new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
     }
 
-    public String getAddress() {
-        return communicationClient.getAddress();
-    }
-
-    public int getPort() {
-        return communicationClient.getPort();
+    public NetworkLocation getNetworkLocation() {
+        return networkConnection;
     }
 
 }

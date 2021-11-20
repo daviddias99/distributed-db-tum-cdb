@@ -11,7 +11,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-public class CommunicationClient {
+// TODO Use Autoclosable
+public class CommunicationClient implements NetworkMessageServer {
 
     private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
     private static final Logger LOGGER = LogManager.getLogger(CommunicationClient.class);
@@ -39,29 +40,7 @@ public class CommunicationClient {
         this.connect(address, port);
     }
 
-    /**
-     * Connects client to {@code <address>:<port>} and returns the message sent by the host
-     * upon connection. This method is equivalent to calling the 'receive' method
-     * after the 'connect' method;
-     *
-     * @param address Hostname or address of the destination.
-     * @param port    Port of the destination.
-     * @return Bytes sent by the host.
-     * @throws ClientException
-     */
-    public byte[] connectAndReceive(String address, int port) throws ClientException {
-        this.connect(address, port);
-        return this.receive();
-    }
-
-    /**
-     * Connects client to {@code <address>:<port>}.
-     *
-     * @param address Hostname or address of the destination.
-     * @param port    Port of the destination.
-     * @throws ClientException A ClientException is thrown when the either the host.
-     *                         address/port is invalid or a socket can't be created.
-     */
+    @Override
     public void connect(String address, int port) throws ClientException {
 
         if (this.isConnected()) {
@@ -87,13 +66,7 @@ public class CommunicationClient {
         }
     }
 
-    /**
-     * Disconnects from current connection.
-     *
-     * @throws ClientException An exception is thrown when the connection couldn't
-     *                         been close or when disconnect is called on an
-     *                         unconnected client.
-     */
+    @Override
     public void disconnect() throws ClientException {
         LOGGER.info("Disconnecting from socket at {}:{}", address, port);
 
@@ -112,12 +85,7 @@ public class CommunicationClient {
         }
     }
 
-    /**
-     * Sends a message to the connected host. The message must be smaller then MAX_MESSAGE_SIZE_BYTES (see 'Constants' class)
-     *
-     * @param message Message to be sent to the host.
-     * @throws ClientException An exception is thrown when the message is too large, the client isn't connected or the message fails to be sent.
-     */
+    @Override
     public void send(byte[] message) throws ClientException {
 
         int messageSize = message.length;
@@ -158,12 +126,7 @@ public class CommunicationClient {
         }
     }
 
-    /**
-     * Receives a message from the host in the form of a byte array. Note that this method blocks waiting for data to be sent.
-     *
-     * @return Bytes received from host.
-     * @throws ClientException An exception is thrown if the client isn't connected or a message coundln't be received.
-     */
+    @Override
     public byte[] receive() throws ClientException {
 
         LOGGER.info("Receiving message from {}:{}.", address, port);
@@ -198,19 +161,17 @@ public class CommunicationClient {
         }
     }
 
-    /**
-     * This method returns true if the client is currently connected to a host.
-     *
-     * @return True if client is connected to host, false otherwise
-     */
+    @Override
     public boolean isConnected() {
         return this.connection != null && !this.connection.isClosed();
     }
 
+    @Override
     public String getAddress() {
         return address;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
