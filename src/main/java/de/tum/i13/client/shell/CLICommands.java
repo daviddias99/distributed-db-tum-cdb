@@ -8,7 +8,7 @@ import picocli.CommandLine;
         description = "CLI application for interacting with a server on the client side",
         mixinStandardHelpOptions = true,
         subcommands = {CommandLine.HelpCommand.class, Connect.class, Disconnect.class, Quit.class,
-                Send.class, Get.class, Put.class, ChangeLogLevel.class
+                Get.class, Put.class, ChangeLogLevel.class
         })
 class CLICommands {
 
