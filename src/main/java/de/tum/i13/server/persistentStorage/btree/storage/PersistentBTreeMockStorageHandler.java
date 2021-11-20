@@ -15,30 +15,30 @@ import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
  * {@code createChunkStorageHandle} method
  */
 public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
-  private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeMockStorageHandler.class);
+    private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeMockStorageHandler.class);
 
-  PersistentBTree<V> tree;
+    PersistentBTree<V> tree;
 
-  @Override
-  public void save(PersistentBTree<V> tree) {
-    LOGGER.info("Saved tree ({}) from memory.", tree.hashCode());
-    this.tree = tree;
-  };
+    @Override
+    public void save(PersistentBTree<V> tree) {
+        LOGGER.info("Saved tree ({}) from memory.", tree.hashCode());
+        this.tree = tree;
+    };
 
-  @Override
-  public PersistentBTree<V> load() {
-    LOGGER.info("Loaded tree ({}) from memory.", tree.hashCode());
-    return this.tree;
-  }
+    @Override
+    public PersistentBTree<V> load() {
+        LOGGER.info("Loaded tree ({}) from memory.", tree.hashCode());
+        return this.tree;
+    }
 
-  @Override
-  public ChunkMockStorageHandler<V> createChunkStorageHandler(String chunkId) {
-    return new ChunkMockStorageHandler<V>();
-  }
+    @Override
+    public ChunkMockStorageHandler<V> createChunkStorageHandler(String chunkId) {
+        return new ChunkMockStorageHandler<V>();
+    }
 
-  @Override
-  public void delete() {
-    LOGGER.info("Deleted tree ({}) from memory.", tree.hashCode());
-    this.tree = null;
-  }
+    @Override
+    public void delete() {
+        LOGGER.info("Deleted tree ({}) from memory.", tree.hashCode());
+        this.tree = null;
+    }
 }

@@ -13,27 +13,27 @@ import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
  * abstract from disk storage issues.
  */
 public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
-  private static final Logger LOGGER = LogManager.getLogger(ChunkMockStorageHandler.class);
+    private static final Logger LOGGER = LogManager.getLogger(ChunkMockStorageHandler.class);
 
-  private static final long serialVersionUID = 6529685098267757691L;
+    private static final long serialVersionUID = 6529685098267757691L;
 
-  private Chunk<V> chunk;
+    private Chunk<V> chunk;
 
-  @Override
-  public Chunk<V> readChunk() {
-    LOGGER.trace("Loaded chunk ({}) from memory.", this.hashCode());
-    return this.chunk.clone();
-  }
+    @Override
+    public Chunk<V> readChunk() {
+        LOGGER.trace("Loaded chunk ({}) from memory.", this.hashCode());
+        return this.chunk.clone();
+    }
 
-  @Override
-  public void storeChunk(Chunk<V> chunk) {
-    LOGGER.trace("Stored chunk ({}) in memory.", this.hashCode());
-    this.chunk = chunk;
-  }
+    @Override
+    public void storeChunk(Chunk<V> chunk) {
+        LOGGER.trace("Stored chunk ({}) in memory.", this.hashCode());
+        this.chunk = chunk;
+    }
 
-  @Override
-  public void storeChunkForce(Chunk<V> chunk) {
-    LOGGER.trace("Stored chunk ({}) in memory.", this.hashCode());
-    this.chunk = chunk;
-  }
+    @Override
+    public void storeChunkForce(Chunk<V> chunk) {
+        LOGGER.trace("Stored chunk ({}) in memory.", this.hashCode());
+        this.chunk = chunk;
+    }
 }
