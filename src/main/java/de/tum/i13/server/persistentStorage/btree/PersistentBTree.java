@@ -38,7 +38,7 @@ public class PersistentBTree<V> implements Serializable {
 
     // If the root node has 0 keys, make its first child as the new root
     // if it has a child, otherwise set root as NULL
-    if (root.getKeyCount() == 0) {
+    if (root.getElementCount() == 0) {
       root = root.isLeaf() ? null : root.getChildren().get(0);
     }
 
@@ -48,7 +48,7 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   // function to search a key in this tree
-  public V search(String key) {
+  public V search(String key) throws StorageException {
 
     this.readWriteLock.readLock().lock();
 
@@ -112,7 +112,6 @@ public class PersistentBTree<V> implements Serializable {
       e.printStackTrace();
       return;
     }
-    root.incrementKeyCount(); // Update number of keys in root
   }
 
   private void insertFull(String key, V value) throws StorageException {

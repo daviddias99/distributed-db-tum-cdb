@@ -5,6 +5,7 @@ import java.util.TreeSet;
 
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 
 import java.util.List;
 
@@ -21,8 +22,14 @@ public class TreeValidator {
   }
 
   private static boolean validTreeRec(PersistentBTreeNode<String> node, int minimumDegree, Set<String> keys) {
-    int keyCount = node.getKeyCount();
-    Chunk<String> chunk = node.getChunk();
+    int keyCount = node.getElementCount();
+    Chunk<String> chunk;
+    try {
+      chunk = node.getChunk();
+    } catch (StorageException e) {
+      return false;
+    }
+    
     List<Pair<String>> chunkElements = chunk.getElements();
 
     for (Pair<String> pair : chunkElements) {

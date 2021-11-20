@@ -44,15 +44,15 @@ class TestPersistentBTree {
   void testInsert1() {
     try {
       tree.insert("A", "Value");
+      assertThat(TreeValidator.validTree(tree)).isTrue();
+      assertThat(tree.search("A")).isEqualTo("Value");
+      assertThat(TreeValidator.validTree(tree)).isTrue();
     } catch (StorageException e1) {
       return; // Pass the test if exception is thrown because there is currently no
               // expectations the state of the tree once something goes wrong
     } catch (Exception e) {
       fail();
     }
-    assertThat(TreeValidator.validTree(tree)).isTrue();
-    assertThat(tree.search("A")).isEqualTo("Value");
-    assertThat(TreeValidator.validTree(tree)).isTrue();
   }
 
   @RepeatedTest(5)
@@ -77,14 +77,28 @@ class TestPersistentBTree {
       }
 
       for (char c : alphabet) {
-        assertThat(tree.search(c + "")).isEqualTo(c + "");
+        try {
+          assertThat(tree.search(c + "")).isEqualTo(c + "");
+        } catch (StorageException e1) {
+          return; // Pass the test if exception is thrown because there is currently no
+                  // expectations the state of the tree once something goes wrong
+        } catch (Exception e) {
+          fail();
+        }
       }
     }
   }
 
   @Test
   void testSearchOnEmpty() {
-    assertThat(tree.search("a")).isEqualTo(null);
+    try {
+      assertThat(tree.search("a")).isEqualTo(null);
+    } catch (StorageException e1) {
+      return; // Pass the test if exception is thrown because there is currently no
+              // expectations the state of the tree once something goes wrong
+    } catch (Exception e) {
+      fail();
+    }
   }
 
   @Test
@@ -94,8 +108,15 @@ class TestPersistentBTree {
 
   @Test
   void testMissingSearch() {
-    assertThat(tree.search("A")).isEqualTo(null);
-    assertThat(TreeValidator.validTree(tree)).isTrue();
+    try {
+      assertThat(tree.search("A")).isEqualTo(null);
+      assertThat(TreeValidator.validTree(tree)).isTrue();
+    } catch (StorageException e1) {
+      return; // Pass the test if exception is thrown because there is currently no
+              // expectations the state of the tree once something goes wrong
+    } catch (Exception e) {
+      fail();
+    }
   }
 
   @Test

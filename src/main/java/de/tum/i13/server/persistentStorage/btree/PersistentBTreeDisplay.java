@@ -2,6 +2,7 @@ package de.tum.i13.server.persistentStorage.btree;
 
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 
 public class PersistentBTreeDisplay<V> {
   /*
@@ -38,7 +39,7 @@ public class PersistentBTreeDisplay<V> {
       // There are n keys and n+1 children, traverse through n keys
       // and first n children
       int i = 0;
-      for (i = 0; i < node.keyCount; i++) {
+      for (i = 0; i < node.elementCount; i++) {
 
         // If this is not leaf, then before printing key[i],
         // traverse the subtree rooted with child C[i].
@@ -46,7 +47,12 @@ public class PersistentBTreeDisplay<V> {
           this.traverse(node.children.get(i));
         }
 
-        Chunk<V> chunk = node.getChunk();
+        Chunk<V> chunk;
+        try {
+          chunk = node.getChunk();
+        } catch (StorageException e) {
+          return;
+        }
 
         if (chunk == null) {
           return;
@@ -68,7 +74,7 @@ public class PersistentBTreeDisplay<V> {
       // There are n keys and n+1 children, traverse through n keys
       // and first n children
       int i = 0;
-      for (i = 0; i < node.keyCount; i++) {
+      for (i = 0; i < node.elementCount; i++) {
 
         // If this is not leaf, then before printing key[i],
         // traverse the subtree rooted with child C[i].
@@ -76,7 +82,12 @@ public class PersistentBTreeDisplay<V> {
           this.traverseCondensed(node.children.get(i));
         }
 
-        Chunk<V> chunk = node.getChunk();
+        Chunk<V> chunk;
+        try {
+          chunk = node.getChunk();
+        } catch (StorageException e) {
+          return;
+        }
 
         if (chunk == null) {
           return;
@@ -96,14 +107,19 @@ public class PersistentBTreeDisplay<V> {
 
       System.out.println("--");
       System.out.println("Node(" + Integer.toString(node.id) + ")");
-      System.out.println("Key count: " + node.keyCount);
+      System.out.println("Key count: " + node.elementCount);
       System.out.print("Keys: ");
 
       // There are n keys and n+1 children, traverse through n keys
       // and first n children
       int i = 0;
-      Chunk<V> chunk = node.getChunk();
-      for (i = 0; i < node.keyCount; i++) {
+      Chunk<V> chunk;
+      try {
+        chunk = node.getChunk();
+      } catch (StorageException e) {
+        return;
+      }
+      for (i = 0; i < node.elementCount; i++) {
         if (chunk == null) {
           break;
         }
