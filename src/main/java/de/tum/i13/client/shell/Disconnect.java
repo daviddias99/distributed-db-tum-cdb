@@ -18,7 +18,7 @@ class Disconnect implements Callable<Integer> {
     private static final Logger LOGGER = LogManager.getLogger(Disconnect.class);
 
     @CommandLine.Spec
-    CommandLine.Model.CommandSpec commandSpec;
+    private CommandLine.Model.CommandSpec commandSpec;
 
     @CommandLine.ParentCommand
     private CLICommands parent;

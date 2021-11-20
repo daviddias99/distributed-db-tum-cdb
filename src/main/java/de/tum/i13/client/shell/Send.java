@@ -18,7 +18,7 @@ class Send implements Callable<Integer> {
     private static final Logger LOGGER = LogManager.getLogger(Send.class);
 
     @CommandLine.Spec
-    CommandLine.Model.CommandSpec commandSpec;
+    private CommandLine.Model.CommandSpec commandSpec;
 
     @CommandLine.ParentCommand
     private CLICommands parent;
