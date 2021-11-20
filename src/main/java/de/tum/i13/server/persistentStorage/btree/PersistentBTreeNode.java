@@ -258,7 +258,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
   Chunk<V> getChunk() {
     try {
-      Chunk<V> chunk = chunkStorageInterface.readChunkFromMemory();
+      Chunk<V> chunk = chunkStorageInterface.readChunk();
       return chunk;
     } catch (Exception e) {
       // TODO Auto-generated catch block
@@ -268,11 +268,11 @@ class PersistentBTreeNode<V> implements Serializable {
   }
 
   void setChunk(Chunk<V> chunk) throws StorageException {
-    this.chunkStorageInterface.storeChunkInMemory(chunk);
+    this.chunkStorageInterface.storeChunk(chunk);
   }
 
   void setChunkForce(Chunk<V> chunk) throws StorageException {
-    this.chunkStorageInterface.storeChunkInMemoryForce(chunk);
+    this.chunkStorageInterface.storeChunkForce(chunk);
   }
 
   // A utility function that returns the index of the first key that is

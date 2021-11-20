@@ -24,7 +24,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   }
 
   @Override
-  public Chunk<V> readChunkFromMemory() throws StorageException {
+  public Chunk<V> readChunk() throws StorageException {
 
     try {
       FileInputStream fileIn = new FileInputStream(this.filePath);
@@ -45,18 +45,18 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   }
 
   @Override
-  public void storeChunkInMemory(Chunk<V> chunk) throws StorageException {
+  public void storeChunk(Chunk<V> chunk) throws StorageException {
 
     if (chunk.getElementCount() == 0) {
       this.deleteChunk();
       return;
     }
 
-    this.storeChunkInMemoryForce(chunk);
+    this.storeChunkForce(chunk);
   }
 
   @Override
-  public void storeChunkInMemoryForce(Chunk<V> chunk) throws StorageException {
+  public void storeChunkForce(Chunk<V> chunk) throws StorageException {
     try {
       FileOutputStream fileOut = new FileOutputStream(this.filePath);
       var objectOut = new ObjectOutputStream(fileOut);

@@ -16,17 +16,17 @@ public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   private Chunk<V> chunk;
 
   @Override
-  public Chunk<V> readChunkFromMemory() {    
+  public Chunk<V> readChunk() {    
     return this.chunk.clone();
   }
 
   @Override
-  public void storeChunkInMemory(Chunk<V> chunk) {
+  public void storeChunk(Chunk<V> chunk) {
     this.chunk = chunk;
   }
 
   @Override
-  public void storeChunkInMemoryForce(Chunk<V> chunk) {
+  public void storeChunkForce(Chunk<V> chunk) {
     this.chunk = chunk;    
   }
 }
