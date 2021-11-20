@@ -26,8 +26,8 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
             return ExitCode.STORAGE_EXCEPTION.getValue();
         } else {
             LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);
-            commandLine.getOut().println("An unexpected error occurred" +
-                    ". Please contact the administrator or consult the logs");
+            commandLine.getOut().println("An unexpected error occurred. " +
+                    "Please contact the administrator or consult the logs");
             throw ex;
         }
     }

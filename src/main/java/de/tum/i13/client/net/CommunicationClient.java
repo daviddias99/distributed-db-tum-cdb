@@ -19,7 +19,13 @@ public class CommunicationClient implements NetworkMessageServer {
     private Socket connection;
     private InputStream inStream;
     private OutputStream outStream;
+    /**
+     * Server address of current connection
+     */
     private String address;
+    /**
+     * Port number of current connection
+     */
     private int port;
 
     /**
@@ -66,6 +72,7 @@ public class CommunicationClient implements NetworkMessageServer {
         }
     }
 
+    // TODO Reset address and client on disconnect
     @Override
     public void disconnect() throws ClientException {
         LOGGER.info("Disconnecting from socket at {}:{}", address, port);

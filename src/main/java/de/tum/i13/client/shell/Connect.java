@@ -47,8 +47,6 @@ class Connect implements Callable<Integer> {
     public Integer call() throws ClientException {
         //create new connection and receive confirmation from server
         LOGGER.info("Initiating connection to {}:{}", address, port);
-        parent.address = address;
-        parent.port = port;
 
         byte[] response = parent.remoteStorage.getNetworkMessageServer().connectAndReceive(address, port);
         String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);

@@ -15,15 +15,6 @@ class CLICommands {
 
     final RemotePersistentStorage remoteStorage;
 
-    /**
-     * Server address of current connection
-     */
-    String address;
-    /**
-     * Port number of current connection
-     */
-    int port;
-
     CLICommands() {
         final NetworkMessageServer client = new CommunicationClient();
         remoteStorage = new RemotePersistentStorage(client);

@@ -1,6 +1,7 @@
 package de.tum.i13.client.shell;
 
 import de.tum.i13.client.net.ClientException;
+import de.tum.i13.client.net.NetworkLocation;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,10 +33,11 @@ class Quit implements Callable<Integer> {
      */
     @Override
     public Integer call() throws ClientException {
-        if (parent.remoteStorage.getNetworkLocation().isConnected()) {
-            LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
+        final NetworkLocation networkLocation = parent.remoteStorage.getNetworkLocation();
+        if (networkLocation.isConnected()) {
+            LOGGER.info("Disconnecting from {}:{}", networkLocation.getAddress(), networkLocation.getPort());
             commandSpec.commandLine().getOut().println("Disconnecting from server");
-            parent.remoteStorage.getNetworkLocation().disconnect();
+            networkLocation.disconnect();
         }
 
         LOGGER.info("Quitting application.");
