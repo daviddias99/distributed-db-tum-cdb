@@ -36,7 +36,7 @@ class Get implements Callable<Integer> {
     public Integer call() throws GetException {
         LOGGER.info("Trying to get key {}", key);
 
-        final KVMessage storageResponse = parent.storage.get(key);
+        final KVMessage storageResponse = parent.remoteStorage.get(key);
         final KVMessage.StatusType storageStatus = storageResponse.getStatus();
         final PrintWriter out = commandSpec.commandLine().getOut();
         if (storageStatus == KVMessage.StatusType.GET_SUCCESS) {

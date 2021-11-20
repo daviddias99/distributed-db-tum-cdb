@@ -1,5 +1,6 @@
 package de.tum.i13.client.shell;
 
+import de.tum.i13.client.net.ClientException;
 import de.tum.i13.client.net.RemotePersistentStorage;
 import de.tum.i13.server.kv.KVException;
 import org.apache.logging.log4j.LogManager;
@@ -16,11 +17,12 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
     @Override
     public int handleExecutionException(Exception ex, CommandLine commandLine,
                                         CommandLine.ParseResult parseResult) throws Exception {
-        if (ex instanceof KVException) {
+        if (ex instanceof KVException || ex instanceof ClientException) {
             LOGGER.atError()
                     .withThrowable(ex)
                     .log("Caught {}", ex.getClass().getSimpleName());
-            commandLine.getOut().printf("Error in remote storage: %s%n", ex.getMessage());
+            final String exceptionLocation = ex instanceof KVException ? "remote storage" : "network connection";
+            commandLine.getOut().printf("Error in %s: %s%n", exceptionLocation, ex.getMessage());
             return ExitCode.STORAGE_EXCEPTION.getValue();
         } else {
             LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);

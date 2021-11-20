@@ -32,10 +32,10 @@ class Quit implements Callable<Integer> {
      */
     @Override
     public Integer call() throws ClientException {
-        if (parent.client.isConnected()) {
+        if (parent.remoteStorage.getNetworkLocation().isConnected()) {
             LOGGER.info("Disconnecting from {}:{}", parent.address, parent.port);
             commandSpec.commandLine().getOut().println("Disconnecting from server");
-            parent.client.disconnect();
+            parent.remoteStorage.getNetworkLocation().disconnect();
         }
 
         LOGGER.info("Quitting application.");

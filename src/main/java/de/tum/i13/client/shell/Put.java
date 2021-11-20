@@ -44,7 +44,7 @@ class Put implements Callable<Integer> {
     public Integer call() throws PutException {
         LOGGER.info("Trying to put to key {} value {}", key, value);
 
-        final KVMessage storageResponse = parent.storage.put(key, value);
+        final KVMessage storageResponse = parent.remoteStorage.put(key, value);
         final KVMessage.StatusType storageStatus = storageResponse.getStatus();
         final PrintWriter out = commandSpec.commandLine().getOut();
         if (storageStatus == KVMessage.StatusType.PUT_SUCCESS) {

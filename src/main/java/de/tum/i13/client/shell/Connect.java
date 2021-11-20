@@ -50,7 +50,7 @@ class Connect implements Callable<Integer> {
         parent.address = address;
         parent.port = port;
 
-        byte[] response = parent.client.connectAndReceive(address, port);
+        byte[] response = parent.remoteStorage.getNetworkMessageServer().connectAndReceive(address, port);
         String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
         commandSpec.commandLine().getOut().println(confirmation);
         LOGGER.info("Connection to {}:{} successful.", address, port);

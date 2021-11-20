@@ -12,12 +12,11 @@ import org.apache.logging.log4j.Logger;
 public class RemotePersistentStorage implements PersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
-
-    private final NetworkMessageServer networkConnection;
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
+    private final NetworkMessageServer networkMessageServer;
 
-    public RemotePersistentStorage(NetworkMessageServer networkConnection) {
-        this.networkConnection = networkConnection;
+    public RemotePersistentStorage(NetworkMessageServer networkMessageServer) {
+        this.networkMessageServer = networkMessageServer;
     }
 
     // TODO Add logging
@@ -44,8 +43,8 @@ public class RemotePersistentStorage implements PersistentStorage {
     }
 
     private KVMessage sendAndReceive(KVMessage message) throws ClientException {
-        LOGGER.debug("Sending message to server: {}", message.packMessage());
-        networkConnection.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
+        LOGGER.debug("Sending message to server: {}", message::packMessage);
+        networkMessageServer.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
         return KVMessage.unpackMessage(receiveMessage());
     }
 
@@ -53,17 +52,21 @@ public class RemotePersistentStorage implements PersistentStorage {
      * Called after sending a message to the server. Receives server's response in bytes, coverts it to String
      * in proper encoding and returns it.
      *
-     * @throws ClientException if the message cannot be received
      * @return message received by the server
+     * @throws ClientException if the message cannot be received
      */
     private String receiveMessage() throws ClientException {
         LOGGER.debug("Receiving message from server.");
-        byte[] response = networkConnection.receive();
+        byte[] response = networkMessageServer.receive();
         return new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
     }
 
     public NetworkLocation getNetworkLocation() {
-        return networkConnection;
+        return networkMessageServer;
+    }
+
+    public NetworkMessageServer getNetworkMessageServer() {
+        return networkMessageServer;
     }
 
 }
