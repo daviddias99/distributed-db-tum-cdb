@@ -2,14 +2,15 @@ package de.tum.i13.server.kv;
 
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.shared.CommandProcessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.logging.Logger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class KVCommandProcessor implements CommandProcessor {
     private KVStore kvStore;
-    public static Logger logger = Logger.getLogger(KVCommandProcessor.class.getTypeName());
+    private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
     public KVCommandProcessor(KVStore kvStore) {
         this.kvStore = kvStore;
@@ -39,14 +40,14 @@ public class KVCommandProcessor implements CommandProcessor {
 
     @Override
     public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
-        logger.info("new connection: " + remoteAddress.toString());
+        LOGGER.info("new connection: {}", remoteAddress);
 
         return "Connection to KVServer established: " + address.toString() + "\r\n";
     }
 
     @Override
     public void connectionClosed(InetAddress remoteAddress) {
-        logger.info("connection closed: " + remoteAddress.toString());
+        LOGGER.info("connection closed: {}", remoteAddress);
         //System.out.println("Connection Closed");
     }
 

@@ -1,17 +1,17 @@
 package de.tum.i13.server.echo;
 
 import de.tum.i13.shared.CommandProcessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.logging.Logger;
 
 public class EchoLogic implements CommandProcessor {
-    public static Logger logger = Logger.getLogger(EchoLogic.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger(EchoLogic.class);
 
     public String process(String command) {
-
-        logger.info("received command: " + command.trim());
+        LOGGER.info("received command: {}", command::trim);
 
         //Let the magic happen here
 
@@ -20,13 +20,13 @@ public class EchoLogic implements CommandProcessor {
 
     @Override
     public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
-        logger.info("new connection: " + remoteAddress.toString());
+        LOGGER.info("new connection: {}", remoteAddress);
 
         return "Connection to MSRG Echo server established: " + address.toString() + "\r\n";
     }
 
     @Override
     public void connectionClosed(InetAddress remoteAddress) {
-        logger.info("connection closed: " + remoteAddress.toString());
+        LOGGER.info("connection closed: {}", remoteAddress);
     }
 }
