@@ -19,14 +19,6 @@ public class CommunicationClient implements NetworkMessageServer {
     private Socket connection;
     private InputStream inStream;
     private OutputStream outStream;
-    /**
-     * Server address of current connection
-     */
-    private String address;
-    /**
-     * Port number of current connection
-     */
-    private int port;
 
     /**
      * Creates a new client. The created is not connected to any host.
@@ -48,19 +40,17 @@ public class CommunicationClient implements NetworkMessageServer {
 
     @Override
     public void connect(String address, int port) throws ClientException {
+        LOGGER.info("Trying to connect to {}:{}", address, port);
 
         if (this.isConnected()) {
             this.disconnect();
         }
 
-        this.address = address;
-        this.port = port;
         LOGGER.info("Creating socket to {}:{}", address, port);
 
         try {
             // Open socket and get streams
-            Socket socket = new Socket(address, port);
-            this.connection = socket;
+            this.connection = new Socket(address, port);
             this.inStream = this.connection.getInputStream();
             this.outStream = this.connection.getOutputStream();
         } catch (UnknownHostException e) {
@@ -72,10 +62,9 @@ public class CommunicationClient implements NetworkMessageServer {
         }
     }
 
-    // TODO Reset address and client on disconnect
     @Override
     public void disconnect() throws ClientException {
-        LOGGER.info("Disconnecting from socket at {}:{}", address, port);
+        LOGGER.info("Trying to disconnect from socket at {}:{}", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -84,8 +73,11 @@ public class CommunicationClient implements NetworkMessageServer {
         }
 
         try {
-            LOGGER.debug("Closing connection from socket at {}:{}", address, port);
+            LOGGER.debug("Closing connection from socket at {}:{}", getAddress(), getPort());
             this.connection.close();
+            this.connection = null;
+            this.inStream = null;
+            this.outStream = null;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error while closing connection/streams.");
             throw new ClientException("Error while closing client", ClientException.Type.SOCKET_CLOSING_ERROR);
@@ -94,12 +86,13 @@ public class CommunicationClient implements NetworkMessageServer {
 
     @Override
     public void send(byte[] message) throws ClientException {
+        LOGGER.info("Trying to send message: {}", () -> new String(message));
 
         int messageSize = message.length;
         int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
         LOGGER.info("Sending {} bytes to {}:{}. ({}{})",
-                () -> messageSize, () -> address, () -> port,
+                () -> messageSize, this::getAddress, this::getPort,
                 () -> (new String(message)).substring(0, previewSize),
                 () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
 
@@ -118,25 +111,16 @@ public class CommunicationClient implements NetworkMessageServer {
         try {
             // Write the whole array at once
             this.outStream.write(message);
-
-            /*
-             * // Write one byte at a time. for (byte b : message) { * for (byte b :
-             * message) { this.outStream.write(b); }
-             */
-
             this.outStream.flush();
-        } catch (
-
-                IOException e) {
-            LOGGER.error("Throwing exception because an error occured while sending data.");
+        } catch (IOException e) {
+            LOGGER.error("Throwing exception because an error occurred while sending data.");
             throw new ClientException("Could not send message", ClientException.Type.INTERNAL_ERROR);
         }
     }
 
     @Override
     public byte[] receive() throws ClientException {
-
-        LOGGER.info("Receiving message from {}:{}.", address, port);
+        LOGGER.info("Trying to receive message from {}:{}.", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -158,12 +142,12 @@ public class CommunicationClient implements NetworkMessageServer {
             int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
             LOGGER.info("Receiving {} bytes to {}:{}. ({}{})",
-                    () -> messageSize, () -> address, () -> port,
+                    () -> messageSize, this::getAddress, this::getPort,
                     () -> (new String(result)).substring(0, previewSize),
                     () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
             return result;
         } catch (IOException e) {
-            LOGGER.error("Throwing exception because an error occured while receiving data.");
+            LOGGER.error("Throwing exception because an error occurred while receiving data.");
             throw new ClientException("Could not receive", ClientException.Type.INTERNAL_ERROR);
         }
     }
@@ -175,12 +159,12 @@ public class CommunicationClient implements NetworkMessageServer {
 
     @Override
     public String getAddress() {
-        return address;
+        return isConnected() ? this.connection.getInetAddress().getHostName() : null;
     }
 
     @Override
     public int getPort() {
-        return port;
+        return isConnected() ? this.connection.getPort() : -1;
     }
 
 }
