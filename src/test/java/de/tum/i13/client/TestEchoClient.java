@@ -58,7 +58,7 @@ class TestEchoClient {
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(() -> new EchoClient("localhost00", serverSocket.getLocalPort()))
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.UNKNOWN_HOST);
+                .isEqualTo(ClientException.Type.UNKNOWN_HOST);
         assertThat(client.isConnected()).isFalse();
     }
 
@@ -91,7 +91,7 @@ class TestEchoClient {
                 .isThrownBy(() -> client.connect("localhost00", serverSocket.getLocalPort()))
                 .isInstanceOf(ClientException.class)
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.UNKNOWN_HOST);
+                .isEqualTo(ClientException.Type.UNKNOWN_HOST);
     }
 
     @Test
@@ -126,7 +126,7 @@ class TestEchoClient {
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(client::receive)
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.UNCONNECTED);
+                .isEqualTo(ClientException.Type.UNCONNECTED);
     }
 
     @Test
@@ -151,7 +151,7 @@ class TestEchoClient {
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(() -> client.send("test".getBytes()))
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.UNCONNECTED);
+                .isEqualTo(ClientException.Type.UNCONNECTED);
     }
 
     @Test
@@ -164,7 +164,7 @@ class TestEchoClient {
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(() -> client.send(new byte[1024 * 256]))
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.MESSAGE_TOO_LARGE);
+                .isEqualTo(ClientException.Type.MESSAGE_TOO_LARGE);
     }
 
     @Test
@@ -188,6 +188,6 @@ class TestEchoClient {
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(client::disconnect)
                 .extracting(ClientException::getType)
-                .isEqualTo(ClientExceptionType.UNCONNECTED);
+                .isEqualTo(ClientException.Type.UNCONNECTED);
     }
 }

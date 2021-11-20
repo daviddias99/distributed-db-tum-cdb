@@ -80,10 +80,10 @@ public class EchoClient {
             this.outStream = this.connection.getOutputStream();
         } catch (UnknownHostException e) {
             LOGGER.error("Throwing exception because host {} could not be found.", address);
-            throw new ClientException("Could not find host", ClientExceptionType.UNKNOWN_HOST);
+            throw new ClientException("Could not find host", ClientException.Type.UNKNOWN_HOST);
         } catch (IOException e) {
             LOGGER.error("Throwing exception because socket at {}:{} could not be opened.", address, port);
-            throw new ClientException("Could not open socket", ClientExceptionType.SOCKET_OPENING_ERROR);
+            throw new ClientException("Could not open socket", ClientException.Type.SOCKET_OPENING_ERROR);
         }
     }
 
@@ -100,7 +100,7 @@ public class EchoClient {
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because a disconnection from a un-connected socket was made.");
-            throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet", ClientExceptionType.UNCONNECTED);
+            throw new ClientException("Cannot disconnect since a disconnect hasn't been made yet", ClientException.Type.UNCONNECTED);
         }
 
         try {
@@ -108,7 +108,7 @@ public class EchoClient {
             this.connection.close();
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error while closing connection/streams.");
-            throw new ClientException("Error while closing client", ClientExceptionType.SOCKET_CLOSING_ERROR);
+            throw new ClientException("Error while closing client", ClientException.Type.SOCKET_CLOSING_ERROR);
         }
     }
 
@@ -131,13 +131,13 @@ public class EchoClient {
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
-            throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
+            throw new ClientException("No connection established", ClientException.Type.UNCONNECTED);
         }
 
         // Throw exception if message exceeds size
         if (message.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
             LOGGER.error("Throwing exception because data is to large (max is {} KB).", Constants.MAX_MESSAGE_SIZE_KB);
-            throw new ClientException("Message too large", ClientExceptionType.MESSAGE_TOO_LARGE);
+            throw new ClientException("Message too large", ClientException.Type.MESSAGE_TOO_LARGE);
         }
 
         try {
@@ -154,7 +154,7 @@ public class EchoClient {
 
                 IOException e) {
             LOGGER.error("Throwing exception because an error occured while sending data.");
-            throw new ClientException("Could not send message", ClientExceptionType.INTERNAL_ERROR);
+            throw new ClientException("Could not send message", ClientException.Type.INTERNAL_ERROR);
         }
     }
 
@@ -171,7 +171,7 @@ public class EchoClient {
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
-            throw new ClientException("No connection established", ClientExceptionType.UNCONNECTED);
+            throw new ClientException("No connection established", ClientException.Type.UNCONNECTED);
         }
 
         byte[] incomingMessageBuffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
@@ -194,7 +194,7 @@ public class EchoClient {
             return result;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occured while receiving data.");
-            throw new ClientException("Could not receive", ClientExceptionType.INTERNAL_ERROR);
+            throw new ClientException("Could not receive", ClientException.Type.INTERNAL_ERROR);
         }
     }
 

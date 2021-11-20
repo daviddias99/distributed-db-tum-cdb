@@ -3,24 +3,36 @@ package de.tum.i13.client;
 public class ClientException extends Exception {
 
     private final String reason;
-    private final ClientExceptionType type;
+    private final Type type;
 
     public ClientException(String reason) {
         this.reason = reason;
-        this.type = ClientExceptionType.UNKNOWN_ERROR;
+        this.type = Type.UNKNOWN_ERROR;
     }
 
-    public ClientException(String reason, ClientExceptionType type) {
+    public ClientException(String reason, Type type) {
         this.reason = reason;
         this.type = type;
     }
 
-    public ClientExceptionType getType() {
+    public Type getType() {
         return this.type;
     }
 
     public String getReason() {
         return this.reason;
+    }
+
+    public enum Type {
+        SOCKET_CREATION_ERROR,
+        SOCKET_CLOSING_ERROR,
+        SOCKET_OPENING_ERROR,
+        UNKNOWN_HOST,
+        ERROR_CONNECTING,
+        MESSAGE_TOO_LARGE,
+        INTERNAL_ERROR,
+        UNCONNECTED,
+        UNKNOWN_ERROR,
     }
 
 }
