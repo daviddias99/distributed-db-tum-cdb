@@ -31,7 +31,7 @@ public class Shell {
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())
-                .setExecutionExceptionHandler(new ClientExceptionHandler());
+                .setExecutionExceptionHandler(new ExecutionExceptionHandler());
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 

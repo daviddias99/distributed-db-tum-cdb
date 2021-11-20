@@ -5,6 +5,7 @@ public class ClientException extends Exception {
     private final String reason;
     private final Type type;
 
+    // TODO Adapt to use proper cause and message
     public ClientException(String reason) {
         this.reason = reason;
         this.type = Type.UNKNOWN_ERROR;

@@ -4,7 +4,7 @@ enum ExitCode {
     SUCCESS(20),
     COMMAND_PARSING_FAILED(21),
     QUIT_PROGRAMM(22),
-    CLIENT_EXCEPTION(23),
+    STORAGE_EXCEPTION(23),
     UNKNOWN_EXCEPTION(24);
 
     private final int value;
