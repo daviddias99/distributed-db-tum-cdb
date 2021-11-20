@@ -83,12 +83,15 @@ class PersistentBTreeNode<V> implements Serializable {
   }
 
   /**
-   * Search a key in the subtree rooted with this node.
+   * Search a key in the subtree rooted with this node. Insert 'value' if key is
+   * found and 'insert' is true
    * 
-   * @param key key to search
+   * @param key    key to search
+   * @param insert true if the parameter value is to be inserted if key is found
+   * @param value  value to insert if insert is true and key is found.
    * @return The value associated with {@code key} or null if it is not present.
-   * @throws StorageException Is thrown when there is an error while reading the
-   *                          contained chunk
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
    */
   private V search(String key, boolean insert, V value) throws StorageException {
     Chunk<V> chunk = this.getChunk();
@@ -104,7 +107,7 @@ class PersistentBTreeNode<V> implements Serializable {
           chunk.set(i, new Pair<>(key, value));
           this.setChunk(chunk);
         }
-      
+
         return pair.value;
       }
     }
@@ -120,42 +123,57 @@ class PersistentBTreeNode<V> implements Serializable {
     return children.get(i).search(key, insert, value);
   }
 
+  /**
+   * Search a key in the subtree rooted with this node.
+   * 
+   * @param key key to search
+   * @return The value associated with {@code key} or null if it is not present.
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   V search(String key) throws StorageException {
     return this.search(key, false, null);
   }
 
+  /**
+   * Search a key in the subtree rooted with this node. If key is found change
+   * value to 'value'
+   * 
+   * @param key   key to search
+   * @param value value to insert if found
+   * @return The value associated with {@code key} or null if it is not present.
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   V searchAndInsert(String key, V value) throws StorageException {
     return this.search(key, true, value);
   }
 
-  // A utility function to insert a new key in this node
-  // The assumption is, the node must be non-full when this
-  // function is called
+  /**
+   * Insert a new element into node. It is assumed that the node is not full
+   * 
+   * @param key   key to insert
+   * @param value value to insert
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   void insertNonFull(String key, V value) throws StorageException {
     // Initialize index as index of rightmost element
     int i = elementCount - 1;
 
     Chunk<V> chunk = this.getChunk();
 
-    // If this is a leaf node
     if (leaf == true) {
-      // The following loop does two things
-      // a) Finds the location of new key to be inserted
-      // b) Moves all greater keys to one place ahead
 
       i = chunk.shiftRightOneAfterFirstGreaterThan(key);
 
       // Insert the new key at found location
-      chunk.set(i + 1, new Pair<V>(key, value));
+      chunk.set(i, new Pair<V>(key, value));
 
       this.setChunk(chunk);
       this.setElementCount(chunk.getElementCount());
-      chunk = null;
     } else // If this node is not leaf
     {
-
-      // Chunk<V> chunk = this.getChunk();
-
       // Find the child which is going to have the new key
       while (i >= 0 && chunk.get(i).key.compareTo(key) > 0)
         i--;
@@ -165,12 +183,11 @@ class PersistentBTreeNode<V> implements Serializable {
       // See if the found child is full
       if (child.isFull()) {
         // If the child is full, then split it
-        splitChild(i + 1, child, chunk);
+        splitChild(i + 1, chunk);
 
-        // After split, the middle key of C[i] goes up and
-        // C[i] is splitted into two. See which of the two
+        // After split, the middle key of children[i] goes up and
+        // children[i] is split into two. See which of the two
         // is going to have the new key
-        // chunk = this.getChunk();
 
         if (chunk.get(i + 1).key.compareTo(key) < 0)
           i++;
@@ -182,24 +199,27 @@ class PersistentBTreeNode<V> implements Serializable {
     }
   }
 
-  // A utility function to split the child y of this node
-  // Note that y must be full when this function is called
-  void splitChild(int i, PersistentBTreeNode<V> child, Chunk<V> parentChunk) throws StorageException {
-    // Create a new node which is going to store (t-1) keys
-    // of y
-    PersistentBTreeNode<V> newNode;
-    try {
-      newNode = new PersistentBTreeNode<V>(child.minimumDegree, child.leaf, this.treeStorageInterface);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return;
-    }
-    newNode.elementCount = this.minimumDegree - 1;
+  /**
+   * Split child. Assumes that child is full when function is called
+   * 
+   * @param i           index of child
+   * @param parentChunk chunk of parent node (current). This is passed to avoid
+   *                    reading from storage again.
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
+  void splitChild(int i, Chunk<V> parentChunk) throws StorageException {
+    // Create a new node which is going to store (minimumDegree-1) keys
+    // of child
+    PersistentBTreeNode<V> child = this.children.get(i);
+    PersistentBTreeNode<V> newNode = new PersistentBTreeNode<V>(child.minimumDegree, child.leaf,
+        this.treeStorageInterface);
+    newNode.setElementCount(this.minimumDegree - 1);
 
     Chunk<V> newNodeChunk = newNode.getChunk();
     Chunk<V> childChunk = child.getChunk();
 
-    // Copy the last (t-1) keys of y to z
+    // Copy the last (minimumDegree-1) keys of child to newNode
     for (int j = 0; j < this.minimumDegree - 1; j++) {
       newNodeChunk.set(j, childChunk.remove(j + this.minimumDegree));
     }
@@ -208,7 +228,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
     newNodeChunk = null;
 
-    // Copy the last t children of y to z
+    // Copy the last minimumDegree children of child to newNode
     if (child.leaf == false) {
       for (int j = 0; j < this.minimumDegree; j++) {
         newNode.children.set(j, child.children.get(j + this.minimumDegree));
@@ -216,8 +236,8 @@ class PersistentBTreeNode<V> implements Serializable {
       }
     }
 
-    // Reduce the number of keys in y
-    child.elementCount = this.minimumDegree - 1;
+    // Reduce the number of keys in child
+    child.setElementCount(this.minimumDegree - 1);
 
     // Since this node is going to have a new child,
     // create space of new child
@@ -227,21 +247,27 @@ class PersistentBTreeNode<V> implements Serializable {
     // Link the new child to this node
     this.children.set(i + 1, newNode);
 
-    // A key of y will move to this node. Find the location of
+    // A key of child will move to this node. Find the location of
     // new key and move all greater keys one space ahead
     parentChunk.shiftRightOne(i);
 
-    // Copy the middle key of y to this node
+    // Copy the middle key of child to this node
     parentChunk.set(i, childChunk.remove(this.minimumDegree - 1));
 
     child.setChunk(childChunk);
 
     // Increment count of keys in this node
-    this.elementCount++;
+    this.incrementElementCount();
   }
 
-  // A utility function that returns the index of the first key that is
-  // greater than or equal to k
+  /**
+   * Get index of the first key that is greater than or equal to key
+   * 
+   * @param key key to compare
+   * @return index of the first key that is greater than or equal to key
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private int findKey(String key) throws StorageException {
 
     Chunk<V> chunk = this.getChunk();
@@ -252,7 +278,13 @@ class PersistentBTreeNode<V> implements Serializable {
     return idx;
   }
 
-  // A function to remove the key k from the sub-tree rooted with this node
+  /**
+   * Remove the key from the sub-tree rooted with this node
+   * 
+   * @param key key to remove
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   void remove(String key) throws StorageException {
     int idx = findKey(key);
 
@@ -297,13 +329,18 @@ class PersistentBTreeNode<V> implements Serializable {
     return;
   }
 
-  // A function to remove the idx-th key from this node - which is a leaf node
+  /**
+   * A function to remove the idx-th key from this node. Assumes that node is leaf
+   * 
+   * @param idx index of key to remove
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void removeFromLeaf(int idx) throws StorageException {
 
     Chunk<V> chunk = this.getChunk();
 
     // Move all the keys after the idx-th pos one place backward
-
     if (idx < this.elementCount - 1) {
       chunk.shiftLeftOne(idx);
     } else {
@@ -313,22 +350,29 @@ class PersistentBTreeNode<V> implements Serializable {
     this.setChunk(chunk);
 
     // Reduce the count of keys
-    this.elementCount--;
-
+    this.decrementElementCount();
     return;
   }
 
-  // A function to remove the idx-th key from this node - which is a non-leaf node
+  /**
+   * A function to remove the idx-th key from this node. Assumes that node is non
+   * leaf
+   * 
+   * @param idx index of key to remove
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void removeFromNonLeaf(int idx) throws StorageException {
 
     Chunk<V> chunk = this.getChunk();
 
-    Pair<V> k = chunk.get(idx);
+    Pair<V> element = chunk.get(idx);
 
-    // If the child that precedes k (C[idx]) has atleast t keys,
-    // find the predecessor 'pred' of k in the subtree rooted at
-    // C[idx]. Replace k by pred. Recursively delete pred
-    // in C[idx]
+    // If the child that precedes element (children[idx]) has atleast minimumDegree
+    // keys,
+    // find the predecessor 'pred' of element in the subtree rooted at
+    // children[idx]. Replace element by pred. Recursively delete pred
+    // in children[idx]
     if (this.getChildren().get(idx).getElementCount() >= this.minimumDegree) {
       Pair<V> pred = getPred(idx);
       chunk.set(idx, pred);
@@ -336,11 +380,13 @@ class PersistentBTreeNode<V> implements Serializable {
       this.setChunk(chunk);
     }
 
-    // If the child C[idx] has less that t keys, examine C[idx+1].
-    // If C[idx+1] has atleast t keys, find the successor 'succ' of k in
-    // the subtree rooted at C[idx+1]
-    // Replace k by succ
-    // Recursively delete succ in C[idx+1]
+    // If the child children[idx] has less that minimumDegree keys, examine
+    // children[idx+1].
+    // If cildren[idx+1] has atleast minimumDegree keys, find the successor 'succ'
+    // of element in
+    // the subtree rooted at children[idx+1]
+    // Replace element by succ
+    // Recursively delete succ in children[idx+1]
     else if (this.getChildren().get(idx + 1).getElementCount() >= this.minimumDegree) {
       Pair<V> succ = getSucc(idx);
       chunk.set(idx, succ);
@@ -348,19 +394,27 @@ class PersistentBTreeNode<V> implements Serializable {
       this.setChunk(chunk);
     }
 
-    // If both C[idx] and C[idx+1] has less that t keys,merge k and all of C[idx+1]
-    // into C[idx]
-    // Now C[idx] contains 2t-1 keys
-    // Free C[idx+1] and recursively delete k from C[idx]
+    // If both children[idx] and children[idx+1] has less that minimumDegree
+    // keys,merge element and all of children[idx+1]
+    // into children[idx]
+    // Now children[idx] contains 2 * minimumDegree -1 keys
+    // Delete children[idx+1] and recursively delete element from children[idx]
     else {
       merge(idx);
-      this.getChildren().get(idx).remove(k.key);
+      this.getChildren().get(idx).remove(element.key);
     }
 
     return;
   }
 
-  // A function to get predecessor of keys[idx]
+  /**
+   * Get predecessor of element with index 'idx'
+   * 
+   * @param idx index to of element
+   * @return element preceding idx
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private Pair<V> getPred(int idx) throws StorageException {
     // Keep moving to the right most node until we reach a leaf
     PersistentBTreeNode<V> cur = this.getChildren().get(idx);
@@ -372,9 +426,18 @@ class PersistentBTreeNode<V> implements Serializable {
     return cur.getChunk().get(cur.getElementCount() - 1);
   }
 
+  /**
+   * Get successor of element with index 'idx'
+   * 
+   * @param idx index to of element
+   * @return element proceding idx
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private Pair<V> getSucc(int idx) throws StorageException {
 
-    // Keep moving the left most node starting from C[idx+1] until we reach a leaf
+    // Keep moving the left most node starting from children[idx+1] until we reach a
+    // leaf
     PersistentBTreeNode<V> cur = this.getChildren().get(idx + 1);
 
     while (!cur.isLeaf())
@@ -384,21 +447,30 @@ class PersistentBTreeNode<V> implements Serializable {
     return cur.getChunk().get(0);
   }
 
-  // A function to fill child C[idx] which has less than t-1 keys
+  /**
+   * Fill children[idx]. Assume that children[idx] has less than minimumDegree - 1
+   * keys
+   * 
+   * @param idx index of child to fill
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void fill(int idx) throws StorageException {
 
-    // If the previous child(C[idx-1]) has more than t-1 keys, borrow a key
+    // If the previous child(children[idx-1]) has more than minimumDegree-1 keys,
+    // borrow a key
     // from that child
     if (idx != 0 && this.getChildren().get(idx - 1).getElementCount() >= this.minimumDegree)
       borrowFromPrev(idx);
 
-    // If the next child(C[idx+1]) has more than t-1 keys, borrow a key
+    // If the next child(children[idx+1]) has more than minimumDegree-1 keys, borrow
+    // a key
     // from that child
     else if (idx != this.getElementCount() && this.getChildren().get(idx + 1).getElementCount() >= this.minimumDegree)
       borrowFromNext(idx);
 
-    // Merge C[idx] with its sibling
-    // If C[idx] is the last child, merge it with with its previous sibling
+    // Merge children[idx] with its sibling
+    // If children[idx] is the last child, merge it with with its previous sibling
     // Otherwise merge it with its next sibling
     else {
       if (idx != this.getElementCount())
@@ -409,20 +481,25 @@ class PersistentBTreeNode<V> implements Serializable {
     return;
   }
 
-  // A function to borrow a key from C[idx-1] and insert it
-  // into C[idx]
+  /**
+   * Borrow a key from children[idx-1] and insert it into children[idx]
+   * 
+   * @param idx index of child that borrows key
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void borrowFromPrev(int idx) throws StorageException {
 
     PersistentBTreeNode<V> child = this.getChildren().get(idx);
     PersistentBTreeNode<V> sibling = this.getChildren().get(idx - 1);
 
-    // The last key from C[idx-1] goes up to the parent and key[idx-1]
-    // from parent is inserted as the first key in C[idx]. Thus, the loses
+    // The last key from children[idx-1] goes up to the parent and key[idx-1]
+    // from parent is inserted as the first key in children[idx]. Thus, the loses
     // sibling one key and child gains one key
 
     Chunk<V> childChunk = child.getChunk();
 
-    // Moving all key in C[idx] one step ahead
+    // Moving all key in children[idx] one step ahead
     for (int i = child.getElementCount() - 1; i >= 0; --i) {
       childChunk.set(i + 1, childChunk.get(i));
     }
@@ -430,7 +507,7 @@ class PersistentBTreeNode<V> implements Serializable {
     Chunk<V> chunk = this.getChunk();
     Chunk<V> siblingChunk = sibling.getChunk();
 
-    // If C[idx] is not a leaf, move all its child pointers one step ahead
+    // If children[idx] is not a leaf, move all its child pointers one step ahead
     if (!child.isLeaf()) {
       for (int i = child.getElementCount(); i >= 0; --i)
         child.getChildren().set(i + 1, child.getChildren().get(i));
@@ -439,7 +516,7 @@ class PersistentBTreeNode<V> implements Serializable {
     // Setting child's first key equal to keys[idx-1] from the current node
     childChunk.set(0, chunk.get(idx - 1));
 
-    // Moving sibling's last child as C[idx]'s first child
+    // Moving sibling's last child as children[idx]'s first child
     if (!child.isLeaf()) {
       child.getChildren().set(0, sibling.getChildren().get(sibling.elementCount));
       sibling.getChildren().set(sibling.elementCount, null);
@@ -460,8 +537,13 @@ class PersistentBTreeNode<V> implements Serializable {
     return;
   }
 
-  // A function to borrow a key from the C[idx+1] and place
-  // it in C[idx]
+  /**
+   * Borrow a key from children[idx+1] and insert it into children[idx]
+   * 
+   * @param idx index of child that borrows key
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void borrowFromNext(int idx) throws StorageException {
 
     PersistentBTreeNode<V> child = this.children.get(idx);
@@ -471,11 +553,11 @@ class PersistentBTreeNode<V> implements Serializable {
     Chunk<V> childChunk = child.getChunk();
     Chunk<V> siblingChunk = sibling.getChunk();
 
-    // keys[idx] is inserted as the last key in C[idx]
+    // keys[idx] is inserted as the last key in children[idx]
     childChunk.set(child.getElementCount(), chunk.get(idx));
 
     // Sibling's first child is inserted as the last child
-    // into C[idx]
+    // into children[idx]
     if (!(child.isLeaf()))
       child.getChildren().set(child.getElementCount() + 1, sibling.getChildren().get(0));
 
@@ -484,9 +566,6 @@ class PersistentBTreeNode<V> implements Serializable {
 
     // Moving all keys in sibling one step behind
     siblingChunk.shiftLeftOne(0);
-    // for (int i = 1; i < sibling.keyCount; ++i) {
-    // siblingChunk.set(i - 1, siblingChunk.get(i));
-    // }
 
     // Moving the child pointers one step behind
     if (!sibling.leaf) {
@@ -496,7 +575,7 @@ class PersistentBTreeNode<V> implements Serializable {
       }
     }
 
-    // Increasing and decreasing the key count of C[idx] and C[idx+1]
+    // Increasing and decreasing the key count of children[idx] and children[idx+1]
     // respectively
 
     child.incrementElementCount();
@@ -509,8 +588,13 @@ class PersistentBTreeNode<V> implements Serializable {
     return;
   }
 
-  // A function to merge C[idx] with C[idx+1]
-  // C[idx+1] is freed after merging
+  /**
+   * Merge children[idx] with children[idx+1]
+   * 
+   * @param idx index of child to merge
+   * @throws StorageException Is thrown when there is an error while
+   *                          reading/writing contained chunks
+   */
   private void merge(int idx) throws StorageException {
     PersistentBTreeNode<V> child = this.getChildren().get(idx);
     PersistentBTreeNode<V> sibling = this.getChildren().get(idx + 1);
@@ -519,18 +603,18 @@ class PersistentBTreeNode<V> implements Serializable {
     Chunk<V> childChunk = child.getChunk();
     Chunk<V> siblingChunk = sibling.getChunk();
 
-    // Pulling a key from the current node and inserting it into (t-1)th
-    // position of C[idx]
+    // Pulling a key from the current node and inserting it into (minimumDegree-1)th
+    // position of children[idx]
     childChunk.set(this.minimumDegree - 1, chunk.get(idx));
     chunk.set(idx, null);
 
-    // Copying the keys from C[idx+1] to C[idx] at the end
+    // Copying the keys from children[idx+1] to children[idx] at the end
     for (int i = 0; i < sibling.getElementCount(); ++i) {
       childChunk.set(i + this.minimumDegree, siblingChunk.get(i));
       siblingChunk.set(i, null);
     }
 
-    // Copying the child pointers from C[idx+1] to C[idx]
+    // Copying the child pointers from children[idx+1] to children[idx]
     if (!child.isLeaf()) {
       for (int i = 0; i <= sibling.getElementCount(); ++i) {
         child.getChildren().set(i + this.minimumDegree, sibling.getChildren().get(i));
@@ -538,7 +622,7 @@ class PersistentBTreeNode<V> implements Serializable {
     }
 
     // Moving all keys after idx in the current node one step before -
-    // to fill the gap created by moving keys[idx] to C[idx]
+    // to fill the gap created by moving keys[idx] to children[idx]
     for (int i = idx + 1; i < this.getElementCount(); ++i) {
       chunk.set(i - 1, chunk.get(i));
       chunk.set(i, null);

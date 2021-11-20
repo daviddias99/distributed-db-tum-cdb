@@ -102,10 +102,10 @@ public class ChunkImpl<V> implements Chunk<V>, Serializable {
     }
 
     if (i < 0) {
-      return i;
+      return i + 1;
     }
 
-    return elements.get(i).key.compareTo(key) == 0 ? i - 1 : i;
+    return elements.get(i).key.compareTo(key) == 0 ? i : i + 1;
   }
 
   @Override

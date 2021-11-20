@@ -130,7 +130,7 @@ public class PersistentBTree<V> implements Serializable {
     s.getChildren().set(0, root);
 
     // Split the old root and move 1 key to the new root
-    s.splitChild(0, root, chunk);
+    s.splitChild(0, chunk);
 
     s.setChunk(chunk);
 
