@@ -13,7 +13,7 @@ import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
  * abstract from disk storage issues.
  */
 public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
-  private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeMockStorageHandler.class);
+  private static final Logger LOGGER = LogManager.getLogger(ChunkMockStorageHandler.class);
 
   private static final long serialVersionUID = 6529685098267757691L;
 
