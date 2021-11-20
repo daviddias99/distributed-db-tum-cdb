@@ -31,7 +31,7 @@ class TestPersistentBTree {
   }
 
   @BeforeEach
-  public void createTree() {
+  public void createTree() throws StorageException {
     tree = new PersistentBTree<>(3, new PersistentBTreeDiskStorageHandler<>("database", true));
   }
 

@@ -17,7 +17,7 @@ import de.tum.i13.server.persistentStorage.btree.chunk.ChunkImpl;
 import de.tum.i13.shared.Constants;
 
 /**
- * Implementes {@link ChunkStorageHandler} by storing chunks of type {@link ChunkImpl} on disk.
+ * Implements {@link ChunkStorageHandler} by storing chunks of type {@link ChunkImpl} on disk.
  */
 public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
   private static final Logger LOGGER = LogManager.getLogger(ChunkDiskStorageHandler.class);
@@ -80,13 +80,13 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
       var objectOut = new ObjectOutputStream(fileOut);
       objectOut.writeObject(chunk);
       objectOut.close();
-      LOGGER.trace("Stored chunk ({}) from disk.", this.filePath);
+      LOGGER.trace("Stored chunk ({}) in disk.", this.filePath);
     } catch (FileNotFoundException e) {
       StorageException storageException = new StorageException(e, "Throwing exception because the file %s could not be found.", this.filePath);
       LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
       throw storageException;
     } catch (IOException e) {
-      StorageException storageException = new StorageException(e, "I/O error while writing chunk to memory");
+      StorageException storageException = new StorageException(e, "I/O error while writing chunk to disk");
       LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
       throw storageException;
     } 
