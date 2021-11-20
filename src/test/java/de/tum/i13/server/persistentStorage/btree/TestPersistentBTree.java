@@ -1,7 +1,6 @@
 package de.tum.i13.server.persistentStorage.btree;
 
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeDiskStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeMockStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 
 import org.apache.logging.log4j.Level;
@@ -223,9 +222,6 @@ class TestPersistentBTree {
         for (Character ch : alphabet1) {
           sb1.append(ch);
         }
-
-        // convert in string
-        String string1 = sb1.toString();
 
         // System.out.println(string1);
 
