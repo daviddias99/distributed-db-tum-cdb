@@ -146,7 +146,7 @@ public class PersistentBTree<V> implements Serializable {
     root = s;
   }
 
-  public void delete() {
+  public void delete() throws StorageException {
     this.storageHandler.delete();
   }
 }

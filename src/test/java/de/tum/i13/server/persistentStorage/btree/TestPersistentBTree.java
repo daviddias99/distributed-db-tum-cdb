@@ -28,7 +28,7 @@ class TestPersistentBTree {
   }
 
   @AfterEach
-  public void deleteTree() {
+  public void deleteTree() throws StorageException {
     tree.delete();
   }
 
