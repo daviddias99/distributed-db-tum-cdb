@@ -82,54 +82,29 @@ class PersistentBTreeNode<V> implements Serializable {
     this(t, leaf, null, treeStorageHandler);
   }
 
-  // A function to search a key in the subtree rooted with this node.
-  V search(String k) throws StorageException { // returns NULL if k is not present.
-    // Find the first key greater than or equal to k
-    // int i = chunk.findIndexOfFirstGreaterThen(k);
-
+  /**
+   * Search a key in the subtree rooted with this node.
+   * 
+   * @param key key to search
+   * @return The value associated with {@code key} or null if it is not present.
+   * @throws StorageException Is thrown when there is an error while reading the
+   *                          contained chunk
+   */
+  private V search(String key, boolean insert, V value) throws StorageException {
     Chunk<V> chunk = this.getChunk();
 
-    if (chunk == null) {
-      return null;
-    }
-
-    int i = chunk.findIndexOfFirstGreaterThen(k);
-
-    if (i < this.elementCount) {
-      Pair<V> value = chunk.get(i);
-      chunk = null;
-      // If the found key is equal to k, return this node
-      if (value != null && value.key.equals(k))
-        return value.value;
-    }
-
-    chunk = null;
-    // If the key is not found here and this is a leaf node
-    if (leaf == true)
-      return null;
-
-    // Go to the appropriate child
-    return children.get(i).search(k);
-  }
-
-  V searchAndInsert(String key, V value) throws StorageException {
-    // Find the first key greater than or equal to k
-    // int i = chunk.findIndexOfFirstGreaterThen(k);
-
-    Chunk<V> chunk = this.getChunk();
-
-    if (chunk == null) {
-      return null;
-    }
-
+    // Find the first key greater than or equal to key
     int i = chunk.findIndexOfFirstGreaterThen(key);
 
     if (i < this.elementCount) {
       Pair<V> pair = chunk.get(i);
-      // If the found key is equal to k, return this node
+      // If the found key is equal to key, return this node
       if (pair != null && pair.key.equals(key)) {
-        chunk.set(i, new Pair<>(key, value));
-        this.setChunk(chunk);
+        if (insert) {
+          chunk.set(i, new Pair<>(key, value));
+          this.setChunk(chunk);
+        }
+      
         return pair.value;
       }
     }
@@ -138,8 +113,19 @@ class PersistentBTreeNode<V> implements Serializable {
     if (leaf == true)
       return null;
 
+    // Remove chunk from memory
+    chunk = null;
+
     // Go to the appropriate child
-    return children.get(i).searchAndInsert(key, value);
+    return children.get(i).search(key, insert, value);
+  }
+
+  V search(String key) throws StorageException {
+    return this.search(key, false, null);
+  }
+
+  V searchAndInsert(String key, V value) throws StorageException {
+    return this.search(key, true, value);
   }
 
   // A utility function to insert a new key in this node
