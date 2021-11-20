@@ -41,7 +41,7 @@ public class BTreePersistentStorage implements PersistentStorage {
 
       if (value == null) {
         LOGGER.info("No value with key {}", key);
-        return new KVMessageImpl(key, value, KVMessage.StatusType.GET_ERROR);
+        return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
       }
       LOGGER.info("Found value {} with key {}", value,  key);
       return new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS);
@@ -69,7 +69,7 @@ public class BTreePersistentStorage implements PersistentStorage {
       String previousValue = this.tree.insert(key, value);
 
       // Note: this returns a PUT_SUCCESS if the value already exists but is updated with the same value.
-      if (value != previousValue) {
+      if (value != previousValue && previousValue != null) {
         LOGGER.info("Updated key {} with value {}", key, value);
 
         return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
