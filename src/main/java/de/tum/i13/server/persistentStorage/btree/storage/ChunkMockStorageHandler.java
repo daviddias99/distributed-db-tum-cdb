@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentStorage.btree.storage;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
@@ -12,19 +11,17 @@ public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   private Chunk<V> chunk;
 
   @Override
-  public Chunk<V> readChunkFromMemory() throws Exception {    
-
+  public Chunk<V> readChunkFromMemory() {    
     return this.chunk.clone();
   }
 
-  // TODO: change exception type;
   @Override
-  public void storeChunkInMemory(Chunk<V> chunk) throws IOException {
+  public void storeChunkInMemory(Chunk<V> chunk) {
     this.chunk = chunk;
   }
 
   @Override
-  public void storeChunkInMemoryForce(Chunk<V> chunk) throws IOException {
+  public void storeChunkInMemoryForce(Chunk<V> chunk) {
     this.chunk = chunk;    
   }
 }

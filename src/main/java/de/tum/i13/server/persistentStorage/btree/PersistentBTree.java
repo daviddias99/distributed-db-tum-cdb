@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 
 // A BTree
 public class PersistentBTree<V> implements Serializable {
@@ -25,7 +26,7 @@ public class PersistentBTree<V> implements Serializable {
     this.storageHandler = storageHandler;
   }
 
-  public void remove(String key) {
+  public void remove(String key) throws StorageException {
 
     this.readWriteLock.writeLock().lock();
 
@@ -64,7 +65,7 @@ public class PersistentBTree<V> implements Serializable {
   }
 
   // The main function that inserts a new key in this B-Tree
-  public V insert(String key, V value) {
+  public V insert(String key, V value) throws StorageException {
     this.readWriteLock.writeLock().lock();
 
     // If tree is empty
@@ -96,7 +97,7 @@ public class PersistentBTree<V> implements Serializable {
     return null;
   }
 
-  private V searchAndInsert(String key, V value) {
+  private V searchAndInsert(String key, V value) throws StorageException {
     if (this.root == null)
       return null;
     else
@@ -114,7 +115,7 @@ public class PersistentBTree<V> implements Serializable {
     root.incrementKeyCount(); // Update number of keys in root
   }
 
-  private void insertFull(String key, V value) {
+  private void insertFull(String key, V value) throws StorageException {
     // Allocate memory for new root
     PersistentBTreeNode<V> s;
     try {
