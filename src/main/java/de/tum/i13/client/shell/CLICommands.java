@@ -1,6 +1,6 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.EchoClient;
+import de.tum.i13.client.net.CommunicationClient;
 import de.tum.i13.client.net.RemotePersistentStorage;
 import picocli.CommandLine;
 
@@ -14,7 +14,7 @@ class CLICommands {
 
     final RemotePersistentStorage storage;
 
-    final EchoClient client;
+    final CommunicationClient client;
 
     /**
      * Server address of current connection
@@ -26,7 +26,7 @@ class CLICommands {
     int port;
 
     CLICommands() {
-        client = new EchoClient();
+        client = new CommunicationClient();
         storage = new RemotePersistentStorage();
     }
 

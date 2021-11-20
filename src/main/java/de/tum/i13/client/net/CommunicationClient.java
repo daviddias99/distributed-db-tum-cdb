@@ -11,10 +11,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-public class EchoClient {
+public class CommunicationClient {
 
     private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
-    private static final Logger LOGGER = LogManager.getLogger(EchoClient.class);
+    private static final Logger LOGGER = LogManager.getLogger(CommunicationClient.class);
     private Socket connection;
     private InputStream inStream;
     private OutputStream outStream;
@@ -24,7 +24,7 @@ public class EchoClient {
     /**
      * Creates a new client. The created is not connected to any host.
      */
-    public EchoClient() {
+    public CommunicationClient() {
     }
 
     /**
@@ -35,7 +35,7 @@ public class EchoClient {
      * @throws ClientException A ClientException is thrown when connection fails.
      *                         (see 'connect' method).
      */
-    public EchoClient(String address, int port) throws ClientException {
+    public CommunicationClient(String address, int port) throws ClientException {
         this.connect(address, port);
     }
 
