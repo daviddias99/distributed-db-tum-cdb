@@ -12,6 +12,7 @@ import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentStorage.btree.storage.ChunkStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.shared.Preconditions;
 
 /**
  * Node of a {@link PersistentBTree}
@@ -44,6 +45,8 @@ class PersistentBTreeNode<V> implements Serializable {
    */
   PersistentBTreeNode(int minimumDegree, boolean leaf, Pair<V> initialElement,
       PersistentBTreeStorageHandler<V> treeStorageHandler) throws StorageException {
+
+    Preconditions.check(minimumDegree >= 2);
     this.minimumDegree = minimumDegree;
     this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
     this.leaf = leaf;

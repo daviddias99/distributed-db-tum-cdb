@@ -18,7 +18,7 @@ public class TreeValidator {
       return true;
     }
 
-    return validTreeRec(tree.root, tree.minimumDegree, keys);
+    return validTreeRec(tree.root, tree.getMininumDegree(), keys);
   }
 
   private static boolean validTreeRec(PersistentBTreeNode<String> node, int minimumDegree, Set<String> keys) {
@@ -29,7 +29,7 @@ public class TreeValidator {
     } catch (StorageException e) {
       return false;
     }
-    
+
     List<Pair<String>> chunkElements = chunk.getElements();
 
     for (Pair<String> pair : chunkElements) {
