@@ -1,4 +1,4 @@
-package de.tum.i13.client;
+package de.tum.i13.client.net;
 
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;

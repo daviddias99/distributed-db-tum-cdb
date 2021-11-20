@@ -1,5 +1,7 @@
 package de.tum.i13.client;
 
+import de.tum.i13.client.net.ClientException;
+import de.tum.i13.client.net.EchoClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

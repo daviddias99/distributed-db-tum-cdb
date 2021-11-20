@@ -1,6 +1,6 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.EchoClient;
+import de.tum.i13.client.net.EchoClient;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "",
