@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentStorage.btree.chunk.DatabaseChunk;
+import de.tum.i13.server.persistentStorage.btree.chunk.ChunkImpl;
 
 
 public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
@@ -31,7 +31,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
       ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
       @SuppressWarnings("unchecked")
-      DatabaseChunk<V> chunk = (DatabaseChunk<V>) objectIn.readObject();
+      ChunkImpl<V> chunk = (ChunkImpl<V>) objectIn.readObject();
       objectIn.close();
       return chunk;
 
@@ -48,7 +48,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
   @Override
   public void storeChunkInMemory(Chunk<V> chunk) throws StorageException {
 
-    if (chunk.getKeyCount() == 0) {
+    if (chunk.getElementCount() == 0) {
       this.deleteChunk();
       return;
     }

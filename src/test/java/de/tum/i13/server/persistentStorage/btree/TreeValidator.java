@@ -23,7 +23,7 @@ public class TreeValidator {
   private static boolean validTreeRec(PersistentBTreeNode<String> node, int minimumDegree, Set<String> keys) {
     int keyCount = node.getKeyCount();
     Chunk<String> chunk = node.getChunk();
-    List<Pair<String>> chunkElements = chunk.getKeys();
+    List<Pair<String>> chunkElements = chunk.getElements();
 
     for (Pair<String> pair : chunkElements) {
       if (pair == null)
@@ -36,7 +36,7 @@ public class TreeValidator {
       }
     }
 
-    if (keyCount != chunk.getKeyCount()) {
+    if (keyCount != chunk.getElementCount()) {
       return false;
     }
 

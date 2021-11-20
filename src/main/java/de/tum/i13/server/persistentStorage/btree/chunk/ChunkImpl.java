@@ -5,18 +5,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DatabaseChunk<V> implements Chunk<V>, Serializable {
+public class ChunkImpl<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
   private int minimumDegree;
 
   private static final long serialVersionUID = 6529685098267757681L;
 
-  public DatabaseChunk(int minimumDegree) {
+  public ChunkImpl(int minimumDegree) {
     this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
   }
 
-  public DatabaseChunk(int minimumDegree, List<Pair<V>> newElements) {
+  public ChunkImpl(int minimumDegree, List<Pair<V>> newElements) {
     // TODO: do check for newElements.size() >= 2 * minimumDegree - 1
     this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
@@ -30,7 +30,7 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   @Override
   public int findIndexOfFirstGreaterThen(String k) {
     int i = 0;
-    int n = this.getKeyCount();
+    int n = this.getElementCount();
     while (i < n && k.compareTo(elements.get(i).key) > 0)
       i++;
 
@@ -55,7 +55,9 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public void shiftRightOne(int startIndex, int keyCount) {
+  public void shiftRightOne(int startIndex) {
+    int keyCount = this.getElementCount();
+
     for (int j = keyCount - 1; j >= startIndex; j--) {
       this.elements.set(j + 1, this.elements.get(j));
       this.elements.set(j, null);
@@ -72,7 +74,8 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public int shiftRightOneAfterFirstGreaterThan(String key, int keyCount) {
+  public int shiftRightOneAfterFirstGreaterThan(String key) {
+    int keyCount = this.getElementCount();
     int i = keyCount - 1;
 
     while (i >= 0 && elements.get(i).key.compareTo(key) > 0) {
@@ -89,13 +92,13 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public DatabaseChunk<V> clone(){
-    DatabaseChunk<V> chunkClone = new DatabaseChunk<>(this.minimumDegree, this.elements);
+  public ChunkImpl<V> clone(){
+    ChunkImpl<V> chunkClone = new ChunkImpl<>(this.minimumDegree, this.elements);
     return chunkClone;
   }
 
   @Override
-  public int getKeyCount() {
+  public int getElementCount() {
     int i = 0;
 
     for (Pair<V> pair : elements) {
@@ -108,7 +111,7 @@ public class DatabaseChunk<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public List<Pair<V>> getKeys() {
+  public List<Pair<V>> getElements() {
     return this.elements;
   }
 }

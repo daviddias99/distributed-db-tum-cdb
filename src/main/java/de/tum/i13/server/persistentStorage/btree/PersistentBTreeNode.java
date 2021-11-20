@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentStorage.btree.chunk.DatabaseChunk;
+import de.tum.i13.server.persistentStorage.btree.chunk.ChunkImpl;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentStorage.btree.storage.ChunkStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
@@ -34,7 +34,7 @@ class PersistentBTreeNode<V> implements Serializable {
     this.chunkStorageInterface = treeStorageHandler.createChunkStorageHandler(Integer.toString(this.id));
     this.treeStorageInterface = treeStorageHandler;
 
-    DatabaseChunk<V> newChunk = initialElement == null ? new DatabaseChunk<V>(minimumDegree) : new DatabaseChunk<V>(minimumDegree, Arrays.asList(initialElement));
+    ChunkImpl<V> newChunk = initialElement == null ? new ChunkImpl<V>(minimumDegree) : new ChunkImpl<V>(minimumDegree, Arrays.asList(initialElement));
     this.setChunkForce(newChunk);
   }
 
@@ -136,13 +136,13 @@ class PersistentBTreeNode<V> implements Serializable {
       // a) Finds the location of new key to be inserted
       // b) Moves all greater keys to one place ahead
 
-      i = chunk.shiftRightOneAfterFirstGreaterThan(key, this.keyCount);
+      i = chunk.shiftRightOneAfterFirstGreaterThan(key);
 
       // Insert the new key at found location
       chunk.set(i + 1, new Pair<V>(key, value));
 
       this.setChunk(chunk);
-      this.setKeyCount(chunk.getKeyCount());
+      this.setKeyCount(chunk.getElementCount());
       chunk = null;
     } else // If this node is not leaf
     {
@@ -222,7 +222,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
     // A key of y will move to this node. Find the location of
     // new key and move all greater keys one space ahead
-    parentChunk.shiftRightOne(i, this.keyCount);
+    parentChunk.shiftRightOne(i);
 
     // Copy the middle key of y to this node
     parentChunk.set(i, childChunk.remove(this.minimumDegree - 1));
