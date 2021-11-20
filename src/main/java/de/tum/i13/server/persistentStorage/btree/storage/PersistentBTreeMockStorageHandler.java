@@ -2,6 +2,9 @@ package de.tum.i13.server.persistentStorage.btree.storage;
 
 import java.io.Serializable;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
 
 /**
@@ -12,14 +15,20 @@ import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
  * {@code createChunkStorageHandle} method
  */
 public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
+  private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeMockStorageHandler.class);
+
+  PersistentBTree<V> tree;
 
   @Override
   public void save(PersistentBTree<V> tree) {
+    LOGGER.info("Saved tree ({}) from memory.", tree.hashCode());
+    this.tree = tree;
   };
 
   @Override
   public PersistentBTree<V> load() {
-    return null;
+    LOGGER.info("Loaded tree ({}) from memory.", tree.hashCode());
+    return this.tree;
   }
 
   @Override
@@ -29,5 +38,7 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
 
   @Override
   public void delete() {
+    LOGGER.info("Deleted tree ({}) from memory.", tree.hashCode());
+    this.tree = null;
   }
 }
