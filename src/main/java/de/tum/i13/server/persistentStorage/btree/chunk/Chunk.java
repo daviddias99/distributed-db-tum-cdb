@@ -7,6 +7,7 @@ import java.util.List;
  * be used as data-blocks in a B-Tree. Contains operations commonly performed on
  * these data-blocks. The structure is sorted by the key values in increasing
  * order.
+ * @param <V> type to be used in values
  */
 public interface Chunk<V> {
 

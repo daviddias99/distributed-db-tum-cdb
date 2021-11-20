@@ -5,26 +5,43 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import de.tum.i13.shared.Preconditions;
+
+/**
+ * A serializable (see {@link Serializable}) implementation of {@link Chunk}.
+ * Stores elements in a fixed-size ArrayList.
+ */
 public class ChunkImpl<V> implements Chunk<V>, Serializable {
   private List<Pair<V>> elements;
   private int minimumDegree;
 
   private static final long serialVersionUID = 6529685098267757681L;
 
+  /**
+   * Create a new Chunk with given minimum degree. Note that all nodes in a B-Tree
+   * (except the root) must have at list {@code minimumDegree - 1} and at most
+   * {@code 2*minimumDegree  - 1} elements.
+   * 
+   * @param minimumDegree B-Tree minimum degree
+   */
   public ChunkImpl(int minimumDegree) {
     this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
   }
 
+  /**
+   * Create a new Chunk with given minimum degree and initialized with some elements. Note that all nodes in a B-Tree
+   * (except the root) must have at list {@code minimumDegree - 1} and at most
+   * {@code 2*minimumDegree  - 1} elements.
+   * 
+   * @param minimumDegree B-Tree minimum degree
+   * @param newElements List of initial elements
+   */
   public ChunkImpl(int minimumDegree, List<Pair<V>> newElements) {
-    // TODO: do check for newElements.size() >= 2 * minimumDegree - 1
+    Preconditions.check(newElements.size() <= 2 * minimumDegree - 1);
     this.minimumDegree = minimumDegree;
     this.elements = new ArrayList<Pair<V>>(Collections.nCopies((2 * minimumDegree - 1), null));
-
-    for (int i = 0; i < newElements.size(); i++) {
-      this.elements.set(i, newElements.get(i));
-    }
-
+    Collections.copy(this.elements, newElements);
   }
 
   @Override
@@ -92,7 +109,7 @@ public class ChunkImpl<V> implements Chunk<V>, Serializable {
   }
 
   @Override
-  public ChunkImpl<V> clone(){
+  public ChunkImpl<V> clone() {
     ChunkImpl<V> chunkClone = new ChunkImpl<>(this.minimumDegree, this.elements);
     return chunkClone;
   }
@@ -102,11 +119,11 @@ public class ChunkImpl<V> implements Chunk<V>, Serializable {
     int i = 0;
 
     for (Pair<V> pair : elements) {
-      if(pair != null) {
+      if (pair != null) {
         i += 1;
       }
     }
-  
+
     return i;
   }
 
