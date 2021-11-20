@@ -64,7 +64,7 @@ public class BTreePersistentStorage implements PersistentStorage {
         return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
       }
 
-      LOGGER.info("Trying to put key {} with value {]", key, value);
+      LOGGER.info("Trying to put key {} with value {}", key, value);
 
       String previousValue = this.tree.insert(key, value);
 
