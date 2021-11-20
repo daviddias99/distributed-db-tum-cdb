@@ -20,7 +20,7 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
             LOGGER.atError()
                     .withThrowable(ex)
                     .log("Caught {}", ex.getClass().getSimpleName());
-            commandLine.getOut().printf("Error: %s%n", ex.getMessage());
+            commandLine.getOut().printf("Error in remote storage: %s%n", ex.getMessage());
             return ExitCode.STORAGE_EXCEPTION.getValue();
         } else {
             LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);

@@ -27,7 +27,7 @@ class CLICommands {
 
     CLICommands() {
         client = new CommunicationClient();
-        storage = new RemotePersistentStorage();
+        storage = new RemotePersistentStorage(client);
     }
 
 }

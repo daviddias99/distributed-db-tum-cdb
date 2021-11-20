@@ -1,5 +1,7 @@
 package de.tum.i13.server.kv;
 
+import java.util.Objects;
+
 /**
  * A message that is interchanged between a {@link KVStore} and a caller
  */
@@ -25,6 +27,7 @@ public interface KVMessage {
          * requested tuple (i.e. value) found
          */
         GET_SUCCESS(false),
+        // TODO Why is an empty value possible here
         /**
          * Put - request
          */
@@ -87,5 +90,18 @@ public interface KVMessage {
      * response types and error types associated to the message.
      */
     StatusType getStatus();
+
+    default String packMessage() {
+        return String.format("%s: %s %s", getStatus(), getKey(), Objects.toString(getValue(), ""));
+    }
+
+    // TODO Make more robust
+    // TODO Make case insenstive
+    // TODO Consider spaces in values
+    // TODO Use in server
+    static KVMessage unpackMessage(String message) {
+        final String[] msgTokens = message.trim().split("\\s+");
+        return new KVMessageImpl(msgTokens[1], msgTokens[2], StatusType.valueOf(msgTokens[0]));
+    }
 
 }

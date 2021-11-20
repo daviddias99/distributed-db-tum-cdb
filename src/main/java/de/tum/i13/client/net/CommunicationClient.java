@@ -207,4 +207,12 @@ public class CommunicationClient {
         return this.connection != null && !this.connection.isClosed();
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
 }
