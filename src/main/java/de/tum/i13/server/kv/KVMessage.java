@@ -105,7 +105,7 @@ public interface KVMessage {
                 getStatus().toString().toLowerCase(),
                 getKey(),
                 Objects.toString(getValue(), "")
-        );
+        ).trim();
     }
 
     // TODO Use in server
