@@ -36,11 +36,9 @@ class Put implements Callable<Integer> {
 
     @CommandLine.Parameters(
             index = "1",
-            description = "arbitrary String (max. length 120 KByte)" ,
+            description = "arbitrary String (max. length 120 KByte). Default: ${DEFAULT-VALUE}" ,
             defaultValue = CommandLine.Parameters.NULL_VALUE,
-            arity = "0..1",
-            showDefaultValue = CommandLine.Help.Visibility.ALWAYS
-
+            arity = "0..1"
     )
     private String value;
 
