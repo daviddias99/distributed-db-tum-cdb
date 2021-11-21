@@ -27,6 +27,23 @@ public class KVMessageImpl implements KVMessage {
         this.status = status;
     }
 
+    // TODO Consider empty key in message packing and unpacking
+    /**
+     * Creates a new {@link KVMessage} with empty key and value
+     *
+     * @param status the status to set, must not be null
+     */
+    public KVMessageImpl(StatusType status) {
+        Preconditions.notNull(status, "Status cannot be null");
+        Preconditions.check(
+                status == StatusType.UNDEFINED,
+                "Status must be undefined to use this constructor");
+
+        this.key = null;
+        this.value = null;
+        this.status = status;
+    }
+
     /**
      * Creates a new {@link KVMessage} with present value
      *
@@ -57,6 +74,11 @@ public class KVMessageImpl implements KVMessage {
     @Override
     public StatusType getStatus() {
         return this.status;
+    }
+
+    @Override
+    public String toString() {
+        return packMessage();
     }
 
 }
