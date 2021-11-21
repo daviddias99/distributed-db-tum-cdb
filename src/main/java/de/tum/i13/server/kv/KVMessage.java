@@ -99,10 +99,11 @@ public interface KVMessage {
      * @return the message encoded as a {@link String}
      */
     default String packMessage() {
+        final StatusType status = getStatus();
         return String.format(
                 "%s %s %s",
-                getStatus().toString().toLowerCase(),
-                getKey(),
+                status == StatusType.UNDEFINED ? "error undefined error" : status.toString().toLowerCase(),
+                Objects.toString(getKey(), ""),
                 Objects.toString(getValue(), "")
         ).trim();
     }
