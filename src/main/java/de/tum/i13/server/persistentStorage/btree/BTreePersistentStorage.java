@@ -9,6 +9,7 @@ import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 import de.tum.i13.shared.Preconditions;
 
 /**
@@ -28,7 +29,14 @@ public class BTreePersistentStorage implements PersistentStorage {
      * @param storageHandler Handler used by the BTree to persist
      */
     public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler) {
-        this.tree = new PersistentBTree<>(minimumDegree, storageHandler);
+        try {
+            this.tree = storageHandler.load();
+        } catch (StorageException e) {
+        }
+
+        if(this.tree == null) {
+            this.tree = new PersistentBTree<>(minimumDegree, storageHandler);
+        }
     }
 
     @Override
@@ -61,7 +69,8 @@ public class BTreePersistentStorage implements PersistentStorage {
                 boolean deleted = this.tree.remove(key);
                 LOGGER.info("Deleted key {}", key);
 
-                return deleted ? new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS) : new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+                return deleted ? new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS)
+                        : new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
             }
 
             LOGGER.info("Trying to put key {} with value {}", key, value);

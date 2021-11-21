@@ -105,10 +105,10 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
             LOGGER.debug("Loaded tree ({}) from disk.", this.filePath);
             return tree;
         } catch (FileNotFoundException e) {
-            StorageException storageException = new StorageException(e,
-                    "Throwing exception because the file %s could not be found.", this.filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            // StorageException storageException = new StorageException(e,
+            //         "Throwing exception because the file %s could not be found.", this.filePath);
+            // LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            return null;
         } catch (IOException e) {
             StorageException storageException = new StorageException(e, "I/O error while reading tree from memory");
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
