@@ -30,11 +30,10 @@ public interface KVMessage {
          * requested tuple (i.e. value) found
          */
         GET_SUCCESS(false),
-        // TODO Why is an empty value possible here
         /**
          * Put - request
          */
-        PUT(true),
+        PUT(false),
         /**
          * Put - request successful, tuple inserted
          */

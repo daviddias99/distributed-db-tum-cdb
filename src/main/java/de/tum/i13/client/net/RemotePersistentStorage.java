@@ -45,11 +45,29 @@ public class RemotePersistentStorage implements PersistentStorage {
     public KVMessage put(String key, String value) throws PutException {
         LOGGER.info("Trying to put key {} to value {}", key, value);
 
-        final KVMessageImpl putMessage = new KVMessageImpl(key, value, KVMessage.StatusType.PUT);
+        return value == null ? deleteKey(key) : putKey(key, value);
+    }
+
+    private KVMessage deleteKey(String key) throws PutException {
+        LOGGER.debug("Trying to delete key {}", key);
+        final KVMessage deleteMessage = new KVMessageImpl(key, KVMessage.StatusType.DELETE);
+        return sendPutOrDeleteMessage(deleteMessage);
+    }
+
+    private KVMessage putKey(String key, String value) throws PutException {
+        LOGGER.debug("Trying to put key {} to supplied value {}", key, value);
+        final KVMessage putMessage = new KVMessageImpl(key, value, KVMessage.StatusType.PUT);
+        return sendPutOrDeleteMessage(putMessage);
+    }
+
+    private KVMessage sendPutOrDeleteMessage(KVMessage putOrDeleteMessage) throws PutException {
         try {
-            return sendAndReceive(putMessage);
+            return sendAndReceive(putOrDeleteMessage);
         } catch (ClientException exception) {
-            LOGGER.error("Caught exception while putting. Wrapping the exception.", exception);
+            LOGGER.atError()
+                    .withThrowable(exception)
+                    .log("Caught exception while {}. Wrapping the exception.",
+                            putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT ? "putting" : "deleting");
             throw new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
     }
