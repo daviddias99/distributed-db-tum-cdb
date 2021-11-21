@@ -109,6 +109,7 @@ public interface KVMessage {
     }
 
     // TODO Use in server
+
     /**
      * Unpacks a message in the {@link String} format using the standard implementation {@link KVMessageImpl}.
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
@@ -150,8 +151,6 @@ public interface KVMessage {
      * <pre>"    put   thisKey     to this   value   "</pre>
      * will produce the following tokens
      * <pre>{"put", "thisKey     to this   value" }</pre>
-     *
-     *
      *
      * @param message the message from which to extract the tokens
      * @return the extracted tokens of the message
