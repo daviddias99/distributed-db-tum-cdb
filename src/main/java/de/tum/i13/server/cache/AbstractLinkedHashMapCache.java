@@ -21,12 +21,12 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
     /**
      * Constructs an empty cache with the given size and {@link CachingStrategy}.
-     *
+     * <p>
      * It uses a {@link LinkedHashMap} with a fixed size as its base with its default load factor of {@code 0.75f}.
      *
      * @param size            the size of the cache, must be greater than 0
      * @param cachingStrategy the caching strategy - true for {@link CachingStrategy#LRU}, false for
-     * {@link CachingStrategy#FIFO}
+     *                        {@link CachingStrategy#FIFO}
      * @see LinkedHashMap
      */
     protected AbstractLinkedHashMapCache(int size, boolean cachingStrategy) {
@@ -53,8 +53,13 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
     private KVMessage deleteKey(String key) {
         LOGGER.debug("Deleting key {}", key);
-        cache.remove(key);
-        return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
+        final String removedElement = cache.remove(key);
+        return new KVMessageImpl(
+                key,
+                removedElement == null ?
+                        KVMessage.StatusType.DELETE_ERROR :
+                        KVMessage.StatusType.DELETE_SUCCESS
+        );
     }
 
     @Override

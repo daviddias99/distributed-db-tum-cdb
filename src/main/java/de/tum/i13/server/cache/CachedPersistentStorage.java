@@ -128,7 +128,6 @@ public class CachedPersistentStorage implements PersistentStorage {
                 LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
                 throw putException;
             }
-            else if (cacheStatus == StatusType.DELETE_ERROR) return new KVMessageImpl(key, StatusType.DELETE_ERROR);
             else return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
         }
     }
