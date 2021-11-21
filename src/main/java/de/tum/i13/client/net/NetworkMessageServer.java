@@ -2,12 +2,15 @@ package de.tum.i13.client.net;
 
 import org.apache.logging.log4j.LogManager;
 
+/**
+ * A {@link MessageServer} that is also a {@link NetworkLocation}
+ */
 public interface NetworkMessageServer extends NetworkLocation, MessageServer {
 
     /**
      * Connects client to {@code <address>:<port>} and returns the message sent by the host
-     * upon connection. This method is equivalent to calling the 'receive' method
-     * after the 'connect' method;
+     * upon connection. This method is equivalent to calling the {@link MessageServer#receive()} method
+     * after the {@link NetworkLocation#connect(String, int)} method.
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.

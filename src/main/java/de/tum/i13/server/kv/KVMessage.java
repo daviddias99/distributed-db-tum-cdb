@@ -91,6 +91,11 @@ public interface KVMessage {
      */
     StatusType getStatus();
 
+    /**
+     * Packs the message into a {@link String} format.
+     *
+     * @return the message encoded as a {@link String}
+     */
     default String packMessage() {
         return String.format("%s: %s %s", getStatus(), getKey(), Objects.toString(getValue(), ""));
     }
@@ -99,6 +104,13 @@ public interface KVMessage {
     // TODO Make case insenstive
     // TODO Consider spaces in values
     // TODO Use in server
+    /**
+     * Unpacks a message in the {@link String} format using the standard implementation {@link KVMessageImpl}.
+     *
+     * @param message the message encoded as a {@link String}
+     * @return the message converted to a {@link KVMessage}
+     * @see KVMessageImpl
+     */
     static KVMessage unpackMessage(String message) {
         final String[] msgTokens = message.trim().split("\\s+");
         return new KVMessageImpl(msgTokens[1], msgTokens[2], StatusType.valueOf(msgTokens[0]));

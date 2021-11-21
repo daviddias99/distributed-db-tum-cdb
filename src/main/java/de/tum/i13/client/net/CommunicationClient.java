@@ -57,7 +57,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             throw new ClientException(e, ClientException.Type.UNKNOWN_HOST, "Could not find host");
         } catch (IOException e) {
             LOGGER.error("Throwing exception because socket at {}:{} could not be opened.", address, port);
-            throw new ClientException(e, ClientException.Type.SOCKET_OPENING_ERROR, "Could not open socket");
+            throw new ClientException(e, ClientException.Type.CONNECTION_ERROR, "Could not open socket");
         }
     }
 
