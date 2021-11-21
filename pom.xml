@@ -93,7 +93,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.tum.i13.client.Milestone1Main</mainClass>
+                                    <mainClass>de.tum.i13.client.shell.Milestone1Main</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>

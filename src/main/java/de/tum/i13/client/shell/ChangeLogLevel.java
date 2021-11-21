@@ -23,7 +23,7 @@ class ChangeLogLevel implements Callable<Integer> {
     private static final Logger LOGGER = LogManager.getLogger(ChangeLogLevel.class);
 
     @CommandLine.Spec
-    CommandLine.Model.CommandSpec commandSpec;
+    private CommandLine.Model.CommandSpec commandSpec;
 
     @CommandLine.Parameters(
             index = "0",
@@ -38,10 +38,11 @@ class ChangeLogLevel implements Callable<Integer> {
      */
     @Override
     public Integer call() {
-        Configurator.setRootLevel(logLevel);
-
         String oldLevelName = LogManager.getRootLogger().getLevel().name();
         final String newLevelName = logLevel.name();
+
+        Configurator.setRootLevel(logLevel);
+
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
         commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
 

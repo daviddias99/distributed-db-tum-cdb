@@ -1,4 +1,7 @@
-package de.tum.i13.client;
+package de.tum.i13.client.shell;
+
+import de.tum.i13.client.net.ActiveConnection;
+import de.tum.i13.client.net.EchoConnectionBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
