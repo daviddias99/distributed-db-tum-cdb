@@ -19,9 +19,10 @@ public class RemotePersistentStorage implements PersistentStorage {
         this.networkMessageServer = networkMessageServer;
     }
 
-    // TODO Add logging
     @Override
     public KVMessage get(String key) throws GetException {
+        LOGGER.info("Trying to get value of key {}", key);
+
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
             return sendAndReceive(getMessage);
@@ -33,6 +34,8 @@ public class RemotePersistentStorage implements PersistentStorage {
 
     @Override
     public KVMessage put(String key, String value) throws PutException {
+        LOGGER.info("Trying to put key {} to value {}", key, value);
+
         final KVMessageImpl putMessage = new KVMessageImpl(key, value, KVMessage.StatusType.PUT);
         try {
             return sendAndReceive(putMessage);
@@ -56,13 +59,15 @@ public class RemotePersistentStorage implements PersistentStorage {
      * @throws ClientException if the message cannot be received
      */
     private String receiveMessage() throws ClientException {
-        LOGGER.debug("Receiving message from server.");
+        LOGGER.debug("Receiving message from server");
         byte[] response = networkMessageServer.receive();
-        return new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
+        final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
+        LOGGER.debug("Received message from server: {}", responseString);
+        return responseString;
     }
 
     public NetworkLocation getNetworkLocation() {
-        return networkMessageServer;
+        return getNetworkMessageServer();
     }
 
     public NetworkMessageServer getNetworkMessageServer() {

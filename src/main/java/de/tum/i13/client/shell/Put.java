@@ -60,7 +60,7 @@ class Put implements Callable<Integer> {
         else if (storageStatus == KVMessage.StatusType.PUT_ERROR) {
             LOGGER.info("Remote storage returned error while putting key {} to value {}", key, value);
             out.printf("Could not put key %s to value %s on remote storage%n", key, value);
-            return ExitCode.SUCCESS.getValue();
+            return ExitCode.STORAGE_ERROR.getValue();
         } else {
             final PutException putException = new PutException(
                     "Remote storage returned unprocessable status code %s while getting key %s",

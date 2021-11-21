@@ -46,10 +46,8 @@ public class Shell {
             //read user input from console
             try {
                 String line = reader.readLine();
+                // TODO Consider spaces in values
                 String[] tokens = line.trim().split("\\s+");
-                if (tokens.length >= 2 && Constants.SEND_COMMAND.equals(tokens[0])) {
-                    tokens = new String[]{Constants.SEND_COMMAND, line.split("\\s", 2)[1]};
-                }
 
                 final int exitCode = cmd.execute(tokens);
                 if (exitCode == ExitCode.QUIT_PROGRAMM.getValue()) {

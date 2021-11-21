@@ -23,7 +23,7 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
                     .log("Caught {}", ex.getClass().getSimpleName());
             final String exceptionLocation = ex instanceof KVException ? "remote storage" : "network connection";
             commandLine.getOut().printf("Error in %s: %s%n", exceptionLocation, ex.getMessage());
-            return ExitCode.STORAGE_EXCEPTION.getValue();
+            return (ex instanceof KVException ? ExitCode.STORAGE_EXCEPTION: ExitCode.CLIENT_EXCEPTION).getValue();
         } else {
             LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);
             commandLine.getOut().println("An unexpected error occurred. " +

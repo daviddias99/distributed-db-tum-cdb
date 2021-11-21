@@ -47,7 +47,7 @@ class Get implements Callable<Integer> {
         } else if (storageStatus == KVMessage.StatusType.GET_ERROR) {
             LOGGER.info("Remote storage returned error while getting key {}", key);
             out.printf("Could not retrieve key %s from remote storage%n", key);
-            return ExitCode.SUCCESS.getValue();
+            return ExitCode.STORAGE_ERROR.getValue();
         } else {
             final GetException getException = new GetException(
                     "Remote storage returned unprocessable status code %s while getting key %s",
