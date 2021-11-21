@@ -53,7 +53,6 @@ class Put implements Callable<Integer> {
         final PrintWriter out = commandSpec.commandLine().getOut();
         if (storageStatus == KVMessage.StatusType.PUT_SUCCESS) {
             LOGGER.info("Remote storage successfully put key {} to value {}", key, value);
-            // TODO Might have to flush
             out.printf("Successfully put value \"%s\" for key %s%n", value, key);
             return ExitCode.SUCCESS.getValue();
         } else if (storageStatus == KVMessage.StatusType.PUT_UPDATE) {

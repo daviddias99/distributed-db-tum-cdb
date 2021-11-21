@@ -107,8 +107,6 @@ public interface KVMessage {
         ).trim();
     }
 
-    // TODO Use in server
-
     /**
      * Unpacks a message in the {@link String} format using the standard implementation {@link KVMessageImpl}.
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
