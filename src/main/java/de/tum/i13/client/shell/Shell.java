@@ -1,5 +1,6 @@
 package de.tum.i13.client.shell;
 
+import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,9 +46,8 @@ public class Shell {
 
             //read user input from console
             try {
-                String line = reader.readLine();
-                // TODO Consider spaces in values
-                String[] tokens = line.trim().split("\\s+");
+                final String line = reader.readLine();
+                final String[] tokens = KVMessage.extractTokens(line);
 
                 final int exitCode = cmd.execute(tokens);
                 if (exitCode == ExitCode.QUIT_PROGRAMM.getValue()) {
