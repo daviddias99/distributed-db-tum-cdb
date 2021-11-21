@@ -19,7 +19,7 @@ public class KVCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(String command) {
-        String[] tokens = command.trim().split("\\s+");
+        String[] tokens = KVMessage.extractTokens(command);
         KVMessage message = switch (tokens[0]) {
             case "get" -> this.get(tokens[1]);
             case "put" -> this.put(tokens[1], tokens[2]);
