@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
         name = Constants.PUT_COMMAND,
         description = "Inserts a key-value pair into the storage server data structures. " +
                 "Updates (overwrites) the current value with the given value if the server already contains the " +
-                "specified key. Deletes the entry for the given key if <value> equals null.",
+                "specified key. Deletes the entry for the given key if <value> equals null or is not present.",
         mixinStandardHelpOptions = true,
         subcommands = CommandLine.HelpCommand.class
 )
@@ -36,13 +36,19 @@ class Put implements Callable<Integer> {
 
     @CommandLine.Parameters(
             index = "1",
-            description = "arbitrary String (max. length 120 KByte)"
+            description = "arbitrary String (max. length 120 KByte)" ,
+            defaultValue = CommandLine.Parameters.NULL_VALUE,
+            arity = "0..1",
+            showDefaultValue = CommandLine.Help.Visibility.ALWAYS
+
     )
     private String value;
 
     @Override
     public Integer call() throws PutException {
         LOGGER.info("Trying to put to key {} value {}", key, value);
+
+        if ("null".equals(value)) value = null;
 
         final KVMessage storageResponse = parent.remoteStorage.put(key, value);
         final KVMessage.StatusType storageStatus = storageResponse.getStatus();
