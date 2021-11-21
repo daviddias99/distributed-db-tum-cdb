@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,17 +49,18 @@ public class Main {
             //bind to localhost only
             serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
-            startListening(serverSocket);
+            startListening(serverSocket, cfg.dataDir);
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
         }
     }
 
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket) {
+    private static void startListening(ServerSocket serverSocket, Path dataDir) {
         //Replace with your Key value server logic.
         // If you use multithreading you need locking
-        CommandProcessor logic = new KVCommandProcessor(new KVStoreStub());
+
+        CommandProcessor logic = new KVCommandProcessor(dataDir.toString());
 
         //Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);

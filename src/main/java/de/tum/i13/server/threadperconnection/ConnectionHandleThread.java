@@ -5,13 +5,19 @@ import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.ActiveConnection;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ConnectionHandleThread implements Runnable {
+
+    private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
     
     private CommandProcessor cp;
     private Socket clientSocket;
@@ -48,9 +54,10 @@ public class ConnectionHandleThread implements Runnable {
             activeConnection.close();
             cp.connectionClosed(clientSocket.getInetAddress());
 
-        //Logging: connection closed + IP address of client
-        } catch(Exception ex) {
-            cp.connectionInterrupted(clientSocket.getInetAddress());
+        } catch(IOException ex) {
+            LOGGER.fatal("Caught exception while trying to read from {}.", clientSocket.getInetAddress());
+        } catch(Exception ex){
+            LOGGER.fatal("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
         }
     }
 }

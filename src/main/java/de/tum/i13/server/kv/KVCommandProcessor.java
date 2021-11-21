@@ -7,13 +7,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 
 public class KVCommandProcessor implements CommandProcessor {
-    private KVStore kvStore;
+    private PersistentStorage kvStore;
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
-    public KVCommandProcessor(KVStore kvStore) {
-        this.kvStore = kvStore;
+    public KVCommandProcessor(Path dataDir) {
+        setUpStorage(dataDir);
+    }
+
+    private void setUpStorage(Path dataDir){
     }
 
     @Override
@@ -48,11 +52,6 @@ public class KVCommandProcessor implements CommandProcessor {
     @Override
     public void connectionClosed(InetAddress remoteAddress) {
         LOGGER.info("connection closed: {}", remoteAddress);
-    }
-
-    @Override
-    public void connectionInterrupted(InetAddress remoteAddress){
-        LOGGER.info("connection interrupted: {}", remoteAddress);
     }
 
     /**
