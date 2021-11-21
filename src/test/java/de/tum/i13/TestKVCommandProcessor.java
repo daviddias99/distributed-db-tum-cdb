@@ -1,7 +1,7 @@
 package de.tum.i13;
 
 import de.tum.i13.server.kv.KVCommandProcessor;
-import de.tum.i13.server.kv.KVStore;
+import de.tum.i13.server.kv.PersistentStorage;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
@@ -12,7 +12,7 @@ public class TestKVCommandProcessor {
     @Test
     public void correctParsingOfPut() throws Exception {
 
-        KVStore kv = mock(KVStore.class);
+        PersistentStorage kv = mock(PersistentStorage.class);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv);
         kvcp.process("put key hello");
 

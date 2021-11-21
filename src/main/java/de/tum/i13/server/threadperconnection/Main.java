@@ -5,6 +5,9 @@ import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVCommandProcessor;
 import de.tum.i13.server.kv.PersistentStorage;
+import de.tum.i13.server.persistentStorage.btree.BTreePersistentStorage;
+import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeDiskStorageHandler;
+import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
@@ -59,6 +62,8 @@ public class Main {
 
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
+        } catch (StorageException ex) {
+            LOGGER.fatal("Caught exception while setting up storage", ex);
         }
     }
 
@@ -69,7 +74,7 @@ public class Main {
      * @param cacheSize
      * @return
      */
-    private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize){
+    private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize) throws StorageException {
         PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(), true);
         BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
