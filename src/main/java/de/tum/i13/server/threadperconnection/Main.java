@@ -1,8 +1,10 @@
 package de.tum.i13.server.threadperconnection;
 
 import de.tum.i13.server.Config;
+import de.tum.i13.server.cache.CachedPersistentStorage;
+import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVCommandProcessor;
-import de.tum.i13.server.kv.KVStoreStub;
+import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
@@ -49,18 +51,36 @@ public class Main {
             //bind to localhost only
             serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
-            startListening(serverSocket, cfg.dataDir);
+            //set up storage options
+            final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
+
+            //start server
+            startListening(serverSocket, storage);
+
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
         }
     }
 
+    /**
+     * Method that sets the persistent storage directory, caching strategy and cache size.
+     * @param dataDir
+     * @param cachingStrategy
+     * @param cacheSize
+     * @return
+     */
+    private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize){
+        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(), true);
+        BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
+        return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
+    }
+
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, Path dataDir) {
+    private static void startListening(ServerSocket serverSocket, PersistentStorage storage) {
         //Replace with your Key value server logic.
         // If you use multithreading you need locking
 
-        CommandProcessor logic = new KVCommandProcessor(dataDir.toString());
+        CommandProcessor logic = new KVCommandProcessor(storage);
 
         //Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
