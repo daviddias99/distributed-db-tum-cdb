@@ -9,12 +9,21 @@ import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer}.
+ * This storage hides the network communication from the user
+ */
 public class RemotePersistentStorage implements PersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private final NetworkMessageServer networkMessageServer;
 
+    /**
+     * Creates a new remote persistent storage with the given network component
+     *
+     * @param networkMessageServer the server to use for network communication
+     */
     public RemotePersistentStorage(NetworkMessageServer networkMessageServer) {
         this.networkMessageServer = networkMessageServer;
     }

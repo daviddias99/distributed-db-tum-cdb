@@ -8,13 +8,12 @@ import de.tum.i13.shared.Constants;
 public interface MessageServer {
 
     /**
-     * Sends a message to the connected host. The message must be smaller than {@code MAX_MESSAGE_SIZE_BYTES} (see
-     * {@link Constants})
+     * Sends a message to the connected host. The message must be smaller than {@link  Constants#MAX_MESSAGE_SIZE_BYTES}
      *
      * @param message Message to be sent to the host
      * @throws ClientException if the message is too large, the client isn't connected or
      * the message fails to be sent
-     * @see Constants
+     * @see Constants#MAX_MESSAGE_SIZE_BYTES
      */
     void send(byte[] message) throws ClientException;
 

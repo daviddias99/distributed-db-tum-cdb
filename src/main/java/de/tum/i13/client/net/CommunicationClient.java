@@ -11,6 +11,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
+/**
+ * A specific implementation of a {@link NetworkMessageServer} using {@link Socket}s.
+ */
 public class CommunicationClient implements NetworkMessageServer, AutoCloseable {
 
     private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
@@ -20,7 +23,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     private OutputStream outStream;
 
     /**
-     * Creates a new client. The created is not connected to any host.
+     * Creates a new client that is not connected to any host.
      */
     public CommunicationClient() {
     }
@@ -30,8 +33,8 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.
-     * @throws ClientException A ClientException is thrown when connection fails.
-     *                         (see 'connect' method).
+     * @throws ClientException if connection fails
+     * @see NetworkLocation#connect(String, int)
      */
     public CommunicationClient(String address, int port) throws ClientException {
         this.connect(address, port);
