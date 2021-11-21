@@ -288,7 +288,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
      */
-    void remove(String key) throws StorageException {
+    boolean remove(String key) throws StorageException {
         int idx = findKey(key);
 
         Chunk<V> chunk = this.getChunk();
@@ -299,14 +299,14 @@ class PersistentBTreeNode<V> implements Serializable {
             // If the node is a leaf node - removeFromLeaf is called
             // Otherwise, removeFromNonLeaf function is called
             if (leaf)
-                removeFromLeaf(idx);
+                return removeFromLeaf(idx);
             else
-                removeFromNonLeaf(idx);
+                return removeFromNonLeaf(idx);
         } else {
 
             // If this node is a leaf node, then the key is not present in tree
             if (leaf) {
-                return;
+                return false;
             }
 
             // The key to be removed is present in the sub-tree rooted with this node
@@ -325,11 +325,10 @@ class PersistentBTreeNode<V> implements Serializable {
             // child and so we recurse on the (idx-1)th child. Else, we recurse on the
             // (idx)th child which now has atleast t keys
             if (flag && idx > this.elementCount)
-                children.get(idx - 1).remove(key);
+                return children.get(idx - 1).remove(key);
             else
-                children.get(idx).remove(key);
+                return children.get(idx).remove(key);
         }
-        return;
     }
 
     /**
@@ -339,7 +338,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
      */
-    private void removeFromLeaf(int idx) throws StorageException {
+    private boolean removeFromLeaf(int idx) throws StorageException {
 
         Chunk<V> chunk = this.getChunk();
 
@@ -354,7 +353,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
         // Reduce the count of keys
         this.decrementElementCount();
-        return;
+        return true;
     }
 
     /**
@@ -365,7 +364,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
      */
-    private void removeFromNonLeaf(int idx) throws StorageException {
+    private boolean removeFromNonLeaf(int idx) throws StorageException {
 
         Chunk<V> chunk = this.getChunk();
 
@@ -404,10 +403,10 @@ class PersistentBTreeNode<V> implements Serializable {
         // Delete children[idx+1] and recursively delete element from children[idx]
         else {
             merge(idx);
-            this.getChildren().get(idx).remove(element.key);
+            return this.getChildren().get(idx).remove(element.key);
         }
 
-        return;
+        return true;
     }
 
     /**

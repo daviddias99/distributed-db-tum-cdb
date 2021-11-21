@@ -201,6 +201,28 @@ class TestPersistentBTree {
         }
     }
 
+    @Test
+    void testDeleteNonExistent() {
+        try {
+            tree.insert("A", "Value");
+            tree.insert("C", "Value");
+            tree.insert("B", "Value");
+            tree.insert("D", "Value");
+            tree.insert("E", "Value");
+            tree.insert("F", "Value");
+            tree.insert("G", "Value");
+            assertThat(TreeValidator.validTree(tree)).isTrue();
+            assertThat(tree.remove("K")).isFalse();
+            assertThat(TreeValidator.validTree(tree)).isTrue();
+        } catch (StorageException e1) {
+            System.out.println(e1);
+            return; // Pass the test if exceptiofn is thrown because there is currently no
+                    // expectations the state of the tree once something goes wrong
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
     @RepeatedTest(5)
     void testDelete3() {
 
@@ -241,7 +263,7 @@ class TestPersistentBTree {
 
                 for (char c : string.toCharArray()) {
                     assertThat(tree.search(c + "")).isEqualTo(c + "");
-                    tree.remove(c + "");
+                    assertThat(tree.remove(c + "")).isTrue();
                     boolean valid = TreeValidator.validTree(tree);
                     assertThat(valid).isTrue();
                     assertThat(tree.search(c + "")).isEqualTo(null);

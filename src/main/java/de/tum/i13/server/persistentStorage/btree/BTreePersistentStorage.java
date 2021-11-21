@@ -58,10 +58,10 @@ public class BTreePersistentStorage implements PersistentStorage {
         try {
             if (value == null) {
                 LOGGER.info("Trying to delete key {}", key);
-                this.tree.remove(key);
+                boolean deleted = this.tree.remove(key);
                 LOGGER.info("Deleted key {}", key);
 
-                return new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS);
+                return deleted ? new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS) : new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
             }
 
             LOGGER.info("Trying to put key {} with value {}", key, value);

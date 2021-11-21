@@ -67,4 +67,17 @@ public class TestBTreePersistentStorage {
         assertThat(storage.get("key1")).extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
                 .containsExactly("key1", null, KVMessage.StatusType.GET_ERROR);
     }
+
+    @Test
+    void deletesNonExistant() throws PutException, GetException {
+
+        for (int i = 0; i < 3; i++) {
+            storage.put("key" + i, "value" + i);
+        }
+
+        assertThat(storage.put("key6", null)).extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
+                .containsExactly("key1", null, KVMessage.StatusType.DELETE_ERROR);
+        assertThat(storage.get("key6")).extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
+                .containsExactly("key1", null, KVMessage.StatusType.GET_ERROR);
+    }
 }

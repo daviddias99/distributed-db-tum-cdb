@@ -53,16 +53,16 @@ public class PersistentBTree<V> implements Serializable {
      * @throws StorageException An exception is thrown if a problem occurs with
      *                          persistent storage.
      */
-    public void remove(String key) throws StorageException {
+    public boolean remove(String key) throws StorageException {
         Preconditions.notNull(key);
 
         this.readWriteLock.writeLock().lock();
 
         if (root == null)
-            return;
+            return false;
 
         // Call the remove function for root
-        root.remove(key);
+        boolean result = root.remove(key);
 
         // If the root node has 0 keys, make its first child as the new root
         // if it has a child, otherwise set root as NULL
@@ -72,7 +72,7 @@ public class PersistentBTree<V> implements Serializable {
 
         this.readWriteLock.writeLock().unlock();
         this.storageHandler.save(this);
-        return;
+        return result;
     }
 
     /**
