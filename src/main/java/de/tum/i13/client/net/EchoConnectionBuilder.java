@@ -1,11 +1,10 @@
-package de.tum.i13.client;
+package de.tum.i13.client.net;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import de.tum.i13.shared.ActiveConnection;
 
 /**
  * Created by chris on 19.10.15.

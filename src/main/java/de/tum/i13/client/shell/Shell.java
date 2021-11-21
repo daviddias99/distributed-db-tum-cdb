@@ -1,6 +1,6 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.exceptions.ShellException;
+import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,7 +32,7 @@ public class Shell {
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())
-                .setExecutionExceptionHandler(new ClientExceptionHandler());
+                .setExecutionExceptionHandler(new ExecutionExceptionHandler());
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
@@ -46,11 +46,8 @@ public class Shell {
 
             //read user input from console
             try {
-                String line = reader.readLine();
-                String[] tokens = line.trim().split("\\s+");
-                if (tokens.length >= 2 && Constants.SEND_COMMAND.equals(tokens[0])) {
-                    tokens = new String[]{Constants.SEND_COMMAND, line.split("\\s", 2)[1]};
-                }
+                final String line = reader.readLine();
+                final String[] tokens = KVMessage.extractTokens(line);
 
                 final int exitCode = cmd.execute(tokens);
                 if (exitCode == ExitCode.QUIT_PROGRAMM.getValue()) {

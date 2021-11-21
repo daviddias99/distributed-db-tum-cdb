@@ -1,5 +1,10 @@
 package de.tum.i13.server.kv;
 
+import de.tum.i13.shared.Constants;
+
+import java.util.Objects;
+import java.util.function.Function;
+
 /**
  * A message that is interchanged between a {@link KVStore} and a caller
  */
@@ -28,7 +33,7 @@ public interface KVMessage {
         /**
          * Put - request
          */
-        PUT(true),
+        PUT(false),
         /**
          * Put - request successful, tuple inserted
          */
@@ -87,5 +92,76 @@ public interface KVMessage {
      * response types and error types associated to the message.
      */
     StatusType getStatus();
+
+    /**
+     * Packs the message into a {@link String} format.
+     *
+     * @return the message encoded as a {@link String}
+     */
+    default String packMessage() {
+        return String.format(
+                "%s %s %s",
+                getStatus().toString().toLowerCase(),
+                getKey(),
+                Objects.toString(getValue(), "")
+        ).trim();
+    }
+
+    /**
+     * Unpacks a message in the {@link String} format using the standard implementation {@link KVMessageImpl}.
+     * Uses {@link #extractTokens(String)} to extract the tokens from the message.
+     * Refer to the specification document for further details.
+     *
+     * @param message the message encoded as a {@link String}
+     * @return the message converted to a {@link KVMessage}
+     * @throws IllegalArgumentException if the message could not be converted according to the specification
+     * @see KVMessageImpl
+     * @see #extractTokens(String)
+     */
+    static KVMessage unpackMessage(String message) {
+        String[] msgTokens = extractTokens(message);
+
+        final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
+                string.toUpperCase()
+        );
+        if (msgTokens.length == 2) {
+            return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
+        } else if (msgTokens.length == 3) {
+            return new KVMessageImpl(
+                    msgTokens[1],
+                    msgTokens[2],
+                    stringToStatusType.apply(msgTokens[0]));
+        } else {
+            throw new IllegalArgumentException(String.format(
+                    "Could not convert \"%s\" to a %s",
+                    message,
+                    KVMessage.class.getSimpleName()
+            ));
+        }
+    }
+
+    /**
+     * Trims the message and then extracts the tokens of the message.
+     * Multiple spaces between tokens are considered as one and will not be part of the token.
+     * Keys cannot contain spaces, but values can.
+     * I.e.
+     * <pre>"    put   thisKey     to this   value   "</pre>
+     * will produce the following tokens
+     * <pre>{"put", "thisKey     to this   value" }</pre>
+     *
+     * @param message the message from which to extract the tokens
+     * @return the extracted tokens of the message
+     * @see String#trim()
+     */
+    static String[] extractTokens(String message) {
+        final String trimmedMsg = message.trim();
+        String[] msgTokens = trimmedMsg.split("\\s+");
+        if (msgTokens.length >= 3 && Constants.PUT_COMMAND.equals(msgTokens[0])) {
+            final String[] putAndParameters = trimmedMsg.split("\\s+", 2);
+            final String[] parameters = putAndParameters[1].split("\\s+", 2);
+            msgTokens = new String[]{putAndParameters[0], parameters[0], parameters[1]};
+        }
+        return msgTokens;
+    }
 
 }

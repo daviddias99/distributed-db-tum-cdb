@@ -1,4 +1,4 @@
-package de.tum.i13.client.exceptions;
+package de.tum.i13.client.shell;
 
 /**
  * An unchecked checked {@link Exception} thrown when the shell encounters unexpected behavior

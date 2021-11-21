@@ -1,8 +1,10 @@
 package de.tum.i13.server.threadperconnection;
 
+import de.tum.i13.client.net.ActiveConnection;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.ActiveConnection;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,9 +13,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class ConnectionHandleThread implements Runnable {
 
