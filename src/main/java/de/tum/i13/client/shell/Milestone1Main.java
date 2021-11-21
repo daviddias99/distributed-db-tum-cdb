@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import de.tum.i13.client.net.ActiveConnection;
+
 
 public class Milestone1Main {
     public static void main(String[] args) throws IOException {

@@ -9,11 +9,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class KVCommandProcessor implements CommandProcessor {
-    private KVStore kvStore;
+    private PersistentStorage kvStore;
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
-    public KVCommandProcessor(KVStore kvStore) {
-        this.kvStore = kvStore;
+    public KVCommandProcessor(PersistentStorage storage) {
+        this.kvStore = storage;
     }
 
     @Override
@@ -27,10 +27,10 @@ public class KVCommandProcessor implements CommandProcessor {
                 case "get": message = this.get(tokens[1]); break;
                 case "put": message = this.put(tokens[1], tokens[2]); break;
                 case "delete": message = this.delete(tokens[1]);
-                default: message = new KVMessageForStub(StatusType.UNDEFINED);
+                default: message = new KVMessageImpl(null, StatusType.UNDEFINED);
             }
 
-            return handleMessage(message);
+           return message.toString();
 
         } catch(Exception e){
             return "Error!";
@@ -41,27 +41,26 @@ public class KVCommandProcessor implements CommandProcessor {
     @Override
     public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
         LOGGER.info("new connection: {}", remoteAddress);
-
-        return "Connection to KVServer established: " + address.toString() + "\r\n";
+        return "Connection to KVServer established: " + address.toString();
     }
 
     @Override
     public void connectionClosed(InetAddress remoteAddress) {
         LOGGER.info("connection closed: {}", remoteAddress);
-        //System.out.println("Connection Closed");
     }
 
     /**
-     * Helper method to query the database
+     * Method to search for a key in the persistent storage. 
      * @param key the key to search
      * @return a KVMessage with the status of the query
      */
     private KVMessage get(String key){
         try{
+            LOGGER.info("Trying to read key: {}", key);
             return kvStore.get(key);
-        //TODO Change Exception Type
-        }catch(Exception e){
-            return new KVMessageForStub(StatusType.GET_ERROR, key, null);
+        }catch(GetException e){
+            LOGGER.error(e.getMessage());
+            return new KVMessageImpl(key, StatusType.GET_ERROR);
         }
     }
 
@@ -73,18 +72,22 @@ public class KVCommandProcessor implements CommandProcessor {
      */
     private KVMessage put(String key, String value){
         try{
+            LOGGER.info("Trying to put key: {} and value: {}", key, value);
             return kvStore.put(key, value);
         }catch(Exception e){
-            return new KVMessageForStub(StatusType.PUT_ERROR, key, value);
+            LOGGER.error(e.getMessage());
+            return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
         }
     }
 
     private KVMessage delete(String key){
         try{
+            LOGGER.info("Trying to delte key: {}", key);
             return kvStore.put(key, null);
         }
         catch(Exception e){
-            return new KVMessageForStub(StatusType.DELETE_ERROR);
+            LOGGER.error(e.getMessage());
+            return new KVMessageImpl(key, StatusType.DELETE_ERROR);
         }
     }
 
@@ -93,7 +96,22 @@ public class KVCommandProcessor implements CommandProcessor {
      * @param message KVMessage received from the database
      * @return String message to send back to the client
      */
-    private String handleMessage(KVMessage message){
-        return message.getStatus().toString();
-    }
+    //private String handleMessage(KVMessage message){
+        
+        //String status = message.getStatus().toString();
+        //String response; 
+        //switch(message.getStatus()){
+        //    case GET_SUCCESS: response = ""; break;
+        //    case GET_ERROR: response = ""; break;
+        //   case PUT_SUCCESS: response = ""; break;
+        //    case PUT_ERROR: response = ""; break;
+        //    case PUT_UPDATE: response = ""; break;
+        //    case DELETE_SUCCESS: response = ""; break;
+        //    case DELETE_ERROR: response = ""; break;
+        //   case UNDEFINED: response = ""; break;
+        //    default: response = "";
+        //}
+
+        //return response;
+    //}
 }
