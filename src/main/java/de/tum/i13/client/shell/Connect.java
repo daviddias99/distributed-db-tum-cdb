@@ -30,11 +30,25 @@ class Connect implements Callable<Integer> {
     )
     private String address;
 
+    private int port;
+
     @CommandLine.Parameters(
             index = "1",
-            description = "The port to of the server to connect to. Must be an integer"
+            description = "The port to of the server to connect to. " +
+                    "Must be an integer between 0 and 65535 inclusive"
     )
-    private int port;
+    private void setPort(int value) {
+        if (value >= 0 && value <= 65535) {
+            this.port = value;
+        } else {
+            throw new CommandLine.ParameterException(commandSpec.commandLine(),
+                    String.format(
+                            "Invalid value '%s' for parameter <port>. " +
+                                    "Port number must be between 0 and 65535 inclusive",
+                            value
+                    ));
+        }
+    }
 
 
     /**

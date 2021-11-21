@@ -1,6 +1,7 @@
 package de.tum.i13.client.net;
 
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,7 +33,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
      * Creates a new client connected to {@code <address>:<port>}.
      *
      * @param address Hostname or address of the destination.
-     * @param port    Port of the destination.
+     * @param port    Port of the destination. Must be between 0 and 65535 inclusive.
      * @throws ClientException if connection fails
      * @see NetworkLocation#connect(String, int)
      */
@@ -42,6 +43,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
     @Override
     public void connect(String address, int port) throws ClientException {
+        Preconditions.check(port >= 0 && port <= 65535, "Port must be between 0 and 65535 inclusive");
         LOGGER.info("Trying to connect to {}:{}", address, port);
 
         if (this.isConnected()) {
@@ -138,7 +140,8 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             int numberOfReceivedBytes = this.inStream.read(incomingMessageBuffer, 0, Constants.MAX_MESSAGE_SIZE_BYTES);
 
             // Return an array with the size of the number of read bytes
-            byte[] result = numberOfReceivedBytes == -1 ? new byte[0] : Arrays.copyOf(incomingMessageBuffer, numberOfReceivedBytes);
+            byte[] result = numberOfReceivedBytes == -1 ? new byte[0] : Arrays.copyOf(incomingMessageBuffer,
+                    numberOfReceivedBytes);
 
             // Logging aid variables
             int messageSize = result.length;

@@ -9,8 +9,8 @@ public interface NetworkLocation {
      * Connects client to {@code <address>:<port>}.
      *
      * @param address Hostname or address of the destination.
-     * @param port    Port of the destination.
-     * @throws ClientException A ClientException is thrown when the either the host.
+     * @param port    Port of the destination. Must be between 0 and 65535 inclusive.
+     * @throws ClientException A ClientException is thrown when either the host.
      *                         address/port is invalid or a socket can't be created.
      */
     void connect(String address, int port) throws ClientException;
