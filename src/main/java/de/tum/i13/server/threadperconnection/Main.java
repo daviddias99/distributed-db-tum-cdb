@@ -75,7 +75,7 @@ public class Main {
      * @return
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize) throws StorageException {
-        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(), true);
+        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(), false);
         BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
