@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>msrg.in.tum.de</groupId>
-    <artifactId>cdbms1</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>cdb</artifactId>
+    <version>2.0-SNAPSHOT</version>
 
     <properties>
         <surefire.skip>false</surefire.skip>
