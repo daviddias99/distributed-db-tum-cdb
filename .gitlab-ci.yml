@@ -88,6 +88,7 @@ maven_site:
     - test_integration
   artifacts:
     name: site_artifacts
+    expose_as: "Maven project site"
     expire_in: 1 hour
     paths:
       - target/site
