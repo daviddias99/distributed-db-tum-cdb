@@ -57,6 +57,7 @@ test_unit:
     expire_in: 1 hour
     paths:
       - target/jacoco.exec
+      - "target/surefire-reports/TEST-*.xml"
 
 test_integration:
   extends: .test_job
@@ -67,6 +68,9 @@ test_integration:
     reports:
       junit:
         - "target/failsafe-reports/TEST-*.xml"
+    expire_in: 1 hour
+    paths:
+      - "target/failsafe-reports/TEST-*.xml"
 
 .post-processing_job:
   stage: post_process
