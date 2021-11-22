@@ -91,7 +91,7 @@ maven_site:
     expose_as: "Maven project site"
     expire_in: 1 hour
     paths:
-      - target/site
+      - target/site/
 
 visualize_coverage:
   extends: .post-processing_job
