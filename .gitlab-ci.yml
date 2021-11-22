@@ -86,6 +86,10 @@ maven_site:
     - compile_test
     - test_unit
     - test_integration
+  environment:
+    name: maven_site/$CI_COMMIT_REF_NAME
+    url: $CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/file/target/site/index.html?job=maven_site
+    auto_stop_in: 30 days
   artifacts:
     name: site_artifacts
     expose_as: "Maven project site"
