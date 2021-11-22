@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project xmlns="http://maven.apache.org/DECORATION/1.8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/DECORATION/1.8.0"
          xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd"
-         name="Cloud Data Bases">
+         name="${project.name}">
     <bannerLeft>
         <name>TUM</name>
         <src>/images/tum-logo.svg</src>
@@ -17,7 +17,7 @@
 
     <body>
         <links>
-            <item name="LRZ GitLab" href="https://gitlab.lrz.de/postspace/cdb/cloud-data-bases" />
+            <item name="LRZ GitLab" href="https://gitlab.lrz.de/postspace/cdb/cloud-data-bases"/>
         </links>
 
         <menu name="Project Information">
@@ -25,7 +25,6 @@
         </menu>
 
         <menu ref="reports"/>
-
     </body>
 
     <skin>
