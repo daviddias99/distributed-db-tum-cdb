@@ -176,6 +176,10 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>3.1.4</version>
                 <configuration>
+                    <from>
+                        <!--suppress UnresolvedMavenProperty -->
+                        <image>${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/openjdk:17</image>
+                    </from>
                     <to>
                         <!--suppress UnresolvedMavenProperty -->
                         <image>${env.CI_REGISTRY_IMAGE}</image>
