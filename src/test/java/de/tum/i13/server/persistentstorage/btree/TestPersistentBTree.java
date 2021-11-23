@@ -1,7 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree;
-
-import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeDiskStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+package de.tum.i13.server.persistentstorage.btree;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -10,6 +7,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+
+import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeDiskStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

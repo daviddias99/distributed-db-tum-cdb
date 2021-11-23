@@ -1,6 +1,6 @@
-package de.tum.i13.server.persistentStorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.storage;
 
-import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 
 /**
  * Handles storage of {@link PersistentBTree}s. Implementations of this

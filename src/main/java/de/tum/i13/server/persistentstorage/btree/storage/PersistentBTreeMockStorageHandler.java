@@ -1,11 +1,11 @@
-package de.tum.i13.server.persistentStorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.storage;
 
 import java.io.Serializable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.server.persistentStorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 
 /**
  * This class provides an in-memory implementation of

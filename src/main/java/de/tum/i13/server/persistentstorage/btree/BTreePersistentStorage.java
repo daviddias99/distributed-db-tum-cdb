@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentstorage.btree;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,8 +8,8 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
-import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 import de.tum.i13.shared.Preconditions;
 
 /**

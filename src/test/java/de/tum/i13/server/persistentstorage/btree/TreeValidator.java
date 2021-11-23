@@ -1,11 +1,13 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentstorage.btree;
 
 import java.util.Set;
 import java.util.TreeSet;
 
-import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
+import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 
 import java.util.List;
 

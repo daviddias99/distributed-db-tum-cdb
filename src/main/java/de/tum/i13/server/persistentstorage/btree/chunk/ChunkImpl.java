@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree.chunk;
+package de.tum.i13.server.persistentstorage.btree.chunk;
 
 import java.io.Serializable;
 import java.util.ArrayList;
