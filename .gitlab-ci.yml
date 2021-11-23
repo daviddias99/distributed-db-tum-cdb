@@ -2,6 +2,10 @@ default:
   image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/maven:3-openjdk-17
   tags:
     - docker
+  cache:
+    paths:
+      - .m2/repository
+      - .sonar
 
 stages:
   - compile
@@ -13,10 +17,6 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   SONAR_USER_HOME: "$CI_PROJECT_DIR/.sonar"
 
-cache:
-  paths:
-    - .m2/repository
-    - .sonar
 
 compile_source:
   stage: compile
