@@ -287,6 +287,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @param key key to remove
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
+     * @return True if an element was removed, false otherwise
      */
     boolean remove(String key) throws StorageException {
         int idx = findKey(key);
@@ -337,6 +338,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @param idx index of key to remove
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
+     * @return True if an element was removed, false otherwise
      */
     private boolean removeFromLeaf(int idx) throws StorageException {
 
@@ -363,6 +365,7 @@ class PersistentBTreeNode<V> implements Serializable {
      * @param idx index of key to remove
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
+     * @return True if an element was removed, false otherwise
      */
     private boolean removeFromNonLeaf(int idx) throws StorageException {
 
