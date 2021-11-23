@@ -14,7 +14,7 @@ import de.tum.i13.shared.Preconditions;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
- * by ({@link PersistentBTree}) to provided a {@link PersistentStora}
+ * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
  */
 public class BTreePersistentStorage implements PersistentStorage {
     private static final Logger LOGGER = LogManager.getLogger(PersistentStorage.class);

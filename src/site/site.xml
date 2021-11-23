@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/DECORATION/1.8.0"
+         xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd"
+         name="${project.name}">
+    <bannerLeft>
+        <name>TUM</name>
+        <src>/images/tum-logo.svg</src>
+        <href>https://www.tum.de/</href>
+        <width>150px</width>
+    </bannerLeft>
+    <bannerRight>
+        <name>TUM Informatik</name>
+        <src>/images/tum-informatik-logo.png</src>
+        <href>https://www.in.tum.de/</href>
+        <width>75px</width>
+    </bannerRight>
+
+    <body>
+        <links>
+            <item name="LRZ GitLab" href="https://gitlab.lrz.de/postspace/cdb/cloud-data-bases"/>
+        </links>
+
+        <menu name="Project Information">
+            <item name="Introduction" href="index.html"/>
+        </menu>
+
+        <menu ref="reports"/>
+    </body>
+
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>1.9</version>
+    </skin>
+</project>

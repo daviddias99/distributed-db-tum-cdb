@@ -1,14 +1,14 @@
 package de.tum.i13.server.persistentStorage.btree;
 
-import java.io.Serializable;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
 import de.tum.i13.shared.Preconditions;
+
+import java.io.Serializable;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This class represents a BTree (https://en.wikipedia.org/wiki/B-tree) that can
@@ -16,7 +16,7 @@ import de.tum.i13.shared.Preconditions;
  * concurrent reads. The way persistance is done is injected using a
  * {@link PersistentBTreeStorageHandler}.
  * 
- * @param <T> Type of values used in the BTree
+ * @param <V> Type of values used in the BTree
  */
 public class PersistentBTree<V> implements Serializable {
     private static final long serialVersionUID = 6529685098267757690L;

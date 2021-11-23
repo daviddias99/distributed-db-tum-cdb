@@ -57,6 +57,7 @@ test_unit:
     expire_in: 1 hour
     paths:
       - target/jacoco.exec
+      - "target/surefire-reports/TEST-*.xml"
 
 test_integration:
   extends: .test_job
@@ -67,40 +68,34 @@ test_integration:
     reports:
       junit:
         - "target/failsafe-reports/TEST-*.xml"
+    expire_in: 1 hour
+    paths:
+      - "target/failsafe-reports/TEST-*.xml"
 
 .post-processing_job:
   stage: post_process
   allow_failure: true
 
-pages_javadoc:
+maven_site:
   extends: .post-processing_job
-  only:
-    - master
-  script:
-    - mvn javadoc:javadoc
-  needs:
-    - compile_test
-  artifacts:
-    name: javadocs
-    expire_in: 1 hour
-    paths:
-      - target/site/apidocs
-
-pages_jacoco:
-  extends: .post-processing_job
-  when: always
   coverage: '/Total.*?([0-9]{1,3})%/'
   script:
-    - mvn jacoco:report
+    - mvn site
     - grep -Po "Total.*?([0-9]{1,3})%" target/site/jacoco/index.html
   needs:
-    - test_unit
     - compile_test
+    - test_unit
+    - test_integration
+  environment:
+    name: maven_site/$CI_COMMIT_REF_NAME
+    url: $CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_REF_NAME/file/target/site/index.html?job=maven_site
+    auto_stop_in: 30 days
   artifacts:
-    name: jacoco
+    name: site_artifacts
+    expose_as: "Maven project site"
     expire_in: 1 hour
     paths:
-      - target/site/jacoco
+      - target/site/
 
 visualize_coverage:
   extends: .post-processing_job
@@ -108,7 +103,7 @@ visualize_coverage:
   script:
     - python /opt/cover2cover.py target/site/jacoco/jacoco.xml $CI_PROJECT_DIR/src/main/java/ > target/site/cobertura.xml
   needs:
-    - pages_jacoco
+    - maven_site
   artifacts:
     reports:
       cobertura: target/site/cobertura.xml
@@ -118,8 +113,9 @@ sonarqube:
   when: always
   needs:
     - test_unit
+    - test_integration
     - compile_test
-    - pages_jacoco
+    - maven_site
   script:
     - mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECT_KEY -Dsonar.projectName="$SONARQUBE_PROJECT_NAME"
 
@@ -130,11 +126,9 @@ pages:
     - master
   script:
     - mkdir public
-    - mv target/site/jacoco public
-    - mv target/site/apidocs public
+    - mv target/site public
   needs:
-    - pages_javadoc
-    - pages_jacoco
+    - maven_site
   artifacts:
     name: page_artifacts
     expire_in: 1 hour
