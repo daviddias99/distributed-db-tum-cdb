@@ -125,8 +125,7 @@ pages:
   only:
     - master
   script:
-    - mkdir public
-    - mv target/site public
+    - mv -T target/site public
   needs:
     - maven_site
   artifacts:
