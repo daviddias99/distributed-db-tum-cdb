@@ -119,11 +119,19 @@ sonarqube:
   script:
     - mvn sonar:sonar -Dsonar.host.url=$SONARQUBE_URL -Dsonar.login=$SONARQUBE_TOKEN -Dsonar.projectKey=$SONARQUBE_PROJECT_KEY -Dsonar.projectName="$SONARQUBE_PROJECT_NAME"
 
-pages:
+.deploy_job:
   stage: deploy
   allow_failure: true
-  only:
-    - master
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs:
+    - compile_source
+    - compile_test
+    - test_unit
+    - test_integration
+
+pages:
+  extends: .deploy_job
   script:
     - mv -T target/site public
   needs:
@@ -133,17 +141,6 @@ pages:
     expire_in: 1 hour
     paths:
       - public
-
-.deploy_job:
-  stage: deploy
-  allow_failure: true
-  only:
-    - master
-  needs:
-    - compile_source
-    - compile_test
-    - test_unit
-    - test_integration
 
 deploy_maven_package:
   extends: .deploy_job
