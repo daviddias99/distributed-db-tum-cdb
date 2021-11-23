@@ -18,6 +18,7 @@ buildNumber.properties
 # project specifi
 *.log
 data/
+*.log.lck
 
 # Compiled class file
 *.class
@@ -46,6 +47,7 @@ hs_err_pid*
 # Java related
 .classpath
 .project
+.factorypath
 
 # IDE related
 .settings
@@ -54,3 +56,9 @@ hs_err_pid*
 # Logging files
 logs/
 **.log**
+
+# Project related
+database/
+
+# Copied from root to site source files by maven-resources-plugin
+src/site/markdown/index.md

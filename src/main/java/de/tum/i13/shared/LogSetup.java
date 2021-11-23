@@ -1,44 +1,48 @@
 package de.tum.i13.shared;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.logging.*;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.spi.StandardLevel;
 
+import java.nio.file.Path;
+
+/**
+ * Sets up the logging in the application
+ */
 public class LogSetup {
 
-    private static FileHandler createLogFile(String logFile) {
-        FileHandler fileHandler = null;
+    private LogSetup() {}
 
-        try {
-            File directory = new File(Constants.LOGS_DIR);
-            if (!directory.exists()){
-                directory.mkdir();
-            }
+    /**
+     * Set up the logging of the application.
+     *
+     * Configure the path of the logging file with a system property.
+     * The default value is {@code logs/cdb.log} in the current directory.
+     *
+     * Additionally configure the log level of the root logger.
+     *
+     * @param logfile the path of the file where to log to
+     * @param logLevel the log level to use
+     */
+    public static void setupLogging(Path logfile, Level logLevel) {
+        System.setProperty("logFilename", logfile.toString());
+        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        ctx.reconfigure();
 
-            fileHandler = new FileHandler(Paths.get(Constants.LOGS_DIR, logFile).toString(), true);        
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return fileHandler;
+        Configurator.setRootLevel(logLevel);
     }
 
-    public static void setupLogging(String logfile) {
-        Logger logger = LogManager.getLogManager().getLogger("");
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS.%1$tL %4$-7s [%3$s] %5$s %6$s%n");
-
-        FileHandler fileHandler = LogSetup.createLogFile(logfile);
-
-        fileHandler.setFormatter(new SimpleFormatter());
-        logger.addHandler(fileHandler);
-
-        for (Handler h : logger.getHandlers()) {
-            h.setLevel(Level.ALL);
-        }
-        logger.setLevel(Level.ALL); // we want log everything
+    /**
+     * Overloads {@link #setupLogging(Path, Level)} with {@link Level#getLevel(String)}
+     * to convert {@link StandardLevel} to {@link Level}
+     *
+     * @param logFile the path of the file where to log to
+     * @param logLevel the log level to use
+     * @see #setupLogging(Path, Level)
+     */
+    public static void setupLogging(Path logFile, StandardLevel logLevel) {
+        setupLogging(logFile, Level.getLevel(logLevel.toString()));
     }
 }
