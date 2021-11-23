@@ -23,7 +23,8 @@ public class BTreePersistentStorage implements PersistentStorage {
 
     /**
      * Create a new B-Tree with a given minum degree (see {@link PersistentBTree}).
-     * Storage handler is also configurable.
+     * Storage handler is also configurable. First there is an attempt to load the
+     * tree, if it fails, a new tree is created.
      * 
      * @param minimumDegree  B-Tree minimum degree
      * @param storageHandler Handler used by the BTree to persist
@@ -34,7 +35,7 @@ public class BTreePersistentStorage implements PersistentStorage {
         } catch (StorageException e) {
         }
 
-        if(this.tree == null) {
+        if (this.tree == null) {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler);
         }
     }

@@ -52,6 +52,7 @@ public class PersistentBTree<V> implements Serializable {
      * @param key key of the element to remove
      * @throws StorageException An exception is thrown if a problem occurs with
      *                          persistent storage.
+     * @return True if an element was removed, false otherwise
      */
     public boolean remove(String key) throws StorageException {
         Preconditions.notNull(key);
