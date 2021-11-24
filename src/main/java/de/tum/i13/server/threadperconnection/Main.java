@@ -43,7 +43,6 @@ public class Main {
         try (final ServerSocket serverSocket = new ServerSocket()) {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 LOGGER.info("Closing server socket");
-                System.out.println("Closing thread per connection kv server");
                 try {
                     serverSocket.close();
                 } catch (IOException ex) {
@@ -77,6 +76,13 @@ public class Main {
     private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize) throws StorageException {
         PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(), false);
         BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Closing btree storage");
+            System.out.println("Oi1");
+            storage.close();
+        }));
+
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 

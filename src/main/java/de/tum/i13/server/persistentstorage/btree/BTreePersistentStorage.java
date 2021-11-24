@@ -93,4 +93,19 @@ public class BTreePersistentStorage implements PersistentStorage {
                     value == null ? "deleting" : "putting", key);
         }
     }
+
+    /**
+     * Closes tree ensuring that modifying operations (inserts and deletes) can
+     * finish first.
+     */
+    public void close() {
+        this.tree.close();
+    }
+
+    /**
+     * Enables tree operations have it has been closed.
+     */
+    public void reopen() {
+        this.tree.reopen();
+    }
 }

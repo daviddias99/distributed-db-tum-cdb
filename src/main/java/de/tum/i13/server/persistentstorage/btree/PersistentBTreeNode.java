@@ -119,7 +119,7 @@ class PersistentBTreeNode<V> implements Serializable {
             return null;
 
         // Remove chunk from memory
-        chunk = null;
+        chunk.finalize();
 
         // Go to the appropriate child
         return children.get(i).search(key, insert, value);
@@ -196,7 +196,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
                 this.setChunk(chunk);
             }
-            chunk = null;
+            chunk.finalize();
             this.children.get(i + 1).insertNonFull(key, value);
         }
     }
@@ -228,7 +228,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
         newNode.setChunk(newNodeChunk);
 
-        newNodeChunk = null;
+        newNodeChunk.finalize();
 
         // Copy the last minimumDegree children of child to newNode
         if (!child.leaf) {

@@ -59,7 +59,7 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk = null;
+                chunk.finalize();
                 System.out.println(pair.key + " -> " + pair.value);
             }
 
@@ -94,7 +94,7 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk = null;
+                chunk.finalize();
                 System.out.print(pair.key + " ");
             }
 
@@ -127,7 +127,7 @@ public class PersistentBTreeDisplay<V> {
                 Pair<V> pair = chunk.get(i);
                 System.out.print(pair.key + " ");
             }
-            chunk = null;
+            chunk.finalize();
             System.out.print("\n");
 
             System.out.print("Children: ");

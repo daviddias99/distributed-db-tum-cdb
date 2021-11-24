@@ -4,11 +4,15 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 
 import java.io.Serializable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class represents a BTree (https://en.wikipedia.org/wiki/B-tree) that can
@@ -20,6 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class PersistentBTree<V> implements Serializable {
     private static final long serialVersionUID = 6529685098267757690L;
+    private static final Logger LOGGER = LogManager.getLogger(PersistentBTree.class);
 
     PersistentBTreeNode<V> root; // Root node
     private int minimumDegree; // Minimum degree
@@ -27,6 +32,7 @@ public class PersistentBTree<V> implements Serializable {
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock(); // used to ensure concurrent reads, and
                                                                         // exclusive
                                                                         // access writes
+    private boolean treeClosed;
 
     /**
      * Create a new PersistentBTree. It is possible to configure the tree's
@@ -50,11 +56,19 @@ public class PersistentBTree<V> implements Serializable {
      * Remove element with 'key' from the tree.
      * 
      * @param key key of the element to remove
-     * @throws StorageException An exception is thrown if a problem occurs with
-     *                          persistent storage.
+     * @throws StorageException         An exception is thrown if a problem occurs
+     *                                  with persistent storage.
+     * @throws PersistentBTreeException
      */
-    public boolean remove(String key) throws StorageException {
+    public boolean remove(String key) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
+
+        if (treeClosed) {
+            PersistentBTreeException ex = new PersistentBTreeException(
+                    "Could not perform operation because tree is closed");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
+            throw ex;
+        }
 
         this.readWriteLock.writeLock().lock();
 
@@ -81,11 +95,19 @@ public class PersistentBTree<V> implements Serializable {
      * @param key key of the element to search
      * @return The value associated with the key, or {@code null} if it does not
      *         exist.
-     * @throws StorageException An exception is thrown if a problem occurs with
-     *                          persistent storage.
+     * @throws StorageException         An exception is thrown if a problem occurs
+     *                                  with persistent storage.
+     * @throws PersistentBTreeException
      */
-    public V search(String key) throws StorageException {
+    public V search(String key) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
+
+        if (treeClosed) {
+            PersistentBTreeException ex = new PersistentBTreeException(
+                    "Could not perform operation because tree is closed");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
+            throw ex;
+        }
 
         this.readWriteLock.readLock().lock();
 
@@ -105,12 +127,20 @@ public class PersistentBTree<V> implements Serializable {
      * @param key   key to insert into B-Tree.
      * @param value value to insert into B-Tree.
      * @return Previous value or null if it does not exist.
-     * @throws StorageException An exception is thrown if a problem occurs with
-     *                          persistent storage.
+     * @throws StorageException         An exception is thrown if a problem occurs
+     *                                  with persistent storage.
+     * @throws PersistentBTreeException
      */
-    public V insert(String key, V value) throws StorageException {
+    public V insert(String key, V value) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
         Preconditions.notNull(value);
+
+        if (treeClosed) {
+            PersistentBTreeException ex = new PersistentBTreeException(
+                    "Could not perform operation because tree is closed");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
+            throw ex;
+        }
 
         this.readWriteLock.writeLock().lock();
 
@@ -151,6 +181,31 @@ public class PersistentBTree<V> implements Serializable {
      */
     public void delete() throws StorageException {
         this.storageHandler.delete();
+    }
+
+    /**
+     * Closes tree ensuring that modifying operations (inserts and deletes) can
+     * finish first.
+     */
+    public void close() {
+        synchronized (this) {
+            this.treeClosed = true;
+            this.readWriteLock.writeLock().lock();
+        }
+
+        LOGGER.info("Closed PersistentBTree");
+    }
+
+    /**
+     * Enables tree operations have it has been closed.
+     */
+    public void reopen() {
+        synchronized (this) {
+            this.treeClosed = false;
+            this.readWriteLock.writeLock().unlock();
+        }
+
+        LOGGER.info("Reopened PersistentBTree");
     }
 
     /**

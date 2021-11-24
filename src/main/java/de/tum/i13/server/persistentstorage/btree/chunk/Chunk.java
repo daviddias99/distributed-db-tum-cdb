@@ -40,6 +40,11 @@ public class Chunk<V> implements Serializable{
         this.elements = chunk.elements;
     }
 
+    @Override
+    public void finalize() {
+        this.elements = null;
+    }
+
     /**
      * Create a new Chunk with given minimum degree and initialized with some
      * elements. Note that all nodes in a B-Tree (except the root) must have at list
