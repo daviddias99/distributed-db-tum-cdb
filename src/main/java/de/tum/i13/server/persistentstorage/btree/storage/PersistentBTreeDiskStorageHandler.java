@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -76,9 +75,8 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public void save(PersistentBTree<V> tree) throws StorageException {
-        try {
-            FileOutputStream fileOut = new FileOutputStream(this.filePath);
-            var objectOut = new ObjectOutputStream(fileOut);
+        try (FileOutputStream fileOut = new FileOutputStream(this.filePath)) {
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(tree);
             objectOut.close();
             LOGGER.debug("Stored tree ({}) in disk.", this.filePath);
@@ -96,8 +94,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public PersistentBTree<V> load() throws StorageException {
-        try {
-            FileInputStream fileIn = new FileInputStream(this.filePath);
+        try (FileInputStream fileIn = new FileInputStream(this.filePath)) {
             ObjectInputStream objectIn = new ObjectInputStream(fileIn);
             @SuppressWarnings("unchecked")
             PersistentBTree<V> tree = (PersistentBTree<V>) objectIn.readObject();

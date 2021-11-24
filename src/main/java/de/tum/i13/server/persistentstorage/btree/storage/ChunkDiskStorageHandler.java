@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree.storage;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,8 +39,8 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     @Override
     public Chunk<V> readChunk() throws StorageException {
 
-        try {
-            FileInputStream fileIn = new FileInputStream(this.filePath);
+        try (FileInputStream fileIn = new FileInputStream(this.filePath)){
+            
             ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
             @SuppressWarnings("unchecked")
@@ -79,8 +79,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public void storeChunkForce(Chunk<V> chunk) throws StorageException {
-        try {
-            FileOutputStream fileOut = new FileOutputStream(this.filePath);
+        try (FileOutputStream fileOut = new FileOutputStream(this.filePath)){
             var objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(chunk);
             objectOut.close();
@@ -97,9 +96,15 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
         }
     }
 
-    private void deleteChunk() {
-        File file = new File(this.filePath);
-        file.delete();
-        LOGGER.debug("Deleted chunk ({}) from disk.", this.filePath);
+    private void deleteChunk() throws StorageException {
+        try {
+            Files.delete(Paths.get(this.filePath) );
+            LOGGER.debug("Deleted chunk ({}) from disk.", this.filePath);
+        } catch (IOException e) {
+            StorageException storageException = new StorageException(e, "I/O error while deleting chunk from disk");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        }
+
     }
 }
