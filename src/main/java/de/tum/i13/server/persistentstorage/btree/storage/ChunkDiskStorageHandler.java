@@ -13,12 +13,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentstorage.btree.chunk.ChunkImpl;
 import de.tum.i13.shared.Constants;
 
 /**
  * Implements {@link ChunkStorageHandler} by storing chunks of type
- * {@link ChunkImpl} on disk.
+ * {@link Chunk} on disk.
  */
 public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
     private static final Logger LOGGER = LogManager.getLogger(ChunkDiskStorageHandler.class);
@@ -45,7 +44,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
             @SuppressWarnings("unchecked")
-            ChunkImpl<V> chunk = (ChunkImpl<V>) objectIn.readObject();
+            Chunk<V> chunk = (Chunk<V>) objectIn.readObject();
             objectIn.close();
             LOGGER.trace("Loaded chunk ({}) from disk.", this.filePath);
             return chunk;

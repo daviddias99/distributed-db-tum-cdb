@@ -1,95 +1,130 @@
 package de.tum.i13.server.persistentstorage.btree.chunk;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import de.tum.i13.shared.Preconditions;
+
 /**
- * An array-like data-structure containing key-value pairs (see {@link Pair}) to
- * be used as data-blocks in a B-Tree. Contains operations commonly performed on
- * these data-blocks. The structure is sorted by the key values in increasing
- * order.
- * 
- * @param <V> type to be used in values
+ * A serializable (see {@link Serializable}) implementation of {@link Chunk}.
+ * Stores elements in a fixed-size ArrayList.
  */
-public interface Chunk<V> {
+public class Chunk<V> implements Serializable{
+    private List<Pair<V>> elements;
+    private int minimumDegree;
+
+    private static final long serialVersionUID = 6529685098267757681L;
 
     /**
-     * Finds index that contains the first element with a key greater than
-     * {@code key}
+     * Create a new Chunk with given minimum degree. Note that all nodes in a B-Tree
+     * (except the root) must have at list {@code minimumDegree - 1} and at most
+     * {@code 2*minimumDegree  - 1} elements.
      * 
-     * @param key key to check
-     * @return index of first element with a key greater than {@code key}
+     * @param minimumDegree B-Tree minimum degree
      */
-    public int findIndexOfFirstGreaterThen(String key);
+    public Chunk(int minimumDegree) {
+        this.minimumDegree = minimumDegree;
+        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
+    }
+
+    public Chunk(Chunk<V> chunk) {
+        try {
+            super.clone();
+        } catch (CloneNotSupportedException e) {
+            // Purposefuly left empty
+        }
+
+        this.minimumDegree = chunk.minimumDegree;
+        this.elements = chunk.elements;
+    }
 
     /**
-     * Get element at {@code index}
+     * Create a new Chunk with given minimum degree and initialized with some
+     * elements. Note that all nodes in a B-Tree (except the root) must have at list
+     * {@code minimumDegree - 1} and at most {@code 2*minimumDegree  - 1} elements.
      * 
-     * @param index index of the element to return
-     * @return the element at the specified position in this chunk
+     * @param minimumDegree B-Tree minimum degree
+     * @param newElements   List of initial elements
      */
-    public Pair<V> get(int index);
+    public Chunk(int minimumDegree, List<Pair<V>> newElements) {
+        Preconditions.check(newElements.size() <= 2 * minimumDegree - 1);
+        this.minimumDegree = minimumDegree;
+        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
+        Collections.copy(this.elements, newElements);
+    }
 
-    /**
-     * Removes element at specified position in the chunk. After calling this
-     * method, the {@code index} position will contain the value null.
-     * 
-     * @param index the index of the element to be removed
-     * @return the element previously at the specified position
-     */
-    public Pair<V> remove(int index);
+    public int findIndexOfFirstGreaterThen(String k) {
+        int i = 0;
+        int n = this.getElementCount();
+        while (i < n && k.compareTo(elements.get(i).key) > 0)
+            i++;
 
-    /**
-     * Replaces the element at the specified position in this list with the
-     * specified element
-     * 
-     * @param index   index of the element to replace
-     * @param element element to be stored at the specified position
-     * @return the element previously at the specified position
-     */
-    public Pair<V> set(int index, Pair<V> element);
+        return i;
+    }
 
-    /**
-     * Shifts all the elements after {@code startIndex} left one position. If the
-     * {@code startIndex} position contains any element it will be overriden.
-     * 
-     * @param startIndex index of first element to shift left
-     */
-    public void shiftLeftOne(int startIndex);
+    public Pair<V> get(int index) {
+        return this.elements.get(index);
+    }
 
-    /**
-     * Shifts all the elements after {@code startIndex} right one position.
-     * 
-     * @param startIndex index of first element to shift right
-     */
-    public void shiftRightOne(int startIndex);
+    public Pair<V> set(int index, Pair<V> element) {
+        return this.elements.set(index, element);
+    }
 
-    /**
-     * Shifts all the elements after the first element with a key larger than key
-     * {@code key} right one position.
-     * 
-     * @param key key to check
-     * @return index the chunk position where a new element should be in.
-     */
-    public int shiftRightOneAfterFirstGreaterThan(String key);
+    public Pair<V> remove(int index) {
+        Pair<V> elem = this.elements.get(index);
+        this.elements.set(index, null);
+        return elem;
+    }
 
-    /**
-     * Create a copy of the chunk.
-     * 
-     * @return a copy of the chunk
-     */
-    public Chunk<V> clone();
+    public void shiftRightOne(int startIndex) {
+        int keyCount = this.getElementCount();
 
-    /**
-     * Get number of elements in chunk.
-     * 
-     * @return Number of elements in chunk.
-     */
-    public int getElementCount();
+        for (int j = keyCount - 1; j >= startIndex; j--) {
+            this.elements.set(j + 1, this.elements.get(j));
+            this.elements.set(j, null);
+        }
+    }
 
-    /**
-     * Get elements list. Note that some positions might be {@code null}.
-     * 
-     * @return list of key-value elements
-     */
-    List<Pair<V>> getElements();
+    public void shiftLeftOne(int startIndex) {
+        // Move all the keys after the idx-th pos one place backward
+        for (int i = startIndex + 1; i < this.elements.size(); ++i) {
+            this.elements.set(i - 1, this.elements.get(i));
+            this.elements.set(i, null);
+        }
+    }
+
+    public int shiftRightOneAfterFirstGreaterThan(String key) {
+        int keyCount = this.getElementCount();
+        int i = keyCount - 1;
+
+        while (i >= 0 && elements.get(i).key.compareTo(key) > 0) {
+            elements.set(i + 1, elements.get(i));
+            elements.set(i, null);
+            i--;
+        }
+
+        if (i < 0) {
+            return i + 1;
+        }
+
+        return elements.get(i).key.compareTo(key) == 0 ? i : i + 1;
+    }
+
+    public int getElementCount() {
+        int i = 0;
+
+        for (Pair<V> pair : elements) {
+            if (pair != null) {
+                i += 1;
+            }
+        }
+
+        return i;
+    }
+
+    public List<Pair<V>> getElements() {
+        return this.elements;
+    }
 }

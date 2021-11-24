@@ -23,7 +23,7 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
     public void save(PersistentBTree<V> tree) {
         LOGGER.info("Saved tree ({}) from memory.", tree.hashCode());
         this.tree = tree;
-    };
+    }
 
     @Override
     public PersistentBTree<V> load() {
@@ -33,7 +33,7 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public ChunkMockStorageHandler<V> createChunkStorageHandler(String chunkId) {
-        return new ChunkMockStorageHandler<V>();
+        return new ChunkMockStorageHandler<>();
     }
 
     @Override

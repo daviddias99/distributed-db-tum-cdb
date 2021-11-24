@@ -17,7 +17,7 @@ import de.tum.i13.shared.Preconditions;
  * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
  */
 public class BTreePersistentStorage implements PersistentStorage {
-    private static final Logger LOGGER = LogManager.getLogger(PersistentStorage.class);
+    private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
     private PersistentBTree<String> tree;
 
@@ -32,9 +32,10 @@ public class BTreePersistentStorage implements PersistentStorage {
         try {
             this.tree = storageHandler.load();
         } catch (StorageException e) {
+            // Purposefuly empty
         }
 
-        if(this.tree == null) {
+        if (this.tree == null) {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler);
         }
     }
@@ -54,8 +55,7 @@ public class BTreePersistentStorage implements PersistentStorage {
             LOGGER.info("Found value {} with key {}", value, key);
             return new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS);
         } catch (Exception e) {
-            GetException ex = new GetException("An error occured while fetching key %s from storage.", key);
-            throw ex;
+            throw new GetException("An error occured while fetching key %s from storage.", key);
         }
     }
 
@@ -79,7 +79,7 @@ public class BTreePersistentStorage implements PersistentStorage {
 
             // Note: this returns a PUT_SUCCESS if the value already exists but is updated
             // with the same value.
-            if (value != previousValue && previousValue != null) {
+            if (!value.equals(previousValue) && previousValue != null) {
                 LOGGER.info("Updated key {} with value {}", key, value);
 
                 return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);

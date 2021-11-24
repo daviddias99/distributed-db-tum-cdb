@@ -180,7 +180,7 @@ public class PersistentBTree<V> implements Serializable {
      */
     private void createRoot(String key, V value) throws StorageException {
         // Create new node
-        root = new PersistentBTreeNode<V>(this.minimumDegree, true, new Pair<V>(key, value), this.storageHandler);
+        root = new PersistentBTreeNode<>(this.minimumDegree, true, new Pair<>(key, value), this.storageHandler);
     }
 
     /**
@@ -193,7 +193,7 @@ public class PersistentBTree<V> implements Serializable {
      */
     private void insertFull(String key, V value) throws StorageException {
         // Allocate memory for new root
-        PersistentBTreeNode<V> s = new PersistentBTreeNode<V>(this.minimumDegree, false, this.storageHandler);
+        PersistentBTreeNode<V> s = new PersistentBTreeNode<>(this.minimumDegree, false, this.storageHandler);
         Chunk<V> chunk = s.getChunk();
 
         // Make old root as child of new root

@@ -22,7 +22,7 @@ public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     @Override
     public Chunk<V> readChunk() {
         LOGGER.trace("Loaded chunk ({}) from memory.", this.hashCode());
-        return this.chunk.clone();
+        return new Chunk<>(chunk);
     }
 
     @Override
@@ -33,7 +33,6 @@ public class ChunkMockStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public void storeChunkForce(Chunk<V> chunk) {
-        LOGGER.trace("Stored chunk ({}) in memory.", this.hashCode());
-        this.chunk = chunk;
+        this.storeChunk(chunk);
     }
 }

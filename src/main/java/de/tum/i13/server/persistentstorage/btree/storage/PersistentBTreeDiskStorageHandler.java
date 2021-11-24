@@ -20,7 +20,7 @@ import de.tum.i13.shared.Constants;
  * {@link PersistentBTree} on disk.
  */
 public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
-    private static final Logger LOGGER = LogManager.getLogger(ChunkDiskStorageHandler.class);
+    private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeDiskStorageHandler.class);
     private static final long serialVersionUID = 6523685098267757691L;
 
     private String filePath; // Tree structure file path
@@ -105,9 +105,6 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
             LOGGER.debug("Loaded tree ({}) from disk.", this.filePath);
             return tree;
         } catch (FileNotFoundException e) {
-            // StorageException storageException = new StorageException(e,
-            //         "Throwing exception because the file %s could not be found.", this.filePath);
-            // LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             return null;
         } catch (IOException e) {
             StorageException storageException = new StorageException(e, "I/O error while reading tree from memory");

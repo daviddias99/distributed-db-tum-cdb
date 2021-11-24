@@ -43,7 +43,7 @@ public class PersistentBTreeDisplay<V> {
 
                 // If this is not leaf, then before printing key[i],
                 // traverse the subtree rooted with child C[i].
-                if (node.leaf == false) {
+                if (!node.leaf) {
                     this.traverse(node.children.get(i));
                 }
 
@@ -64,7 +64,7 @@ public class PersistentBTreeDisplay<V> {
             }
 
             // Print the subtree rooted with last child
-            if (node.leaf == false)
+            if (!node.leaf)
                 this.traverse(node.children.get(i));
         }
 
@@ -78,7 +78,7 @@ public class PersistentBTreeDisplay<V> {
 
                 // If this is not leaf, then before printing key[i],
                 // traverse the subtree rooted with child C[i].
-                if (node.leaf == false) {
+                if (!node.leaf) {
                     this.traverseCondensed(node.children.get(i));
                 }
 
@@ -99,7 +99,7 @@ public class PersistentBTreeDisplay<V> {
             }
 
             // Print the subtree rooted with last child
-            if (node.leaf == false)
+            if (!node.leaf)
                 this.traverseCondensed(node.children.get(i));
         }
 
