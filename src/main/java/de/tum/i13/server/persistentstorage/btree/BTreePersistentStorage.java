@@ -60,7 +60,7 @@ public class BTreePersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public KVMessage put(String key, String value) throws PutException {
+    public synchronized KVMessage put(String key, String value) throws PutException {
         Preconditions.notNull(key, "Key cannot be null");
 
         try {
@@ -98,14 +98,14 @@ public class BTreePersistentStorage implements PersistentStorage {
      * Closes tree ensuring that modifying operations (inserts and deletes) can
      * finish first.
      */
-    public void close() {
+    public synchronized void close() {
         this.tree.close();
     }
 
     /**
      * Enables tree operations have it has been closed.
      */
-    public void reopen() {
+    public synchronized void reopen() {
         this.tree.reopen();
     }
 }
