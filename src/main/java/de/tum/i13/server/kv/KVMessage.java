@@ -57,7 +57,27 @@ public interface KVMessage {
         /**
          * Delete - request successful
          */
-        DELETE_ERROR(true, false);
+        DELETE_ERROR(true, false),
+        /**
+         * Indicates that currently no requests are processed by the server since the
+         * whole storage service is under initialization.
+         * Retries with exponential back-off with jitter should be used.
+         */
+        SERVER_STOPPED(false, false),
+        /**
+         * Indicates that the requested key is not within the range of the answering server
+         */
+        SERVER_NOT_RESPONSIBLE(true, false),
+        /**
+         * Indicates that the storage server is currently blocked for write requests due
+         * to reallocation of data in case of joining or leaving storage nodes
+         */
+        SERVER_WRITE_LOCK(false, false),
+        /**
+         * Indicates the return of the key ranges and which KVStores are responsible for the ranges
+         */
+        KEYRANGE_SUCCESS(true, false);
+
 
         private final boolean needsKey;
         private final boolean needsValue;
