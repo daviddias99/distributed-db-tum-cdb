@@ -16,7 +16,7 @@ public class KVMessageImpl implements KVMessage {
     /**
      * Creates a new {@link KVMessage} with empty value
      *
-     * @param key the key to set, must not be null
+     * @param key    the key to set, must not be null
      * @param status the status to set, must not be null
      */
     public KVMessageImpl(String key, StatusType status) {
@@ -49,8 +49,8 @@ public class KVMessageImpl implements KVMessage {
     /**
      * Creates a new {@link KVMessage} with present value
      *
-     * @param key the key to set, must not be null
-     * @param value the value to set, must not be null
+     * @param key    the key to set, must not be null
+     * @param value  the value to set, must not be null
      * @param status the status to set, must not be null
      */
     public KVMessageImpl(String key, String value, StatusType status) {
