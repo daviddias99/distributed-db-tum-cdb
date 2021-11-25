@@ -17,61 +17,61 @@ public interface KVMessage {
         /**
          * Undefined status, for example unprocessable command
          */
-        UNDEFINED(true),
+        UNDEFINED(false),
         /**
          * Get - request
          */
-        GET(true),
+        GET(false),
         /**
          * requested tuple (i.e. value) not found
          */
-        GET_ERROR(true),
+        GET_ERROR(false),
         /**
          * requested tuple (i.e. value) found
          */
-        GET_SUCCESS(false),
+        GET_SUCCESS(true),
         /**
          * Put - request
          */
-        PUT(false),
+        PUT(true),
         /**
          * Put - request successful, tuple inserted
          */
-        PUT_SUCCESS(false),
+        PUT_SUCCESS(true),
         /**
          * Put - request successful, i.e. value updated
          */
-        PUT_UPDATE(false),
+        PUT_UPDATE(true),
         /**
          * Put - request not successful
          */
-        PUT_ERROR(false),
+        PUT_ERROR(true),
         /**
          * Delete - request
          */
-        DELETE(true),
+        DELETE(false),
         /**
          * Delete - request successful
          */
-        DELETE_SUCCESS(true),
+        DELETE_SUCCESS(false),
         /**
          * Delete - request successful
          */
-        DELETE_ERROR(true);
+        DELETE_ERROR(false);
 
-        private final boolean canHavEmptyValue;
+        private final boolean needsValue;
 
-        StatusType(boolean canHavEmptyValue) {
-            this.canHavEmptyValue = canHavEmptyValue;
+        StatusType(boolean needsValue) {
+            this.needsValue = needsValue;
         }
 
         /**
-         * Check if this type of {@link KVMessage} can have an empty value
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty value
          *
-         * @return if it can have an empty value
+         * @return if it needs a non-empty value
          */
-        public boolean canHaveEmptyValue() {
-            return this.canHavEmptyValue;
+        public boolean needsValue() {
+            return this.needsValue;
         }
     }
 

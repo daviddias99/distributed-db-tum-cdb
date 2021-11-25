@@ -22,7 +22,7 @@ public class KVMessageImpl implements KVMessage {
     public KVMessageImpl(String key, StatusType status) {
         Preconditions.notNull(key, KEY_CANNOT_BE_NULL_MESSAGE);
         Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
-        Preconditions.check(status.canHaveEmptyValue(), "Status cannot have an empty value");
+        Preconditions.check(!status.needsValue(), "Status cannot have an empty value");
 
         this.key = key;
         this.value = null;
