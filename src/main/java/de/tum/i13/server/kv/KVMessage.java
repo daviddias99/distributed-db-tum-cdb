@@ -17,52 +17,63 @@ public interface KVMessage {
         /**
          * Undefined status, for example unprocessable command
          */
-        UNDEFINED(false),
+        UNDEFINED(false, false),
         /**
          * Get - request
          */
-        GET(false),
+        GET(true, false),
         /**
          * requested tuple (i.e. value) not found
          */
-        GET_ERROR(false),
+        GET_ERROR(true, false),
         /**
          * requested tuple (i.e. value) found
          */
-        GET_SUCCESS(true),
+        GET_SUCCESS(true, true),
         /**
          * Put - request
          */
-        PUT(true),
+        PUT(true, true),
         /**
          * Put - request successful, tuple inserted
          */
-        PUT_SUCCESS(true),
+        PUT_SUCCESS(true, true),
         /**
          * Put - request successful, i.e. value updated
          */
-        PUT_UPDATE(true),
+        PUT_UPDATE(true, true),
         /**
          * Put - request not successful
          */
-        PUT_ERROR(true),
+        PUT_ERROR(true, true),
         /**
          * Delete - request
          */
-        DELETE(false),
+        DELETE(true, false),
         /**
          * Delete - request successful
          */
-        DELETE_SUCCESS(false),
+        DELETE_SUCCESS(true, false),
         /**
          * Delete - request successful
          */
-        DELETE_ERROR(false);
+        DELETE_ERROR(true, false);
 
+        private final boolean needsKey;
         private final boolean needsValue;
 
-        StatusType(boolean needsValue) {
+        StatusType(boolean needsKey, boolean needsValue) {
+            this.needsKey = needsKey;
             this.needsValue = needsValue;
+        }
+
+        /**
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty key
+         *
+         * @return if it needs a non-empty key
+         */
+        public boolean needsKey() {
+            return needsKey;
         }
 
         /**

@@ -22,7 +22,7 @@ public class KVMessageImpl implements KVMessage {
     public KVMessageImpl(String key, StatusType status) {
         Preconditions.notNull(key, KEY_CANNOT_BE_NULL_MESSAGE);
         Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
-        Preconditions.check(!status.needsValue(), "Status cannot have an empty value");
+        Preconditions.check(!status.needsValue(), String.format("Status %s cannot have an empty value", status));
 
         this.key = key;
         this.value = null;
@@ -37,9 +37,7 @@ public class KVMessageImpl implements KVMessage {
      */
     public KVMessageImpl(StatusType status) {
         Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
-        Preconditions.check(
-                status == StatusType.UNDEFINED,
-                "Status must be undefined to use this constructor");
+        Preconditions.check(!status.needsKey(), String.format("Status %s cannot have an empty key", status));
 
         this.key = null;
         this.value = null;
