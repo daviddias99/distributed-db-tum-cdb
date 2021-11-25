@@ -1,7 +1,5 @@
 package de.tum.i13.server.kv;
 
-import de.tum.i13.shared.Constants;
-
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -156,7 +154,9 @@ public interface KVMessage {
         final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
                 string.toUpperCase()
         );
-        if (msgTokens.length == 2) {
+        if (msgTokens.length == 1) {
+            return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
+        } else if (msgTokens.length == 2) {
             return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
         } else if (msgTokens.length == 3) {
             return new KVMessageImpl(
@@ -179,21 +179,14 @@ public interface KVMessage {
      * I.e.
      * <pre>"    put   thisKey     to this   value   "</pre>
      * will produce the following tokens
-     * <pre>{"put", "thisKey     to this   value" }</pre>
+     * <pre>{"put", "thisKey", "to this   value" }</pre>
      *
      * @param message the message from which to extract the tokens
      * @return the extracted tokens of the message
      * @see String#trim()
      */
     static String[] extractTokens(String message) {
-        final String trimmedMsg = message.trim();
-        String[] msgTokens = trimmedMsg.split("\\s+");
-        if (msgTokens.length >= 3 && Constants.PUT_COMMAND.equals(msgTokens[0])) {
-            final String[] putAndParameters = trimmedMsg.split("\\s+", 2);
-            final String[] parameters = putAndParameters[1].split("\\s+", 2);
-            msgTokens = new String[]{putAndParameters[0], parameters[0], parameters[1]};
-        }
-        return msgTokens;
+        return message.trim().split("\\s+", 3);
     }
 
 }

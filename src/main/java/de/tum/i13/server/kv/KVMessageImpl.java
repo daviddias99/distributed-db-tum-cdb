@@ -29,7 +29,6 @@ public class KVMessageImpl implements KVMessage {
         this.status = status;
     }
 
-    // TODO Consider empty key in message packing and unpacking
     /**
      * Creates a new {@link KVMessage} with empty key and value
      *
