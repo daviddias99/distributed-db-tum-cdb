@@ -41,4 +41,19 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
         LOGGER.info("Deleted tree ({}) from memory.", tree.hashCode());
         this.tree = null;
     }
+
+    @Override
+    public void beginTransaction() {
+        // Method purposefuly left empty
+    }
+
+    @Override
+    public void endTransaction() {
+        // Method purposefuly left empty
+    }
+
+    @Override
+    public void rollbackTransaction() {
+        // Method purposefuly left empty
+    }
 }

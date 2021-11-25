@@ -1,11 +1,6 @@
 package de.tum.i13.server.persistentstorage.btree.storage;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.file.*;
 
@@ -24,7 +19,10 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     private static final long serialVersionUID = 6529685098267757691L;
 
-    private String filePath; // Path to the chunk
+    private String chunkId; // Chunk ID
+    private String storageFolder; // Storage folder
+
+    private TransactionHandler tHandler;
 
     /**
      * Create new storage handler. This handler interfaces with a chunk at
@@ -32,79 +30,48 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
      * 
      * @param filePath
      */
-    public ChunkDiskStorageHandler(String filePath) {
-        this.filePath = filePath;
+    public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler transHandler) {
+        this.chunkId = chunkId;
+        this.tHandler = transHandler;
+        this.storageFolder = storageFolder;
     }
 
     @Override
     public Chunk<V> readChunk() throws StorageException {
-
-        try (FileInputStream fileIn = new FileInputStream(this.filePath)){
-            
-            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-
-            @SuppressWarnings("unchecked")
-            Chunk<V> chunk = (Chunk<V>) objectIn.readObject();
-            objectIn.close();
-            LOGGER.trace("Loaded chunk ({}) from disk.", this.filePath);
-            return chunk;
-
-        } catch (FileNotFoundException e) {
-            StorageException storageException = new StorageException(e,
-                    "Throwing exception because the file %s could not be found.", this.filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while reading chunk from memory");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        } catch (ClassNotFoundException e) {
-            StorageException storageException = new StorageException(e,
-                    "Unknown error while reading chunk from memory");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        }
+        @SuppressWarnings("unchecked")
+        Chunk<V> chunk = (Chunk<V>) StorageUtils.readObject( Paths.get(storageFolder, chunkId));
+        return chunk;
     }
 
     @Override
     public void storeChunk(Chunk<V> chunk) throws StorageException {
-
+        this.tHandler.notifyChunkChange(chunkId);
         if (chunk.getElementCount() == 0) {
             this.deleteChunk();
             return;
         }
-
+        
         this.storeChunkForce(chunk);
     }
 
     @Override
     public void storeChunkForce(Chunk<V> chunk) throws StorageException {
-        try (FileOutputStream fileOut = new FileOutputStream(this.filePath)){
-            var objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(chunk);
-            objectOut.close();
-            LOGGER.trace("Stored chunk ({}) in disk.", this.filePath);
-        } catch (FileNotFoundException e) {
-            StorageException storageException = new StorageException(e,
-                    "Throwing exception because the file %s could not be found.", this.filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while writing chunk to disk");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        }
+        StorageUtils.writeObject( Paths.get(storageFolder, chunkId), chunk);
+    }
+
+    @Override
+    public void createChunk(Chunk<V> chunk) throws StorageException {
+        this.storeChunkForce(chunk);
     }
 
     private void deleteChunk() throws StorageException {
         try {
-            Files.delete(Paths.get(this.filePath) );
-            LOGGER.debug("Deleted chunk ({}) from disk.", this.filePath);
+            Files.delete( Paths.get(storageFolder, chunkId));
+            LOGGER.debug("Deleted chunk ({}) from disk.",  Paths.get(storageFolder, chunkId));
         } catch (IOException e) {
             StorageException storageException = new StorageException(e, "I/O error while deleting chunk from disk");
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             throw storageException;
         }
-
     }
 }

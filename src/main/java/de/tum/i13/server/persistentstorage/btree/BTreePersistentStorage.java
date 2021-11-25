@@ -27,8 +27,9 @@ public class BTreePersistentStorage implements PersistentStorage {
      * 
      * @param minimumDegree  B-Tree minimum degree
      * @param storageHandler Handler used by the BTree to persist
+     * @throws StorageException
      */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler) {
+    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler) throws StorageException {
         try {
             this.tree = storageHandler.load();
         } catch (StorageException e) {

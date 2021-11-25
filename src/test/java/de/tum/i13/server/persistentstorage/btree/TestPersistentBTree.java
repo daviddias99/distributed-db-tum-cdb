@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 
@@ -48,8 +47,8 @@ class TestPersistentBTree {
             assertThat(tree.search("A")).isEqualTo("Value");
             assertThat(TreeValidator.validTree(tree)).isTrue();
         } catch (StorageException e1) {
-            return; // Pass the test if exception is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            assertThat(TreeValidator.validTree(tree)).isTrue();
+
         } catch (Exception e) {
             fail();
         }
@@ -69,8 +68,8 @@ class TestPersistentBTree {
                     tree.insert(c + "", c + "");
                     assertThat(TreeValidator.validTree(tree)).isTrue();
                 } catch (StorageException e1) {
-                    return; // Pass the test if exception is thrown because there is currently no
-                            // expectations the state of the tree once something goes wrong
+                    assertThat(TreeValidator.validTree(tree)).isTrue();
+
                 } catch (Exception e) {
                     fail();
                 }
@@ -80,8 +79,8 @@ class TestPersistentBTree {
                 try {
                     assertThat(tree.search(c + "")).isEqualTo(c + "");
                 } catch (StorageException e1) {
-                    return; // Pass the test if exception is thrown because there is currently no
-                            // expectations the state of the tree once something goes wrong
+                    assertThat(TreeValidator.validTree(tree)).isTrue();
+
                 } catch (Exception e) {
                     fail();
                 }
@@ -92,10 +91,10 @@ class TestPersistentBTree {
     @Test
     void testSearchOnEmpty() {
         try {
-            assertThat(tree.search("a")).isEqualTo(null);
+            assertThat(tree.search("a")).isNull();
         } catch (StorageException e1) {
-            return; // Pass the test if exception is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            assertThat(TreeValidator.validTree(tree)).isTrue();
+
         } catch (Exception e) {
             fail();
         }
@@ -109,11 +108,11 @@ class TestPersistentBTree {
     @Test
     void testMissingSearch() {
         try {
-            assertThat(tree.search("A")).isEqualTo(null);
+            assertThat(tree.search("A")).isNull();
             assertThat(TreeValidator.validTree(tree)).isTrue();
         } catch (StorageException e1) {
-            return; // Pass the test if exception is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            assertThat(TreeValidator.validTree(tree)).isTrue();
+
         } catch (Exception e) {
             fail();
         }
@@ -132,8 +131,8 @@ class TestPersistentBTree {
             assertThat(tree.search("A")).isEqualTo("Value2");
             assertThat(TreeValidator.validTree(tree)).isTrue();
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -143,11 +142,11 @@ class TestPersistentBTree {
     @Test
     void testInsertDoubleInsert2() {
         try {
-            assertThat(tree.insert("A", "Value")).isEqualTo(null);
-            assertThat(tree.insert("B", "Value")).isEqualTo(null);
-            assertThat(tree.insert("C", "Value1")).isEqualTo(null);
-            assertThat(tree.insert("D", "Value")).isEqualTo(null);
-            assertThat(tree.insert("E", "Value")).isEqualTo(null);
+            assertThat(tree.insert("A", "Value")).isNull();
+            assertThat(tree.insert("B", "Value")).isNull();
+            assertThat(tree.insert("C", "Value1")).isNull();
+            assertThat(tree.insert("D", "Value")).isNull();
+            assertThat(tree.insert("E", "Value")).isNull();
             assertThat(TreeValidator.validTree(tree)).isTrue();
             assertThat(tree.search("C")).isEqualTo("Value1");
             assertThat(TreeValidator.validTree(tree)).isTrue();
@@ -156,8 +155,8 @@ class TestPersistentBTree {
             assertThat(tree.search("C")).isEqualTo("Value2");
             assertThat(TreeValidator.validTree(tree)).isTrue();
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -171,10 +170,10 @@ class TestPersistentBTree {
             assertThat(TreeValidator.validTree(tree)).isTrue();
             tree.remove("C");
             assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isEqualTo(null);
+            assertThat(tree.search("C")).isNull();
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -190,13 +189,13 @@ class TestPersistentBTree {
             assertThat(TreeValidator.validTree(tree)).isTrue();
             tree.remove("C");
             assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isEqualTo(null);
+            assertThat(tree.search("C")).isNull();
             assertThat(tree.search("B")).isNotEqualTo(null);
             assertThat(tree.search("A")).isNotEqualTo(null);
             assertThat(tree.search("D")).isNotEqualTo(null);
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -217,8 +216,8 @@ class TestPersistentBTree {
             assertThat(TreeValidator.validTree(tree)).isTrue();
         } catch (StorageException e1) {
             System.out.println(e1);
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -267,12 +266,12 @@ class TestPersistentBTree {
                     assertThat(tree.remove(c + "")).isTrue();
                     boolean valid = TreeValidator.validTree(tree);
                     assertThat(valid).isTrue();
-                    assertThat(tree.search(c + "")).isEqualTo(null);
+                    assertThat(tree.search(c + "")).isNull();
                 }
             }
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -303,8 +302,8 @@ class TestPersistentBTree {
                 assertThat(tree.search(c + "")).isEqualTo(c + "");
             }
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -317,7 +316,7 @@ class TestPersistentBTree {
     @Test
     void testPersistent2() {
         try {
-            assertThat(this.countInFolder("database")).isEqualTo(0);
+            assertThat(this.countInFolder("database")).isEqualTo(1);
             tree.insert("a", "value");
             assertThat(this.countInFolder("database")).isEqualTo(2);
             tree.insert("b", "value");
@@ -331,8 +330,8 @@ class TestPersistentBTree {
             tree.insert("f", "value");
             assertThat(this.countInFolder("database")).isEqualTo(4);
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -354,8 +353,8 @@ class TestPersistentBTree {
 
             assertThat(this.countInFolder("database")).isEqualTo(1);
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }
@@ -380,8 +379,8 @@ class TestPersistentBTree {
             assertThat(TreeValidator.validTree(tree)).isTrue();
             assertDoesNotThrow(() -> tree.insert("a", "value"));
         } catch (StorageException e1) {
-            return; // Pass the test if exceptiofn is thrown because there is currently no
-                    // expectations the state of the tree once something goes wrong
+            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+
         } catch (Exception e) {
             fail();
         }

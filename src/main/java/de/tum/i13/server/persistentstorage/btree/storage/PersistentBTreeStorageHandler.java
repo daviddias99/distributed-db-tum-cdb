@@ -43,4 +43,10 @@ public interface PersistentBTreeStorageHandler<V> {
      * @throws StorageException An exception is thrown when deletion fails.
      */
     public void delete() throws StorageException;
+
+    public void beginTransaction() throws StorageException;
+
+    public void endTransaction() throws StorageException;
+
+    public void rollbackTransaction() throws StorageException;
 }

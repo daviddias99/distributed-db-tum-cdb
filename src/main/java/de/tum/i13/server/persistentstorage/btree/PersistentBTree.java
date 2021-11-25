@@ -45,13 +45,15 @@ public class PersistentBTree<V> implements Serializable {
      *                       details)
      * @param storageHandler handler used to store the tree (used to generate the
      *                       contained chunk storage handler)
+     * @throws StorageException
      */
-    public PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler) {
+    public PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
         Preconditions.check(minimumDegree >= 2);
         this.root = null;
         this.minimumDegree = minimumDegree;
         this.storageHandler = storageHandler;
         this.treeClosed = new AtomicBoolean(false);
+        this.storageHandler.save(this);
     }
 
     /**
@@ -72,23 +74,30 @@ public class PersistentBTree<V> implements Serializable {
             throw ex;
         }
 
-        this.readWriteLock.writeLock().lock();
-
         if (root == null)
             return false;
 
-        // Call the remove function for root
-        boolean result = root.remove(key);
+        this.readWriteLock.writeLock().lock();
+        this.storageHandler.beginTransaction();
 
-        // If the root node has 0 keys, make its first child as the new root
-        // if it has a child, otherwise set root as NULL
-        if (root.getElementCount() == 0) {
-            root = root.isLeaf() ? null : root.getChildren().get(0);
+        try {
+            // Call the remove function for root
+            boolean result = root.remove(key);
+
+            // If the root node has 0 keys, make its first child as the new root
+            // if it has a child, otherwise set root as NULL
+            if (root.getElementCount() == 0) {
+                root = root.isLeaf() ? null : root.getChildren().get(0);
+            }
+
+            this.readWriteLock.writeLock().unlock();
+            this.storageHandler.save(this);
+            this.storageHandler.endTransaction();
+            return result;
+        } catch (StorageException e) {
+            this.storageHandler.rollbackTransaction();
+            throw e;
         }
-
-        this.readWriteLock.writeLock().unlock();
-        this.storageHandler.save(this);
-        return result;
     }
 
     /**
@@ -144,35 +153,44 @@ public class PersistentBTree<V> implements Serializable {
             throw ex;
         }
 
-        this.readWriteLock.writeLock().lock();
+        try {
+            this.storageHandler.beginTransaction();
+            this.readWriteLock.writeLock().lock();
 
-        // If tree is empty
-        if (root == null) {
-            this.createRoot(key, value);
+            // If tree is empty
+            if (root == null) {
+                this.createRoot(key, value);
+                this.storageHandler.save(this);
+                this.readWriteLock.writeLock().unlock();
+                this.storageHandler.endTransaction();
+                return null;
+            }
+
+            V previousValue = searchAndInsert(key, value);
+
+            if (previousValue != null) {
+                this.storageHandler.save(this);
+                this.readWriteLock.writeLock().unlock();
+                this.storageHandler.endTransaction();
+                return previousValue;
+            }
+
+            // If root is full, then tree grows in height
+            if (root.isFull())
+                this.insertFull(key, value);
+            // If root is not full, call insertNonFull for root
+            else
+                root.insertNonFull(key, value);
+
+            this.storageHandler.endTransaction();
             this.storageHandler.save(this);
             this.readWriteLock.writeLock().unlock();
+
             return null;
+        } catch (StorageException ex) {
+            this.storageHandler.rollbackTransaction();
+            throw ex;
         }
-
-        V previousValue = searchAndInsert(key, value);
-
-        if (previousValue != null) {
-            this.storageHandler.save(this);
-            this.readWriteLock.writeLock().unlock();
-            return previousValue;
-        }
-
-        // If root is full, then tree grows in height
-        if (root.isFull())
-            this.insertFull(key, value);
-        // If root is not full, call insertNonFull for root
-        else
-            root.insertNonFull(key, value);
-
-        this.storageHandler.save(this);
-        this.readWriteLock.writeLock().unlock();
-
-        return null;
     }
 
     /**
