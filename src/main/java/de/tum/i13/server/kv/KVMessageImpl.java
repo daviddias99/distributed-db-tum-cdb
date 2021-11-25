@@ -7,6 +7,8 @@ import de.tum.i13.shared.Preconditions;
  */
 public class KVMessageImpl implements KVMessage {
 
+    private static final String STATUS_CANNOT_BE_NULL_MESSAGE = "Status cannot be null";
+    private static final String KEY_CANNOT_BE_NULL_MESSAGE = "Key cannot be null";
     private final String key;
     private final String value;
     private final StatusType status;
@@ -18,8 +20,8 @@ public class KVMessageImpl implements KVMessage {
      * @param status the status to set, must not be null
      */
     public KVMessageImpl(String key, StatusType status) {
-        Preconditions.notNull(key, "Key cannot be null");
-        Preconditions.notNull(status, "Status cannot be null");
+        Preconditions.notNull(key, KEY_CANNOT_BE_NULL_MESSAGE);
+        Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
         Preconditions.check(status.canHaveEmptyValue(), "Status cannot have an empty value");
 
         this.key = key;
@@ -34,7 +36,7 @@ public class KVMessageImpl implements KVMessage {
      * @param status the status to set, must not be null
      */
     public KVMessageImpl(StatusType status) {
-        Preconditions.notNull(status, "Status cannot be null");
+        Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
         Preconditions.check(
                 status == StatusType.UNDEFINED,
                 "Status must be undefined to use this constructor");
@@ -52,9 +54,9 @@ public class KVMessageImpl implements KVMessage {
      * @param status the status to set, must not be null
      */
     public KVMessageImpl(String key, String value, StatusType status) {
-        Preconditions.notNull(key, "Key cannot be null");
+        Preconditions.notNull(key, KEY_CANNOT_BE_NULL_MESSAGE);
         Preconditions.notNull(value, "Value cannot be null");
-        Preconditions.notNull(status, "Status cannot be null");
+        Preconditions.notNull(status, STATUS_CANNOT_BE_NULL_MESSAGE);
 
         this.key = key;
         this.value = value;
