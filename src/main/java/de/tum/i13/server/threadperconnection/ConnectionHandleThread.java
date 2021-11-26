@@ -1,6 +1,6 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.client.net.ActiveConnection;
+import de.tum.i13.shared.ActiveConnection;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
