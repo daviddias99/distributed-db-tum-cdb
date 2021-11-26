@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer}.
  * This storage hides the network communication from the user
  */
-public class RemotePersistentStorage implements PersistentStorage {
+public class RemotePersistentStorage implements PersistentStorage, NetworkMessageServer {
 
     private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
@@ -93,12 +93,39 @@ public class RemotePersistentStorage implements PersistentStorage {
         return responseString;
     }
 
-    public NetworkLocation getNetworkLocation() {
-        return getNetworkMessageServer();
+    @Override
+    public void send(byte[] message) throws ClientException {
+        networkMessageServer.send(message);
     }
 
-    public NetworkMessageServer getNetworkMessageServer() {
-        return networkMessageServer;
+    @Override
+    public byte[] receive() throws ClientException {
+        return networkMessageServer.receive();
+    }
+
+    @Override
+    public void connect(String address, int port) throws ClientException {
+        networkMessageServer.connect(address, port);
+    }
+
+    @Override
+    public void disconnect() throws ClientException {
+        networkMessageServer.disconnect();
+    }
+
+    @Override
+    public boolean isConnected() {
+        return networkMessageServer.isConnected();
+    }
+
+    @Override
+    public String getAddress() {
+        return networkMessageServer.getAddress();
+    }
+
+    @Override
+    public int getPort() {
+        return networkMessageServer.getPort();
     }
 
 }
