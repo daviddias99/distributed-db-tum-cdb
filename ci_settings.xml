@@ -17,5 +17,10 @@
             <username>${env.CI_REGISTRY_USER}</username>
             <password>${env.CI_REGISTRY_PASSWORD}</password>
         </server>
+        <server>
+            <id>${env.CI_DEPENDENCY_PROXY_SERVER}</id>
+            <username>${env.CI_DEPENDENCY_PROXY_USER}</username>
+            <password>${env.CI_DEPENDENCY_PROXY_PASSWORD}</password>
+        </server>
     </servers>
 </settings>
