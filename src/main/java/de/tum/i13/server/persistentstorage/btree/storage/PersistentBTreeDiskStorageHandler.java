@@ -29,7 +29,8 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     private boolean transactionsEnabled;
 
     /**
-     * Create a new storage handler which will store a tree in {@code storageFolder}
+     * Create a new storage handler which will store a tree in
+     * {@code storageFolder}. Note, transactions are enabled by default
      * 
      * @param storageFolder      Folder where the tree and it's chunks will be
      *                           stored
@@ -40,7 +41,8 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
      * @throws StorageException An exception is thrown when an error with the
      *                          {@code storageFolder} occurs
      */
-    public PersistentBTreeDiskStorageHandler(String storageFolder, boolean reset, TransactionHandler<V> transactionHandler) throws StorageException {
+    public PersistentBTreeDiskStorageHandler(String storageFolder, boolean reset,
+            TransactionHandler<V> transactionHandler) throws StorageException {
         this.storageFolder = storageFolder;
         this.tHandler = transactionHandler;
         this.transactionsEnabled = true;
@@ -52,7 +54,9 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     }
 
     /**
-     * Create a new storage handler which will store a tree in {@code storageFolder}
+     * Create a new storage handler which will store a tree in
+     * {@code storageFolder}. A {@link TransactionHandlerImpl} is used for
+     * transactions.
      * 
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @param reset         True if the target folder should be cleared if it
@@ -66,7 +70,8 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     /**
      * Create a new storage handler which will store a tree in
-     * {@code storageFolder}.
+     * {@code storageFolder}. A {@link TransactionHandlerImpl} is used for
+     * transactions.
      * 
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @throws StorageException An exception is thrown when an error with the
@@ -88,7 +93,8 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
     @Override
     public PersistentBTreeNode<V> load() throws StorageException {
         @SuppressWarnings("unchecked")
-        PersistentBTreeNode<V> root = (PersistentBTreeNode<V>) StorageUtils.readObject(Paths.get(storageFolder, "root"));
+        PersistentBTreeNode<V> root = (PersistentBTreeNode<V>) StorageUtils
+                .readObject(Paths.get(storageFolder, "root"));
         return root;
     }
 
@@ -108,7 +114,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public void beginTransaction() throws StorageException {
-        if(!this.transactionsEnabled) {
+        if (!this.transactionsEnabled) {
             return;
         }
         this.tHandler.beginTransaction();
@@ -116,7 +122,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public void endTransaction() throws StorageException {
-        if(!this.transactionsEnabled) {
+        if (!this.transactionsEnabled) {
             return;
         }
         this.tHandler.endTransaction();
@@ -124,20 +130,19 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public PersistentBTreeNode<V> rollbackTransaction() throws StorageException {
-        if(!this.transactionsEnabled) {
+        if (!this.transactionsEnabled) {
             return null;
         }
-        PersistentBTreeNode<V> root = this.tHandler.rollbackTransaction();
-        return root;
+        return this.tHandler.rollbackTransaction();
     }
 
     @Override
     public void enableTransactions() {
-      this.transactionsEnabled = true;
+        this.transactionsEnabled = true;
     }
-  
+
     @Override
     public void disableTransactions() {
-      this.transactionsEnabled = false;
+        this.transactionsEnabled = false;
     }
 }

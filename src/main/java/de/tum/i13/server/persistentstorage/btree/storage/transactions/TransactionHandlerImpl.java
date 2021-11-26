@@ -19,11 +19,16 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   private static final Logger LOGGER = LogManager.getLogger(TransactionHandlerImpl.class);
 
   private static final String DEFAULT_DIRECTORY = "bckp";
-  private String storageFolder;
-  private static Set<String> changedChunks;
-  private static Set<String> createdChunks;
-  private String backupFolder = DEFAULT_DIRECTORY;
+
+  // These fields are static because, reading nodes from file leads to new
+  // references being created which caused nodes to access different transaction
+  // handlers. This way, the datastructure-references remain constant for all.
+  private static Set<String> changedChunks; // chunks that changed since the beginning of the transaction
+  private static Set<String> createdChunks; // chunks created since the beggining of the transaction
   private static boolean transactionStarted;
+
+  private String storageFolder;
+  private String backupFolder = DEFAULT_DIRECTORY;
 
   public TransactionHandlerImpl(String storageFolder, String backupFolder) {
     TransactionHandlerImpl.changedChunks = new HashSet<>();
@@ -38,11 +43,12 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   }
 
   public void notifyChunkChange(String chunkId) throws StorageException {
-
     if (!transactionStarted) {
       return;
     }
 
+    // Make a copy if it's an existant (before the start of transaction) chunk that
+    // is changing.
     if (!createdChunks.contains(chunkId) && changedChunks.add(chunkId)) {
       Path dst = Paths.get(this.storageFolder, this.backupFolder, chunkId);
       Path src = Paths.get(this.storageFolder, chunkId);
@@ -74,6 +80,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
       return null;
     }
 
+    // Replace changed chunks with previous versions
     for (String chunkId : changedChunks) {
       Path src = Paths.get(this.storageFolder, this.backupFolder, chunkId);
       Path dst = Paths.get(this.storageFolder, chunkId);
@@ -87,6 +94,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
       }
     }
 
+    // Delete newly created chunks
     for (String chunkId : createdChunks) {
       try {
         Files.delete(Paths.get(this.storageFolder, chunkId));
@@ -99,6 +107,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
       }
     }
 
+    // Replace tree structure
     try {
       StorageUtils.copyAndReplaceFile(Paths.get(this.storageFolder, this.backupFolder, "root"),
           Paths.get(this.storageFolder, "root"));
@@ -111,15 +120,25 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
 
     this.endTransaction();
     @SuppressWarnings("unchecked")
-    PersistentBTreeNode<V> newRoot = (PersistentBTreeNode<V>) StorageUtils.readObject(Paths.get(this.storageFolder, "root"));
+
+    // Read new root and return it
+    PersistentBTreeNode<V> newRoot = (PersistentBTreeNode<V>) StorageUtils
+        .readObject(Paths.get(this.storageFolder, "root"));
     return newRoot;
   }
 
   public void beginTransaction() throws StorageException {
+
+    if (transactionStarted) {
+      return;
+    }
+
     transactionStarted = true;
 
+    // Create backup directory
     StorageUtils.createDirectory(Paths.get(this.storageFolder, this.backupFolder));
     try {
+      // Copy tree root
       StorageUtils.copyAndReplaceFile(Paths.get(this.storageFolder, "root"),
           Paths.get(this.storageFolder, this.backupFolder, "root"));
     } catch (IOException e) {
@@ -131,9 +150,15 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   }
 
   public void endTransaction() {
+    if (!transactionStarted) {
+      return;
+    }
+
     transactionStarted = false;
     changedChunks = new HashSet<>();
     createdChunks = new HashSet<>();
+
+    // Delete backup directory
     StorageUtils.deleteDirectory(Paths.get(this.storageFolder, this.backupFolder).toFile());
   }
 }

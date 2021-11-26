@@ -8,7 +8,8 @@ import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandl
  * Handles storage of {@link PersistentBTree}s. Implementations of this
  * interface also provide factory methods for generating
  * {@link ChunkStorageHandler}s. Thus, an implementation of this interface
- * couples the Tree structure storage with the chunk storage.
+ * couples the Tree structure storage with the chunk storage. This interface
+ * also supports transactions {@link transactions.TransactionHandler}.
  * 
  * @param <V> Type of the values used in the BTree
  */
@@ -23,10 +24,10 @@ public interface PersistentBTreeStorageHandler<V> {
     public void save(PersistentBTree<V> tree) throws StorageException;
 
     /**
-     * Return saved {@link PersistentBTree}
+     * Return saved {@link PersistentBTree}'s root
      * 
      * @throws StorageException An exception is thrown when loading fails.
-     * @return saved {@link PersistentBTree}
+     * @return saved {@link PersistentBTree} tree root ({@link PersistentBTreeNode})
      */
     public PersistentBTreeNode<V> load() throws StorageException;
 
@@ -46,13 +47,38 @@ public interface PersistentBTreeStorageHandler<V> {
      */
     public void delete() throws StorageException;
 
+    /**
+     * Start a transaction. Note that starting another transaction before ending a
+     * previous one has undefined behavior.
+     * 
+     * @throws StorageException An exception is thrown when transaction start fails
+     *                          due to problems with accessing disk.
+     */
     public void beginTransaction() throws StorageException;
 
+    /**
+     * Finish a transaction (should be called after a call to
+     * {@code beginTransaction}). Note that this method only works if transactions
+     * are enabled.
+     * 
+     * @throws StorageException An exception is thrown when transaction end fails
+     *                          due to problems with accessing disk.
+     */
     public void endTransaction() throws StorageException;
 
+    /**
+     * Rollback insert/delete operations performed after the last
+     * {@code beginTransaction} call. Note that this method only works if
+     * transactions are enabled.
+     * 
+     * @throws StorageException An exception is thrown when transaction end fails
+     *                          due to problems with accessing disk.
+     */
     public PersistentBTreeNode<V> rollbackTransaction() throws StorageException;
 
+    /** Enable transactions */
     public void enableTransactions();
 
+    /** Disable transactions */
     public void disableTransactions();
 }
