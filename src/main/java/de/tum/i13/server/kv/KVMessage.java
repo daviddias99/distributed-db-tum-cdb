@@ -142,7 +142,8 @@ public interface KVMessage {
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
      * Refer to the specification document for further details.
      *
-     * @param message the message encoded as a {@link String}
+     * @param message the message encoded as a {@link String}, must not be empty and adhere to one of the message
+     *                format from the specification
      * @return the message converted to a {@link KVMessage}
      * @throws IllegalArgumentException if the message could not be converted according to the specification
      * @see KVMessageImpl
@@ -154,8 +155,19 @@ public interface KVMessage {
         final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
                 string.toUpperCase()
         );
+        final Function<String, IllegalArgumentException> exceptionFunction =
+                receivedMessage -> new IllegalArgumentException(String.format(
+                        "Could not convert \"%s\" to a %s",
+                        receivedMessage,
+                        KVMessage.class.getSimpleName()
+                ));
+
         if (msgTokens.length == 1) {
-            return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
+            if ("".equals(msgTokens[0])) {
+                throw exceptionFunction.apply(message);
+            } else {
+                return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
+            }
         } else if (msgTokens.length == 2) {
             return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
         } else if (msgTokens.length == 3) {
@@ -164,11 +176,7 @@ public interface KVMessage {
                     msgTokens[2],
                     stringToStatusType.apply(msgTokens[0]));
         } else {
-            throw new IllegalArgumentException(String.format(
-                    "Could not convert \"%s\" to a %s",
-                    message,
-                    KVMessage.class.getSimpleName()
-            ));
+            throw exceptionFunction.apply("message");
         }
     }
 
