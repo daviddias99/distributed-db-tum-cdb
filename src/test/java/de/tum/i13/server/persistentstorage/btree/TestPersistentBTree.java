@@ -222,17 +222,17 @@ class TestPersistentBTree {
     void createsDiskFiles() throws StorageException, PersistentBTreeException {
         assertThat(this.countInFolder("database")).isEqualTo(1);
         tree.insert("a", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(2);
+        assertThat(this.countInFolder("database")).isEqualTo(3);
         tree.insert("b", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(2);
+        assertThat(this.countInFolder("database")).isEqualTo(3);
         tree.insert("c", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(2);
+        assertThat(this.countInFolder("database")).isEqualTo(3);
         tree.insert("d", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(2);
+        assertThat(this.countInFolder("database")).isEqualTo(3);
         tree.insert("e", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(2);
+        assertThat(this.countInFolder("database")).isEqualTo(3);
         tree.insert("f", "value");
-        assertThat(this.countInFolder("database")).isEqualTo(4);
+        assertThat(this.countInFolder("database")).isEqualTo(5);
     }
 
     @Test
@@ -249,7 +249,7 @@ class TestPersistentBTree {
             tree.remove(c + "");
         }
 
-        assertThat(this.countInFolder("database")).isEqualTo(1);
+        assertThat(this.countInFolder("database")).isEqualTo(2);
     }
 
     @Test
@@ -261,7 +261,7 @@ class TestPersistentBTree {
         tree.remove("b");
         tree.remove("c");
 
-        assertThat(this.countInFolder("database")).isEqualTo(1);
+        assertThat(this.countInFolder("database")).isEqualTo(2);
 
         tree = null;
         PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");

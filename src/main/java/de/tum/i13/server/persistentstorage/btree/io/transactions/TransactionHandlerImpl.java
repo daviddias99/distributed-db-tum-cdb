@@ -93,7 +93,6 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   public PersistentBTreeNode<V> rollbackTransaction() throws StorageException {
 
     if (!transactionStarted) {
-      this.endTransaction();
       return null;
     }
 
@@ -151,8 +150,5 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     transactionStarted = false;
     changedChunks = new HashSet<>();
     createdChunks = new HashSet<>();
-
-    // Delete backup directory
-    StorageUtils.deleteFile(Paths.get(this.storageFolder, this.backupFolder));
   }
 }
