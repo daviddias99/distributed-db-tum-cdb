@@ -132,6 +132,7 @@ public class StorageUtils {
 
       if (filePath.toFile().isDirectory()) {
         deleteDirectory(filePath);
+        return;
       }
 
       Files.deleteIfExists(filePath);
