@@ -17,7 +17,6 @@ import java.util.Arrays;
  */
 public class CommunicationClient implements NetworkMessageServer, AutoCloseable {
 
-    private static final int LOGGER_MAX_MESSAGE_PREVIEW_SIZE = 50;
     private static final Logger LOGGER = LogManager.getLogger(CommunicationClient.class);
     private Socket connection;
     private InputStream inStream;
@@ -93,13 +92,9 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     public void send(byte[] message) throws ClientException {
         LOGGER.info("Trying to send message: '{}'", () -> new String(message));
 
-        int messageSize = message.length;
-        int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
-
-        LOGGER.info("Sending {} bytes to '{}:{}'. ('{}{}')",
-                () -> messageSize, this::getAddress, this::getPort,
-                () -> (new String(message)).substring(0, previewSize),
-                () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
+        LOGGER.info("Sending {} bytes to '{}:{}'. ('{}')",
+                () -> message.length, this::getAddress, this::getPort,
+                () -> new String(message));
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -129,7 +124,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
-            LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
+            LOGGER.error("Throwing exception because data can't be received from an unconnected client.");
             throw new ClientException(ClientException.Type.UNCONNECTED, "No connection established");
         }
 
@@ -144,13 +139,10 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
                     numberOfReceivedBytes);
 
             // Logging aid variables
-            int messageSize = result.length;
-            int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
+            LOGGER.info("Receiving {} bytes from '{}:{}'. ('{}')",
+                    () -> result.length, this::getAddress, this::getPort,
+                    () -> new String(result));
 
-            LOGGER.info("Receiving {} bytes from '{}:{}'. ('{}{}')",
-                    () -> messageSize, this::getAddress, this::getPort,
-                    () -> (new String(result)).substring(0, previewSize),
-                    () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
             return result;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occurred while receiving data.");
