@@ -68,7 +68,8 @@ public class PersistentBTree<V> implements Serializable {
      *                       contained chunk storage handler)
      * @throws StorageException
      */
-    public PersistentBTree(int minimumDegree, PersistentBTreeNode<V> root, PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
+    public PersistentBTree(int minimumDegree, PersistentBTreeNode<V> root,
+            PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
         Preconditions.check(minimumDegree >= 2);
         this.root = root;
         this.minimumDegree = minimumDegree;
@@ -81,6 +82,7 @@ public class PersistentBTree<V> implements Serializable {
      * Remove element with 'key' from the tree.
      * 
      * @param key key of the element to remove
+     * @return true if the value was removed, false otherwise
      * @throws StorageException         An exception is thrown if a problem occurs
      *                                  with persistent storage.
      * @throws PersistentBTreeException
@@ -317,6 +319,7 @@ public class PersistentBTree<V> implements Serializable {
     }
 
     /**
+     * 
      * Get the tree's root
      * @return tree's root
      */
@@ -325,9 +328,10 @@ public class PersistentBTree<V> implements Serializable {
     }
 
     /**
+     * 
      * Set the tree's root
      * @param root tree's root
-     */
+     */ 
     public void setRoot(PersistentBTreeNode<V>  root) {
         this.root = root;
     }
