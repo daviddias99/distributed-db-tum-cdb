@@ -316,10 +316,18 @@ public class PersistentBTree<V> implements Serializable {
         return this.minimumDegree;
     }
 
+    /**
+     * Get the tree's root
+     * @return tree's root
+     */
     public PersistentBTreeNode<V> getRoot() {
         return this.root;
     }
 
+    /**
+     * Set the tree's root
+     * @param root tree's root
+     */
     public void setRoot(PersistentBTreeNode<V>  root) {
         this.root = root;
     }

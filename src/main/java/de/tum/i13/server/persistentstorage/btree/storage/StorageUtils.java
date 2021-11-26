@@ -16,13 +16,32 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.shared.Constants;
 
+/**
+ * This class contains several utilities for operations with the file system. It
+ * handles creating/deleting directories, reading/writing objects to disk, and
+ * copying/deleting files
+ */
 public class StorageUtils {
   private static final Logger LOGGER = LogManager.getLogger(StorageUtils.class);
 
+  /**
+   * Copies file at {@code src} to {@code dst}, replacing if {@code dst} already
+   * exists
+   * 
+   * @param src path to the source location
+   * @param dst path to the destination location
+   * @throws IOException See
+   *                     {@link java.nio.file.Files#copy(Path, Path, CopyOption...)}
+   */
   public static void copyAndReplaceFile(Path src, Path dst) throws IOException {
     Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
   }
 
+  /**
+   * Create a new directory
+   * 
+   * @param storageFolder path of the new directory
+   */
   public static void createDirectory(Path storageFolder) {
     File theDir = storageFolder.toFile();
     if (!theDir.exists()) {
@@ -30,6 +49,12 @@ public class StorageUtils {
     }
   }
 
+  /**
+   * Delete a directory
+   * 
+   * @param directoryToBeDeleted directory to be deleted
+   * @return true if directory was deleted successfuly, false otherwise
+   */
   public static boolean deleteDirectory(File directoryToBeDeleted) {
     File[] allContents = directoryToBeDeleted.listFiles();
     if (allContents != null) {
@@ -37,10 +62,18 @@ public class StorageUtils {
         deleteDirectory(file);
       }
     }
-  
+
     return directoryToBeDeleted.delete();
   }
 
+  /**
+   * Read object from disk
+   * 
+   * @param filePath path to the object in disk
+   * @return read object
+   * @throws StorageException an exception is thrown if either the file can't be
+   *                          found or an error occured while reading
+   */
   public static Object readObject(Path filePath) throws StorageException {
     try (FileInputStream fileIn = new FileInputStream(filePath.toString())) {
       ObjectInputStream objectIn = new ObjectInputStream(fileIn);
@@ -63,6 +96,13 @@ public class StorageUtils {
     }
   }
 
+  /**
+   * 
+   * @param filePath path where the object will be stored
+   * @param obj      object to store
+   * @throws StorageException an exception is thrown if either the file can't be
+   *                          found or an error occured while writing
+   */
   public static void writeObject(Path filePath, Object obj) throws StorageException {
     try (FileOutputStream fileOut = new FileOutputStream(filePath.toString())) {
       var objectOut = new ObjectOutputStream(fileOut);
@@ -80,6 +120,11 @@ public class StorageUtils {
     }
   }
 
+  /**
+   * Delete file from disk
+   * @param filePath path to file
+   * @throws StorageException an exception is thrown for unexpected I/O errors
+   */
   public static void deleteFile(Path filePath) throws StorageException {
     try {
       Files.delete(filePath);
