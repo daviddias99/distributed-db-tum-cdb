@@ -56,18 +56,13 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             return;
         }
 
-        this.storeChunkForce(chunk);
-    }
-
-    @Override
-    public void storeChunkForce(Chunk<V> chunk) throws StorageException {
         StorageUtils.writeObject(Paths.get(storageFolder, chunkId), chunk);
     }
 
     @Override
     public void createChunk(Chunk<V> chunk) throws StorageException {
         this.tHandler.notifyChunkCreation(chunkId);
-        this.storeChunkForce(chunk);
+        StorageUtils.writeObject(Paths.get(storageFolder, chunkId), chunk);
     }
 
     private void deleteChunk() throws StorageException {

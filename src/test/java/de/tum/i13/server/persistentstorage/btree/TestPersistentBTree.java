@@ -122,9 +122,9 @@ class TestPersistentBTree {
         tree.remove("C");
         assertThat(TreeValidator.validTree(tree)).isTrue();
         assertThat(tree.search("C")).isNull();
-        assertThat(tree.search("B")).isNotEqualTo(null);
-        assertThat(tree.search("A")).isNotEqualTo(null);
-        assertThat(tree.search("D")).isNotEqualTo(null);
+        assertThat(tree.search("B")).isNotNull();
+        assertThat(tree.search("A")).isNotNull();
+        assertThat(tree.search("D")).isNotNull();
     }
 
     @Test
