@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.io;
 
 /**
  * An {@link Exception} that signalizes that something went wrong in persistent

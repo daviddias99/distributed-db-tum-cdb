@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.io;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.io;
 
 import java.io.File;
 import java.io.Serializable;
@@ -9,10 +9,10 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
-import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkDiskStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandlerImpl;
+import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkDiskStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandlerImpl;
 import de.tum.i13.shared.Constants;
 
 /**

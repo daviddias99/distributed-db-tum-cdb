@@ -8,9 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeDiskStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
-import de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandlerImpl;
+import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandlerImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

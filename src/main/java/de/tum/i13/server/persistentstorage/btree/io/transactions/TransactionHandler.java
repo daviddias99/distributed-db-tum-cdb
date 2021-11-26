@@ -1,9 +1,9 @@
-package de.tum.i13.server.persistentstorage.btree.storage.transactions;
+package de.tum.i13.server.persistentstorage.btree.io.transactions;
 
 import java.io.Serializable;
 
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
 /**
  * A transaction handler is reponsible for transactions on the persistent

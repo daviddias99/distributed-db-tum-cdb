@@ -2,7 +2,7 @@ package de.tum.i13.server.persistentstorage.btree;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
 public class PersistentBTreeDisplay<V> {
     /*

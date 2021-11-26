@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage.transactions;
+package de.tum.i13.server.persistentstorage.btree.io.transactions;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,8 +11,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageUtils;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
 import de.tum.i13.shared.Constants;
 
 /** 

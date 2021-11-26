@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage.chunk;
+package de.tum.i13.server.persistentstorage.btree.io.chunk;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -8,9 +8,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageUtils;
-import de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler;
 import de.tum.i13.shared.Constants;
 
 /**

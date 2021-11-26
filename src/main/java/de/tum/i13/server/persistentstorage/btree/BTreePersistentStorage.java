@@ -10,8 +10,8 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
-import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
 
 /**

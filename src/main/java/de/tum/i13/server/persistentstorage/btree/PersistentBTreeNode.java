@@ -9,9 +9,9 @@ import java.util.List;
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.ChunkImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
-import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
 import de.tum.i13.shared.Preconditions;
 
 /**
