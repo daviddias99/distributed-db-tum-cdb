@@ -30,7 +30,7 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
 
     @Override
     public KVMessage get(String key) throws GetException {
-        LOGGER.info("Trying to get value of key {}", key);
+        LOGGER.info("Trying to get value of key '{}'", key);
 
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
@@ -43,19 +43,19 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
 
     @Override
     public KVMessage put(String key, String value) throws PutException {
-        LOGGER.info("Trying to put key {} to value {}", key, value);
+        LOGGER.info("Trying to put key '{}' to value '{}'", key, value);
 
         return value == null ? deleteKey(key) : putKey(key, value);
     }
 
     private KVMessage deleteKey(String key) throws PutException {
-        LOGGER.debug("Trying to delete key {}", key);
+        LOGGER.debug("Trying to delete key '{}'", key);
         final KVMessage deleteMessage = new KVMessageImpl(key, KVMessage.StatusType.DELETE);
         return sendPutOrDeleteMessage(deleteMessage);
     }
 
     private KVMessage putKey(String key, String value) throws PutException {
-        LOGGER.debug("Trying to put key {} to supplied value {}", key, value);
+        LOGGER.debug("Trying to put key '{}' to supplied value '{}'", key, value);
         final KVMessage putMessage = new KVMessageImpl(key, value, KVMessage.StatusType.PUT);
         return sendPutOrDeleteMessage(putMessage);
     }
@@ -73,7 +73,7 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
     }
 
     private KVMessage sendAndReceive(KVMessage message) throws ClientException {
-        LOGGER.debug("Sending message to server: {}", message::packMessage);
+        LOGGER.debug("Sending message to server: '{}'", message::packMessage);
         networkMessageServer.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
         return KVMessage.unpackMessage(receiveMessage());
     }
@@ -89,7 +89,7 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
         LOGGER.debug("Receiving message from server");
         byte[] response = networkMessageServer.receive();
         final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-        LOGGER.debug("Received message from server: {}", responseString);
+        LOGGER.debug("Received message from server: '{}'", responseString);
         return responseString;
     }
 

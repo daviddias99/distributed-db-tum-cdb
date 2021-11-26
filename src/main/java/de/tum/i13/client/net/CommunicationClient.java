@@ -44,13 +44,13 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     @Override
     public void connect(String address, int port) throws ClientException {
         Preconditions.check(port >= 0 && port <= 65535, "Port must be between 0 and 65535 inclusive");
-        LOGGER.info("Trying to connect to {}:{}", address, port);
+        LOGGER.info("Trying to connect to '{}:{}'", address, port);
 
         if (this.isConnected()) {
             this.disconnect();
         }
 
-        LOGGER.info("Creating socket to {}:{}", address, port);
+        LOGGER.info("Creating socket to '{}:{}'", address, port);
 
         try {
             // Open socket and get streams
@@ -58,17 +58,17 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             this.inStream = this.connection.getInputStream();
             this.outStream = this.connection.getOutputStream();
         } catch (UnknownHostException e) {
-            LOGGER.error("Throwing exception because host {} could not be found.", address);
+            LOGGER.error("Throwing exception because host '{}' could not be found.", address);
             throw new ClientException(e, ClientException.Type.UNKNOWN_HOST, "Could not find host");
         } catch (IOException e) {
-            LOGGER.error("Throwing exception because socket at {}:{} could not be opened.", address, port);
+            LOGGER.error("Throwing exception because socket at '{}:{}' could not be opened.", address, port);
             throw new ClientException(e, ClientException.Type.CONNECTION_ERROR, "Could not open socket");
         }
     }
 
     @Override
     public void disconnect() throws ClientException {
-        LOGGER.info("Trying to disconnect from socket at {}:{}", getAddress(), getPort());
+        LOGGER.info("Trying to disconnect from socket at '{}:{}'", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -78,7 +78,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         }
 
         try {
-            LOGGER.debug("Closing connection from socket at {}:{}", getAddress(), getPort());
+            LOGGER.debug("Closing connection from socket at '{}:{}'", getAddress(), getPort());
             this.connection.close();
             this.connection = null;
             this.inStream = null;
@@ -91,12 +91,12 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
     @Override
     public void send(byte[] message) throws ClientException {
-        LOGGER.info("Trying to send message: {}", () -> new String(message));
+        LOGGER.info("Trying to send message: '{}'", () -> new String(message));
 
         int messageSize = message.length;
         int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
-        LOGGER.info("Sending {} bytes to {}:{}. ({}{})",
+        LOGGER.info("Sending {} bytes to '{}:{}'. ('{}{}')",
                 () -> messageSize, this::getAddress, this::getPort,
                 () -> (new String(message)).substring(0, previewSize),
                 () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));
@@ -125,7 +125,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
     @Override
     public byte[] receive() throws ClientException {
-        LOGGER.info("Trying to receive message from {}:{}.", getAddress(), getPort());
+        LOGGER.info("Trying to receive message from '{}:{}'.", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -147,7 +147,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             int messageSize = result.length;
             int previewSize = Math.min(messageSize, LOGGER_MAX_MESSAGE_PREVIEW_SIZE);
 
-            LOGGER.info("Receiving {} bytes to {}:{}. ({}{})",
+            LOGGER.info("Receiving {} bytes from '{}:{}'. ('{}{}')",
                     () -> messageSize, this::getAddress, this::getPort,
                     () -> (new String(result)).substring(0, previewSize),
                     () -> (previewSize == LOGGER_MAX_MESSAGE_PREVIEW_SIZE ? "..." : ""));

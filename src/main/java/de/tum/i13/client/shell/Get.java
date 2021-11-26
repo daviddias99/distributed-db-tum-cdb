@@ -34,18 +34,18 @@ class Get implements Callable<Integer> {
 
     @Override
     public Integer call() throws GetException {
-        LOGGER.info("Trying to get key {}", key);
+        LOGGER.info("Trying to get key '{}'", key);
 
         final KVMessage storageResponse = parent.remoteStorage.get(key);
         final KVMessage.StatusType storageStatus = storageResponse.getStatus();
         final PrintWriter out = commandSpec.commandLine().getOut();
         if (storageStatus == KVMessage.StatusType.GET_SUCCESS) {
             final String value = storageResponse.getValue();
-            LOGGER.info("Remote storage returned for key {} value {}", key, value);
+            LOGGER.info("Remote storage returned for key '{}' value '{}'", key, value);
             out.printf("Retrieved value \"%s\" for key %s%n", value, key);
             return ExitCode.SUCCESS.getValue();
         } else if (storageStatus == KVMessage.StatusType.GET_ERROR) {
-            LOGGER.info("Remote storage returned error while getting key {}", key);
+            LOGGER.info("Remote storage returned error while getting key '{}'", key);
             out.printf("Could not retrieve key %s from remote storage%n", key);
             return ExitCode.STORAGE_ERROR.getValue();
         } else {

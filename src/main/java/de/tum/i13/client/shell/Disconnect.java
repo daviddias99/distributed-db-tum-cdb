@@ -33,7 +33,7 @@ class Disconnect implements Callable<Integer> {
     @Override
     public Integer call() throws ClientException {
         final NetworkLocation networkLocation = parent.remoteStorage;
-        LOGGER.info("Disconnecting from {}:{}", networkLocation.getAddress(), networkLocation.getPort());
+        LOGGER.info("Disconnecting from '{}:{}'", networkLocation.getAddress(), networkLocation.getPort());
         networkLocation.disconnect();
         commandSpec.commandLine().getOut().println("Successfully disconnected.");
         return ExitCode.SUCCESS.getValue();
