@@ -57,6 +57,27 @@ public class PersistentBTree<V> implements Serializable {
     }
 
     /**
+     * Create a new PersistentBTree. It is possible to configure the tree's
+     * minimumDegree, which gives a measure of the number of keys a node may contain
+     * [minimumDegree - 1, 2 * minimumDegree - 1]. The tree is also injected with a
+     * {@link PersistentBTreeStorageHandler} in order to configure storage.
+     * 
+     * @param minimumDegree  minimum degree of the tree (see PersistentBTree for
+     *                       details)
+     * @param storageHandler handler used to store the tree (used to generate the
+     *                       contained chunk storage handler)
+     * @throws StorageException
+     */
+    public PersistentBTree(int minimumDegree, PersistentBTreeNode<V> root, PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
+        Preconditions.check(minimumDegree >= 2);
+        this.root = root;
+        this.minimumDegree = minimumDegree;
+        this.storageHandler = storageHandler;
+        this.treeClosed = new AtomicBoolean(false);
+        this.storageHandler.save(this);
+    }
+
+    /**
      * Remove element with 'key' from the tree.
      * 
      * @param key key of the element to remove
@@ -188,7 +209,7 @@ public class PersistentBTree<V> implements Serializable {
 
             return null;
         } catch (StorageException ex) {
-            this.storageHandler.rollbackTransaction();
+            this.root = this.storageHandler.rollbackTransaction();
             throw ex;
         }
     }
@@ -293,5 +314,13 @@ public class PersistentBTree<V> implements Serializable {
      */
     public int getMininumDegree() {
         return this.minimumDegree;
+    }
+
+    public PersistentBTreeNode<V> getRoot() {
+        return this.root;
+    }
+
+    public void setRoot(PersistentBTreeNode<V>  root) {
+        this.root = root;
     }
 }

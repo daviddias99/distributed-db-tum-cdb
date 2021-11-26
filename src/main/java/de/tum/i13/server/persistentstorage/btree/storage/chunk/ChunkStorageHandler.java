@@ -1,6 +1,7 @@
-package de.tum.i13.server.persistentstorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.storage.chunk;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 
 /**
  * Handles storage of {@link Chunk}s.

@@ -31,7 +31,7 @@ public class BTreePersistentStorage implements PersistentStorage {
      */
     public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler) throws StorageException {
         try {
-            this.tree = storageHandler.load();
+            this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler) ;
         } catch (StorageException e) {
             // Purposefuly empty
         }

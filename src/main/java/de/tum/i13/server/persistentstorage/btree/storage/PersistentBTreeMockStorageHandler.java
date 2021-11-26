@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
+import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkMockStorageHandler;
 
 /**
  * This class provides an in-memory implementation of
@@ -26,9 +28,9 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
     }
 
     @Override
-    public PersistentBTree<V> load() {
+    public PersistentBTreeNode<V> load() {
         LOGGER.info("Loaded tree ({}) from memory.", tree.hashCode());
-        return this.tree;
+        return this.tree.getRoot();
     }
 
     @Override
@@ -53,7 +55,17 @@ public class PersistentBTreeMockStorageHandler<V> implements PersistentBTreeStor
     }
 
     @Override
-    public void rollbackTransaction() {
+    public PersistentBTreeNode<V> rollbackTransaction() {
+       return null;
+    }
+
+    @Override
+    public void enableTransactions() {
         // Method purposefuly left empty
+    }
+
+    @Override
+    public void disableTransactions() {
+        // Method purposefuly left empty        
     }
 }

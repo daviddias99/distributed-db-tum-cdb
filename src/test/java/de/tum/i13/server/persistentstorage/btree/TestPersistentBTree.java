@@ -294,7 +294,7 @@ class TestPersistentBTree {
 
             tree = null;
             PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
-            tree = handler.load();
+            tree = new PersistentBTree<>(3, handler.load(), handler);
 
             assertThat(TreeValidator.validTree(tree)).isTrue();
 
@@ -374,7 +374,7 @@ class TestPersistentBTree {
 
             tree = null;
             PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
-            tree = handler.load();
+            tree = new PersistentBTree<>(3, handler.load(), handler);
 
             assertThat(TreeValidator.validTree(tree)).isTrue();
             assertDoesNotThrow(() -> tree.insert("a", "value"));

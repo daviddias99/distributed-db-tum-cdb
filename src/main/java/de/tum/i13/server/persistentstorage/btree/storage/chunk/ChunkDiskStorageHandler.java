@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.storage.chunk;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -8,6 +8,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.storage.StorageUtils;
+import de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandler;
 import de.tum.i13.shared.Constants;
 
 /**
@@ -22,7 +25,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     private String chunkId; // Chunk ID
     private String storageFolder; // Storage folder
 
-    private TransactionHandler tHandler;
+    private TransactionHandler<V> tHandler;
 
     /**
      * Create new storage handler. This handler interfaces with a chunk at
@@ -30,7 +33,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
      * 
      * @param filePath
      */
-    public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler transHandler) {
+    public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler<V> transHandler) {
         this.chunkId = chunkId;
         this.tHandler = transHandler;
         this.storageFolder = storageFolder;
@@ -61,6 +64,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public void createChunk(Chunk<V> chunk) throws StorageException {
+        this.tHandler.notifyChunkCreation(chunkId);
         this.storeChunkForce(chunk);
     }
 

@@ -8,15 +8,15 @@ import java.util.List;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentstorage.btree.storage.ChunkStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandler;
 import de.tum.i13.shared.Preconditions;
 
 /**
  * Node of a {@link PersistentBTree}
  */
-class PersistentBTreeNode<V> implements Serializable {
+public class PersistentBTreeNode<V> implements Serializable {
 
     int minimumDegree; // Minimum degree (defines the range for number of keys), see PersistentBTree.
     List<PersistentBTreeNode<V>> children; // List of children
@@ -62,7 +62,7 @@ class PersistentBTreeNode<V> implements Serializable {
         this.elementCount = initialElement == null ? 0 : 1;
 
         // Force is used because chunk may be empty if initial element is null
-        this.setChunkForce(newChunk);
+        this.chunkStorageInterface.createChunk(newChunk);
     }
 
     /**
@@ -731,16 +731,5 @@ class PersistentBTreeNode<V> implements Serializable {
      */
     void setChunk(Chunk<V> chunk) throws StorageException {
         this.chunkStorageInterface.storeChunk(chunk);
-    }
-
-    /**
-     * Stores given chunk in memory.
-     * 
-     * @param chunk Chunk to store
-     * @throws StorageException Throws an exception if some error occured while
-     *                          storing chunk in memory
-     */
-    void setChunkForce(Chunk<V> chunk) throws StorageException {
-        this.chunkStorageInterface.storeChunkForce(chunk);
     }
 }

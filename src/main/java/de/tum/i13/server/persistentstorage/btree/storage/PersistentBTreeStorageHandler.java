@@ -1,6 +1,8 @@
 package de.tum.i13.server.persistentstorage.btree.storage;
 
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
+import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
+import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandler;
 
 /**
  * Handles storage of {@link PersistentBTree}s. Implementations of this
@@ -26,7 +28,7 @@ public interface PersistentBTreeStorageHandler<V> {
      * @throws StorageException An exception is thrown when loading fails.
      * @return saved {@link PersistentBTree}
      */
-    public PersistentBTree<V> load() throws StorageException;
+    public PersistentBTreeNode<V> load() throws StorageException;
 
     /**
      * Create {@link PersistentBTree} chunk storage handler for specific chunk.
@@ -48,5 +50,9 @@ public interface PersistentBTreeStorageHandler<V> {
 
     public void endTransaction() throws StorageException;
 
-    public void rollbackTransaction() throws StorageException;
+    public PersistentBTreeNode<V> rollbackTransaction() throws StorageException;
+
+    public void enableTransactions();
+
+    public void disableTransactions();
 }
