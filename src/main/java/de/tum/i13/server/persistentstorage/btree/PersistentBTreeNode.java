@@ -61,8 +61,6 @@ public class PersistentBTreeNode<V> implements Serializable {
                 : new ChunkImpl<>(minimumDegree, Arrays.asList(initialElement));
 
         this.elementCount = initialElement == null ? 0 : 1;
-
-        // Force is used because chunk may be empty if initial element is null
         this.chunkStorageInterface.createChunk(newChunk);
     }
 
