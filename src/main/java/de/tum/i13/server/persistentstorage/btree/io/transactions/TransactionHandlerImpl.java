@@ -142,7 +142,8 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     this.chunkTransfer(Paths.get(this.storageFolder, "root"), Paths.get(this.storageFolder, this.backupFolder, "root"));
   }
 
-  public void endTransaction() {
+  @Override
+  public void endTransaction() throws StorageException {
     if (!transactionStarted) {
       return;
     }
@@ -152,6 +153,6 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     createdChunks = new HashSet<>();
 
     // Delete backup directory
-    StorageUtils.deleteDirectory(Paths.get(this.storageFolder, this.backupFolder).toFile());
+    StorageUtils.deleteFile(Paths.get(this.storageFolder, this.backupFolder));
   }
 }

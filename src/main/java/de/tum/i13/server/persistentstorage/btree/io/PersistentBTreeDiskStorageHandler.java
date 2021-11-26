@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
-import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Paths;
 
@@ -13,7 +12,6 @@ import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkDiskStorageHandle
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandlerImpl;
-import de.tum.i13.shared.Constants;
 
 /**
  * Implements {@link ChunkStorageHandler} by storing chunks of type
@@ -21,7 +19,6 @@ import de.tum.i13.shared.Constants;
  * (see {@link TransactionHandler})
  */
 public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStorageHandler<V>, Serializable {
-    private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeDiskStorageHandler.class);
     private static final long serialVersionUID = 6523685098267757691L;
 
     private String storageFolder; // Tree and chunks storage folder
@@ -48,7 +45,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
         this.transactionsEnabled = true;
 
         if (reset) {
-            StorageUtils.deleteDirectory(new File(storageFolder));
+            StorageUtils.deleteFile(Paths.get(storageFolder));
         }
         StorageUtils.createDirectory(Paths.get(this.storageFolder));
     }
@@ -100,11 +97,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public void delete() throws StorageException {
-        if (!StorageUtils.deleteDirectory(new File(storageFolder))) {
-            StorageException storageException = new StorageException("Unknown error while reading tree from memory");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
-        }
+        StorageUtils.deleteFile(Paths.get(storageFolder));
     }
 
     @Override

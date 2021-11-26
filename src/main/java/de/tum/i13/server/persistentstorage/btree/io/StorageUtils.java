@@ -54,16 +54,17 @@ public class StorageUtils {
    * 
    * @param directoryToBeDeleted directory to be deleted
    * @return true if directory was deleted successfuly, false otherwise
+   * @throws IOException
    */
-  public static boolean deleteDirectory(File directoryToBeDeleted) {
-    File[] allContents = directoryToBeDeleted.listFiles();
+  private static void deleteDirectory(Path directoryToBeDeleted) throws IOException {
+    File[] allContents = directoryToBeDeleted.toFile().listFiles();
     if (allContents != null) {
       for (File file : allContents) {
-        deleteDirectory(file);
+        deleteDirectory(file.toPath());
       }
     }
 
-    return directoryToBeDeleted.delete();
+    Files.delete(directoryToBeDeleted);
   }
 
   /**
@@ -122,12 +123,18 @@ public class StorageUtils {
 
   /**
    * Delete file from disk
+   * 
    * @param filePath path to file
    * @throws StorageException an exception is thrown for unexpected I/O errors
    */
   public static void deleteFile(Path filePath) throws StorageException {
     try {
-      Files.delete(filePath);
+
+      if (filePath.toFile().isDirectory()) {
+        deleteDirectory(filePath);
+      }
+
+      Files.deleteIfExists(filePath);
       LOGGER.debug("Deleted chunk ({}) from disk.", filePath);
     } catch (IOException e) {
       StorageException storageException = new StorageException(e, "I/O error while deleting file from disk");
