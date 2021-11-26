@@ -13,7 +13,6 @@ import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.util.Collections;
@@ -40,22 +39,15 @@ class TestPersistentBTree {
     }
 
     @Test
-    void testInsert1() {
-        try {
-            tree.insert("A", "Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("A")).isEqualTo("Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-        } catch (StorageException e1) {
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-
-        } catch (Exception e) {
-            fail();
-        }
+    void insertSingleValue() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("A")).isEqualTo("Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
     @RepeatedTest(5)
-    void testInsert2() {
+    void insertMultipleValues() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
 
@@ -64,40 +56,20 @@ class TestPersistentBTree {
             List<Character> alphabet = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
             Collections.shuffle(alphabet);
             for (char c : alphabet) {
-                try {
-                    tree.insert(c + "", c + "");
-                    assertThat(TreeValidator.validTree(tree)).isTrue();
-                } catch (StorageException e1) {
-                    assertThat(TreeValidator.validTree(tree)).isTrue();
+                tree.insert(c + "", c + "");
+                assertThat(TreeValidator.validTree(tree)).isTrue();
 
-                } catch (Exception e) {
-                    fail();
-                }
             }
 
             for (char c : alphabet) {
-                try {
-                    assertThat(tree.search(c + "")).isEqualTo(c + "");
-                } catch (StorageException e1) {
-                    assertThat(TreeValidator.validTree(tree)).isTrue();
-
-                } catch (Exception e) {
-                    fail();
-                }
+                assertThat(tree.search(c + "")).isEqualTo(c + "");
             }
         }
     }
 
     @Test
-    void testSearchOnEmpty() {
-        try {
-            assertThat(tree.search("a")).isNull();
-        } catch (StorageException e1) {
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-
-        } catch (Exception e) {
-            fail();
-        }
+    void searchOnEmpty() throws StorageException, PersistentBTreeException {
+        assertThat(tree.search("a")).isNull();
     }
 
     @Test
@@ -106,206 +78,147 @@ class TestPersistentBTree {
     }
 
     @Test
-    void testMissingSearch() {
-        try {
-            assertThat(tree.search("A")).isNull();
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-        } catch (StorageException e1) {
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-
-        } catch (Exception e) {
-            fail();
-        }
+    void missingValue() throws StorageException, PersistentBTreeException {
+        assertThat(tree.search("A")).isNull();
+        assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
     @Test
-    void testInsertDoubleInsert1() {
-
-        try {
-            tree.insert("A", "Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("A")).isEqualTo("Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.insert("A", "Value2")).isEqualTo("Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("A")).isEqualTo("Value2");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
-
+    void insertAgainOneNode() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("A")).isEqualTo("Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.insert("A", "Value2")).isEqualTo("Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("A")).isEqualTo("Value2");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
     @Test
-    void testInsertDoubleInsert2() {
-        try {
-            assertThat(tree.insert("A", "Value")).isNull();
-            assertThat(tree.insert("B", "Value")).isNull();
-            assertThat(tree.insert("C", "Value1")).isNull();
-            assertThat(tree.insert("D", "Value")).isNull();
-            assertThat(tree.insert("E", "Value")).isNull();
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isEqualTo("Value1");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            tree.insert("C", "Value2");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isEqualTo("Value2");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
-
+    void insertAgainTwoNodes() throws StorageException, PersistentBTreeException {
+        assertThat(tree.insert("A", "Value")).isNull();
+        assertThat(tree.insert("B", "Value")).isNull();
+        assertThat(tree.insert("C", "Value1")).isNull();
+        assertThat(tree.insert("D", "Value")).isNull();
+        assertThat(tree.insert("E", "Value")).isNull();
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("C")).isEqualTo("Value1");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        tree.insert("C", "Value2");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("C")).isEqualTo("Value2");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
     @Test
-    void testDelete1() {
-        try {
-            tree.insert("A", "Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            tree.remove("C");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isNull();
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
+    void deleteNonExistentOneNode() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        tree.remove("C");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("C")).isNull();
     }
 
     @Test
-    void testDelete2() {
-        try {
-            tree.insert("A", "Value");
-            tree.insert("C", "Value");
-            tree.insert("B", "Value");
-            tree.insert("D", "Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            tree.remove("C");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.search("C")).isNull();
-            assertThat(tree.search("B")).isNotEqualTo(null);
-            assertThat(tree.search("A")).isNotEqualTo(null);
-            assertThat(tree.search("D")).isNotEqualTo(null);
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
+    void deleteSingleValue() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        tree.insert("C", "Value");
+        tree.insert("B", "Value");
+        tree.insert("D", "Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        tree.remove("C");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.search("C")).isNull();
+        assertThat(tree.search("B")).isNotEqualTo(null);
+        assertThat(tree.search("A")).isNotEqualTo(null);
+        assertThat(tree.search("D")).isNotEqualTo(null);
     }
 
     @Test
-    void testDeleteNonExistent() {
-        try {
-            tree.insert("A", "Value");
-            tree.insert("C", "Value");
-            tree.insert("B", "Value");
-            tree.insert("D", "Value");
-            tree.insert("E", "Value");
-            tree.insert("F", "Value");
-            tree.insert("G", "Value");
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertThat(tree.remove("K")).isFalse();
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-        } catch (StorageException e1) {
-            System.out.println(e1);
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
+    void deleteNonExistentTwoNodes() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        tree.insert("C", "Value");
+        tree.insert("B", "Value");
+        tree.insert("D", "Value");
+        tree.insert("E", "Value");
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertThat(tree.remove("K")).isFalse();
+        assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
     @RepeatedTest(5)
-    void testDelete3() {
+    void deleteMultipleValues() throws StorageException, PersistentBTreeException {
 
-        try {
-            String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
 
-            for (int i = 0; i < alphabet.length(); i++) {
-                String sub = alphabet.substring(i);
-                List<Character> alphabet1 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
-                Collections.shuffle(alphabet1);
-                for (char c : alphabet1) {
-                    tree.insert(c + "", c + "");
-                    assertThat(TreeValidator.validTree(tree)).isTrue();
-                }
-
-                StringBuilder sb1 = new StringBuilder();
-
-                // Appends characters one by one
-                for (Character ch : alphabet1) {
-                    sb1.append(ch);
-                }
-
-                // System.out.println(string1);
-
-                List<Character> alphabet2 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
-                Collections.shuffle(alphabet2);
-
-                // create object of StringBuilder class
-                StringBuilder sb = new StringBuilder();
-
-                // Appends characters one by one
-                for (Character ch : alphabet2) {
-                    sb.append(ch);
-                }
-
-                // convert in string
-                String string = sb.toString();
-
-                for (char c : string.toCharArray()) {
-                    assertThat(tree.search(c + "")).isEqualTo(c + "");
-                    assertThat(tree.remove(c + "")).isTrue();
-                    boolean valid = TreeValidator.validTree(tree);
-                    assertThat(valid).isTrue();
-                    assertThat(tree.search(c + "")).isNull();
-                }
-            }
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
-    }
-
-    @Test
-    void testPersistent1() {
-        String letters = "abcdefghijklmnopqrstuvwxyz";
-        List<Character> alphabet = letters.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
-        try {
-            Collections.shuffle(alphabet);
-            for (char c : alphabet) {
+        for (int i = 0; i < alphabet.length(); i++) {
+            String sub = alphabet.substring(i);
+            List<Character> alphabet1 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+            Collections.shuffle(alphabet1);
+            for (char c : alphabet1) {
                 tree.insert(c + "", c + "");
                 assertThat(TreeValidator.validTree(tree)).isTrue();
             }
 
-            for (char c : alphabet) {
-                assertThat(tree.search(c + "")).isEqualTo(c + "");
+            StringBuilder sb1 = new StringBuilder();
+
+            // Appends characters one by one
+            for (Character ch : alphabet1) {
+                sb1.append(ch);
             }
 
-            tree = null;
-            PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
-            tree = new PersistentBTree<>(3, handler.load(), handler);
+            // System.out.println(string1);
 
+            List<Character> alphabet2 = sub.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+            Collections.shuffle(alphabet2);
+
+            // create object of StringBuilder class
+            StringBuilder sb = new StringBuilder();
+
+            // Appends characters one by one
+            for (Character ch : alphabet2) {
+                sb.append(ch);
+            }
+
+            // convert in string
+            String string = sb.toString();
+
+            for (char c : string.toCharArray()) {
+                assertThat(tree.search(c + "")).isEqualTo(c + "");
+                assertThat(tree.remove(c + "")).isTrue();
+                boolean valid = TreeValidator.validTree(tree);
+                assertThat(valid).isTrue();
+                assertThat(tree.search(c + "")).isNull();
+            }
+        }
+
+    }
+
+    @Test
+    void persistsData() throws StorageException, PersistentBTreeException {
+        String letters = "abcdefghijklmnopqrstuvwxyz";
+        List<Character> alphabet = letters.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+        Collections.shuffle(alphabet);
+        for (char c : alphabet) {
+            tree.insert(c + "", c + "");
             assertThat(TreeValidator.validTree(tree)).isTrue();
+        }
 
-            for (char c : alphabet) {
-                assertThat(tree.search(c + "")).isEqualTo(c + "");
-            }
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
+        for (char c : alphabet) {
+            assertThat(tree.search(c + "")).isEqualTo(c + "");
+        }
 
-        } catch (Exception e) {
-            fail();
+        tree = null;
+        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
+        tree = new PersistentBTree<>(3, handler.load(), handler);
+
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+
+        for (char c : alphabet) {
+            assertThat(tree.search(c + "")).isEqualTo(c + "");
         }
     }
 
@@ -314,75 +227,55 @@ class TestPersistentBTree {
     }
 
     @Test
-    void testPersistent2() {
-        try {
-            assertThat(this.countInFolder("database")).isEqualTo(1);
-            tree.insert("a", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(2);
-            tree.insert("b", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(2);
-            tree.insert("c", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(2);
-            tree.insert("d", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(2);
-            tree.insert("e", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(2);
-            tree.insert("f", "value");
-            assertThat(this.countInFolder("database")).isEqualTo(4);
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
+    void createsDiskFiles() throws StorageException, PersistentBTreeException {
+        assertThat(this.countInFolder("database")).isEqualTo(1);
+        tree.insert("a", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(2);
+        tree.insert("b", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(2);
+        tree.insert("c", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(2);
+        tree.insert("d", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(2);
+        tree.insert("e", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(2);
+        tree.insert("f", "value");
+        assertThat(this.countInFolder("database")).isEqualTo(4);
     }
 
     @Test
-    void testPersistent3() {
-        try {
-            String letters = "abcdefghijklmnopqrstuvwxyz";
-            List<Character> alphabet = letters.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+    void deletesDiskFiles() throws StorageException, PersistentBTreeException {
 
-            for (char c : alphabet) {
-                tree.insert(c + "", c + "");
-            }
+        String letters = "abcdefghijklmnopqrstuvwxyz";
+        List<Character> alphabet = letters.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
 
-            for (char c : alphabet) {
-                tree.remove(c + "");
-            }
-
-            assertThat(this.countInFolder("database")).isEqualTo(1);
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
+        for (char c : alphabet) {
+            tree.insert(c + "", c + "");
         }
+
+        for (char c : alphabet) {
+            tree.remove(c + "");
+        }
+
+        assertThat(this.countInFolder("database")).isEqualTo(1);
     }
 
     @Test
-    void testPersistent4() {
-        try {
-            tree.insert("a", "value");
-            tree.insert("b", "value");
-            tree.insert("c", "value");
-            tree.remove("a");
-            tree.remove("b");
-            tree.remove("c");
+    void loadsCorrectly() throws StorageException, PersistentBTreeException {
+        tree.insert("a", "value");
+        tree.insert("b", "value");
+        tree.insert("c", "value");
+        tree.remove("a");
+        tree.remove("b");
+        tree.remove("c");
 
-            assertThat(this.countInFolder("database")).isEqualTo(1);
+        assertThat(this.countInFolder("database")).isEqualTo(1);
 
-            tree = null;
-            PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
-            tree = new PersistentBTree<>(3, handler.load(), handler);
+        tree = null;
+        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>("database");
+        tree = new PersistentBTree<>(3, handler.load(), handler);
 
-            assertThat(TreeValidator.validTree(tree)).isTrue();
-            assertDoesNotThrow(() -> tree.insert("a", "value"));
-        } catch (StorageException e1) {
-            fail(); // Pass the test if exceptiofn is thrown because there is currently no
-
-        } catch (Exception e) {
-            fail();
-        }
+        assertThat(TreeValidator.validTree(tree)).isTrue();
+        assertDoesNotThrow(() -> tree.insert("a", "value"));
     }
 }
