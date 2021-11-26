@@ -9,7 +9,7 @@ import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
  * A transaction handler is reponsible for transactions on the persistent
  * storage. It is meant to be able to rollback mutable operations (insert
  * deletes) done after the transaction start. The normal flow of using a
- * transaction handler should be {@code beginTransaction} <operation>
+ * transaction handler should be {@code beginTransaction} 'operation'
  * {@code endTransaction} or {code rollbackTransaction} depending on the success
  * of the operation.
  */

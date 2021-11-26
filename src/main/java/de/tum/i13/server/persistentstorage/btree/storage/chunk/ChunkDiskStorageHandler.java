@@ -31,7 +31,9 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
      * Create new storage handler. This handler interfaces with a chunk at
      * {@code filePath}
      * 
-     * @param filePath
+     * @param storageFolder path to the folder where chunks are storage
+     * @param chunkId       ID of the current chunk
+     * @param transHandler transactionHandler
      */
     public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler<V> transHandler) {
         this.chunkId = chunkId;
@@ -42,7 +44,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     @Override
     public Chunk<V> readChunk() throws StorageException {
         @SuppressWarnings("unchecked")
-        Chunk<V> chunk = (Chunk<V>) StorageUtils.readObject( Paths.get(storageFolder, chunkId));
+        Chunk<V> chunk = (Chunk<V>) StorageUtils.readObject(Paths.get(storageFolder, chunkId));
         return chunk;
     }
 
@@ -53,13 +55,13 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             this.deleteChunk();
             return;
         }
-        
+
         this.storeChunkForce(chunk);
     }
 
     @Override
     public void storeChunkForce(Chunk<V> chunk) throws StorageException {
-        StorageUtils.writeObject( Paths.get(storageFolder, chunkId), chunk);
+        StorageUtils.writeObject(Paths.get(storageFolder, chunkId), chunk);
     }
 
     @Override
@@ -70,8 +72,8 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     private void deleteChunk() throws StorageException {
         try {
-            Files.delete( Paths.get(storageFolder, chunkId));
-            LOGGER.debug("Deleted chunk ({}) from disk.",  Paths.get(storageFolder, chunkId));
+            Files.delete(Paths.get(storageFolder, chunkId));
+            LOGGER.debug("Deleted chunk ({}) from disk.", Paths.get(storageFolder, chunkId));
         } catch (IOException e) {
             StorageException storageException = new StorageException(e, "I/O error while deleting chunk from disk");
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);

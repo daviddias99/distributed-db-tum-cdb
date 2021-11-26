@@ -15,6 +15,9 @@ import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 import de.tum.i13.server.persistentstorage.btree.storage.StorageUtils;
 import de.tum.i13.shared.Constants;
 
+/** 
+ * An implementation of a {@link TransactionHandler}
+ */
 public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   private static final Logger LOGGER = LogManager.getLogger(TransactionHandlerImpl.class);
 
@@ -30,6 +33,11 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
   private String storageFolder;
   private String backupFolder = DEFAULT_DIRECTORY;
 
+  /**
+   * Create a new transaction handler
+   * @param storageFolder folder where chunks are stored
+   * @param backupFolder folder where backup chunks are stored
+   */
   public TransactionHandlerImpl(String storageFolder, String backupFolder) {
     TransactionHandlerImpl.changedChunks = new HashSet<>();
     TransactionHandlerImpl.createdChunks = new HashSet<>();
@@ -38,10 +46,15 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     TransactionHandlerImpl.transactionStarted = false;
   }
 
+  /**
+   * Create a new transaction handler
+   * @param storageFolder folder where chunks are stored
+   */
   public TransactionHandlerImpl(String storageFolder) {
     this(storageFolder, DEFAULT_DIRECTORY);
   }
 
+  @Override
   public void notifyChunkChange(String chunkId) throws StorageException {
     if (!transactionStarted) {
       return;
@@ -65,6 +78,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     }
   }
 
+  @Override
   public void notifyChunkCreation(String chunkId) {
     if (!transactionStarted) {
       return;
@@ -73,6 +87,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     createdChunks.add(chunkId);
   }
 
+  @Override
   public PersistentBTreeNode<V> rollbackTransaction() throws StorageException {
 
     if (!transactionStarted) {
@@ -127,6 +142,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     return newRoot;
   }
 
+  @Override
   public void beginTransaction() throws StorageException {
 
     if (transactionStarted) {

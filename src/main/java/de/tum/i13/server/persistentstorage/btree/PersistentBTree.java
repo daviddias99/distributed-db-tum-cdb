@@ -45,7 +45,8 @@ public class PersistentBTree<V> implements Serializable {
      *                       details)
      * @param storageHandler handler used to store the tree (used to generate the
      *                       contained chunk storage handler)
-     * @throws StorageException
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
      */
     public PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
         Preconditions.check(minimumDegree >= 2);
@@ -66,7 +67,9 @@ public class PersistentBTree<V> implements Serializable {
      *                       details)
      * @param storageHandler handler used to store the tree (used to generate the
      *                       contained chunk storage handler)
-     * @throws StorageException
+     * @param root           root to boostrap the tree
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
      */
     public PersistentBTree(int minimumDegree, PersistentBTreeNode<V> root,
             PersistentBTreeStorageHandler<V> storageHandler) throws StorageException {
@@ -85,7 +88,8 @@ public class PersistentBTree<V> implements Serializable {
      * @return true if the value was removed, false otherwise
      * @throws StorageException         An exception is thrown if a problem occurs
      *                                  with persistent storage.
-     * @throws PersistentBTreeException
+     * @throws PersistentBTreeException An exception is thrown when an operation is
+     *                                  performed in a closed tree
      */
     public boolean remove(String key) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
@@ -131,7 +135,8 @@ public class PersistentBTree<V> implements Serializable {
      *         exist.
      * @throws StorageException         An exception is thrown if a problem occurs
      *                                  with persistent storage.
-     * @throws PersistentBTreeException
+     * @throws PersistentBTreeException An exception is thrown when an operation is
+     *                                  performed in a closed tree
      */
     public V search(String key) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
@@ -163,7 +168,8 @@ public class PersistentBTree<V> implements Serializable {
      * @return Previous value or null if it does not exist.
      * @throws StorageException         An exception is thrown if a problem occurs
      *                                  with persistent storage.
-     * @throws PersistentBTreeException
+     * @throws PersistentBTreeException An exception is thrown when an operation is
+     *                                  performed in a closed tree
      */
     public V insert(String key, V value) throws StorageException, PersistentBTreeException {
         Preconditions.notNull(key);
@@ -321,6 +327,7 @@ public class PersistentBTree<V> implements Serializable {
     /**
      * 
      * Get the tree's root
+     * 
      * @return tree's root
      */
     public PersistentBTreeNode<V> getRoot() {
@@ -330,9 +337,10 @@ public class PersistentBTree<V> implements Serializable {
     /**
      * 
      * Set the tree's root
+     * 
      * @param root tree's root
-     */ 
-    public void setRoot(PersistentBTreeNode<V>  root) {
+     */
+    public void setRoot(PersistentBTreeNode<V> root) {
         this.root = root;
     }
 }

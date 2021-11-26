@@ -9,7 +9,7 @@ import de.tum.i13.server.persistentstorage.btree.storage.chunk.ChunkStorageHandl
  * interface also provide factory methods for generating
  * {@link ChunkStorageHandler}s. Thus, an implementation of this interface
  * couples the Tree structure storage with the chunk storage. This interface
- * also supports transactions {@link transactions.TransactionHandler}.
+ * also supports transactions {@link de.tum.i13.server.persistentstorage.btree.storage.transactions.TransactionHandler}.
  * 
  * @param <V> Type of the values used in the BTree
  */
@@ -70,6 +70,8 @@ public interface PersistentBTreeStorageHandler<V> {
      * Rollback insert/delete operations performed after the last
      * {@code beginTransaction} call. Note that this method only works if
      * transactions are enabled.
+     * 
+     * @return new root (previous tree structure)
      * 
      * @throws StorageException An exception is thrown when transaction end fails
      *                          due to problems with accessing disk.

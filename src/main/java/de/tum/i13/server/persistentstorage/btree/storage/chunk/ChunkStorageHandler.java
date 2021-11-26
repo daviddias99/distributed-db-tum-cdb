@@ -22,6 +22,8 @@ public interface ChunkStorageHandler<V> {
     /**
      * Store the chunk. If the chunk is empty, the chunk is deleted instead.
      * 
+     * @param chunk chunk to store
+     * 
      * @throws StorageException An exception is thrown when the handler wansn't able
      *                          to store or delete the chunk
      */
@@ -31,6 +33,8 @@ public interface ChunkStorageHandler<V> {
      * Store the chunk. This method differs from {@link #storeChunk(Chunk)
      * storeChunk} by storing the chunk even if it's empty.
      * 
+     * @param chunk chunk to store
+     * 
      * @throws StorageException An exception is thrown when the handler wansn't able
      *                          to store or delete the chunk
      */
@@ -39,6 +43,9 @@ public interface ChunkStorageHandler<V> {
     /**
      * Store the chunk. This method differs from {@link #storeChunk(Chunk)
      * storeChunk} by storing the chunk even if it's empty.
+     * 
+     * @param chunk chunk to create
+     * 
      * 
      * @throws StorageException An exception is thrown when the handler wansn't able
      *                          to store or delete the chunk
