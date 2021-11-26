@@ -1,9 +1,6 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -22,11 +19,6 @@ import java.util.stream.Collectors;
 class TestPersistentBTree {
 
     private PersistentBTree<String> tree;
-
-    @BeforeAll
-    public static void setLogLevel() {
-        Configurator.setRootLevel(Level.INFO);
-    }
 
     @BeforeEach
     public void createTree() throws StorageException {
