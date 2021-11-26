@@ -65,7 +65,7 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk.finalize();
+                chunk.releaseStoredElements();
                 result.append(pair.key + " -> " + pair.value + "\n");
             }
 
@@ -100,7 +100,7 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk.finalize();
+                chunk.releaseStoredElements();
                 result.append(pair.key + " ");
             }
 
@@ -135,7 +135,7 @@ public class PersistentBTreeDisplay<V> {
             }
 
             if (chunk != null) {
-                chunk.finalize();
+                chunk.releaseStoredElements();
             }
 
             result.append("\n");

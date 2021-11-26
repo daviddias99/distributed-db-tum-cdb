@@ -1,77 +1,17 @@
 package de.tum.i13.server.persistentstorage.btree.chunk;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import de.tum.i13.shared.Preconditions;
 
 /**
- * An array-like data-structure containing key-value pairs (see {@link Pair}) to
+ * A data-structure containing key-value pairs (see {@link Pair}) to
  * be used as data-blocks in a B-Tree. Contains operations commonly performed on
  * these data-blocks. The structure is sorted by the key values in increasing
  * order.
  * 
  * @param <V> type to be used in values
  */
-public class Chunk<V> implements Serializable {
-    // data stored in this chunk
-    private List<Pair<V>> elements;
-
-    // node minimum degree
-    private int minimumDegree;
-
-    private static final long serialVersionUID = 6529685098267757681L;
-
-    /**
-     * Create a new Chunk with given minimum degree. Note that all nodes in a B-Tree
-     * (except the root) must have at list {@code minimumDegree - 1} and at most
-     * {@code 2*minimumDegree  - 1} elements.
-     * 
-     * @param minimumDegree B-Tree minimum degree
-     */
-    public Chunk(int minimumDegree) {
-        this.minimumDegree = minimumDegree;
-        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
-    }
-
-    /**
-     * Create a new chunk from another chunk
-     * 
-     * @param chunk chunk to clone
-     */
-    public Chunk(Chunk<V> chunk) {
-        try {
-            super.clone();
-        } catch (CloneNotSupportedException e) {
-            // Purposefuly left empty
-        }
-
-        this.minimumDegree = chunk.minimumDegree;
-        this.elements = chunk.elements;
-    }
-
-    @Override
-    public void finalize() {
-        this.elements = null;
-    }
-
-    /**
-     * Create a new Chunk with given minimum degree and initialized with some
-     * elements. Note that all nodes in a B-Tree (except the root) must have at list
-     * {@code minimumDegree - 1} and at most {@code 2*minimumDegree  - 1} elements.
-     * 
-     * @param minimumDegree B-Tree minimum degree
-     * @param newElements   List of initial elements
-     */
-    public Chunk(int minimumDegree, List<Pair<V>> newElements) {
-        Preconditions.check(newElements.size() <= 2 * minimumDegree - 1);
-        this.minimumDegree = minimumDegree;
-        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
-        Collections.copy(this.elements, newElements);
-    }
-
+public interface Chunk<V> extends Serializable{
     /**
      * Finds index that contains the first element with a key greater than
      * {@code key}
@@ -79,14 +19,7 @@ public class Chunk<V> implements Serializable {
      * @param key key to check
      * @return index of first element with a key greater than {@code key}
      */
-    public int findIndexOfFirstGreaterThen(String key) {
-        int i = 0;
-        int n = this.getElementCount();
-        while (i < n && key.compareTo(elements.get(i).key) > 0)
-            i++;
-
-        return i;
-    }
+    public int findIndexOfFirstGreaterThen(String key);
 
     /**
      * Get element at {@code index}
@@ -94,9 +27,7 @@ public class Chunk<V> implements Serializable {
      * @param index index of the element to return
      * @return the element at the specified position in this chunk
      */
-    public Pair<V> get(int index) {
-        return this.elements.get(index);
-    }
+    public Pair<V> get(int index);
 
     /**
      * Replaces the element at the specified position in this list with the
@@ -106,9 +37,7 @@ public class Chunk<V> implements Serializable {
      * @param element element to be stored at the specified position
      * @return the element previously at the specified position
      */
-    public Pair<V> set(int index, Pair<V> element) {
-        return this.elements.set(index, element);
-    }
+    public Pair<V> set(int index, Pair<V> element);
 
     /**
      * Removes element at specified position in the chunk. After calling this
@@ -117,25 +46,14 @@ public class Chunk<V> implements Serializable {
      * @param index the index of the element to be removed
      * @return the element previously at the specified position
      */
-    public Pair<V> remove(int index) {
-        Pair<V> elem = this.elements.get(index);
-        this.elements.set(index, null);
-        return elem;
-    }
+    public Pair<V> remove(int index);
 
     /**
      * Shifts all the elements after {@code startIndex} right one position.
      * 
      * @param startIndex index of first element to shift right
      */
-    public void shiftRightOne(int startIndex) {
-        int keyCount = this.getElementCount();
-
-        for (int j = keyCount - 1; j >= startIndex; j--) {
-            this.elements.set(j + 1, this.elements.get(j));
-            this.elements.set(j, null);
-        }
-    }
+    public void shiftRightOne(int startIndex);
 
     /**
      * Shifts all the elements after {@code startIndex} left one position. If the
@@ -143,13 +61,7 @@ public class Chunk<V> implements Serializable {
      * 
      * @param startIndex index of first element to shift left
      */
-    public void shiftLeftOne(int startIndex) {
-        // Move all the keys after the idx-th pos one place backward
-        for (int i = startIndex + 1; i < this.elements.size(); ++i) {
-            this.elements.set(i - 1, this.elements.get(i));
-            this.elements.set(i, null);
-        }
-    }
+    public void shiftLeftOne(int startIndex);
 
     /**
      * Shifts all the elements after the first element with a key larger than key
@@ -158,46 +70,26 @@ public class Chunk<V> implements Serializable {
      * @param key key to check
      * @return index the chunk position where a new element should be in.
      */
-    public int shiftRightOneAfterFirstGreaterThan(String key) {
-        int keyCount = this.getElementCount();
-        int i = keyCount - 1;
-
-        while (i >= 0 && elements.get(i).key.compareTo(key) > 0) {
-            elements.set(i + 1, elements.get(i));
-            elements.set(i, null);
-            i--;
-        }
-
-        if (i < 0) {
-            return i + 1;
-        }
-
-        return elements.get(i).key.compareTo(key) == 0 ? i : i + 1;
-    }
+    public int shiftRightOneAfterFirstGreaterThan(String key);
 
     /**
      * Get number of elements in chunk.
      * 
      * @return Number of elements in chunk.
      */
-    public int getElementCount() {
-        int i = 0;
-
-        for (Pair<V> pair : elements) {
-            if (pair != null) {
-                i += 1;
-            }
-        }
-
-        return i;
-    }
+    public int getElementCount();
 
     /**
      * Get elements list. Note that some positions might be {@code null}.
      * 
      * @return list of key-value elements
      */
-    public List<Pair<V>> getElements() {
-        return this.elements;
-    }
+    public List<Pair<V>> getElements();
+
+        /**
+     * Used in hopes of allowing the garbage collector to clear the elements object.
+     * This is done to remove the memory footprint of the Chunk objects. It should
+     * be called once there is no expectation to acess the elements again.
+     */
+    public void releaseStoredElements();
 }

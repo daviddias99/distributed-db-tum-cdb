@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.chunk.ChunkImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.storage.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
@@ -56,8 +57,8 @@ public class PersistentBTreeNode<V> implements Serializable {
         this.treeStorageInterface = treeStorageHandler;
 
         // Create chunk
-        Chunk<V> newChunk = initialElement == null ? new Chunk<>(minimumDegree)
-                : new Chunk<>(minimumDegree, Arrays.asList(initialElement));
+        Chunk<V> newChunk = initialElement == null ? new ChunkImpl<>(minimumDegree)
+                : new ChunkImpl<>(minimumDegree, Arrays.asList(initialElement));
 
         this.elementCount = initialElement == null ? 0 : 1;
 
@@ -119,7 +120,7 @@ public class PersistentBTreeNode<V> implements Serializable {
             return null;
 
         // Remove chunk from memory
-        chunk.finalize();
+        chunk.releaseStoredElements();
 
         // Go to the appropriate child
         return children.get(i).search(key, insert, value);
@@ -196,7 +197,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
                 this.setChunk(chunk);
             }
-            chunk.finalize();
+            chunk.releaseStoredElements();
             this.children.get(i + 1).insertNonFull(key, value);
         }
     }
@@ -228,7 +229,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
         newNode.setChunk(newNodeChunk);
 
-        newNodeChunk.finalize();
+        newNodeChunk.releaseStoredElements();
 
         // Copy the last minimumDegree children of child to newNode
         if (!child.leaf) {
