@@ -7,6 +7,7 @@ import de.tum.i13.server.persistentstorage.btree.storage.StorageException;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 
+import java.io.Closeable;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -23,7 +24,7 @@ import org.apache.logging.log4j.Logger;
  * 
  * @param <V> Type of values used in the BTree
  */
-public class PersistentBTree<V> implements Serializable {
+public class PersistentBTree<V> implements Serializable, Closeable  {
     private static final long serialVersionUID = 6529685098267757690L;
     private static final Logger LOGGER = LogManager.getLogger(PersistentBTree.class);
 
