@@ -5,12 +5,10 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.spi.StandardLevel;
 import picocli.CommandLine;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 @CommandLine.Command(
         name = Constants.LOG_COMMAND,
@@ -27,60 +25,25 @@ class ChangeLogLevel implements Callable<Integer> {
 
     @CommandLine.Parameters(
             index = "0",
-            converter = LogLevelConverter.class,
-            completionCandidates = RegisteredLogLevels.class,
             description = "The desired log level. Valid values: ${COMPLETION-CANDIDATES}"
     )
-    private Level logLevel;
+    private StandardLevel logLevel;
 
     /**
      * Changes the logger to the specified level if valid.
      */
     @Override
     public Integer call() {
+        final Level level = Level.valueOf(logLevel.toString());
         String oldLevelName = LogManager.getRootLogger().getLevel().name();
-        final String newLevelName = logLevel.name();
+        final String newLevelName = level.name();
 
-        Configurator.setRootLevel(logLevel);
+        Configurator.setRootLevel(level);
 
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
         commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
 
         return ExitCode.SUCCESS.getValue();
-    }
-
-    private static class LogLevelConverter implements CommandLine.ITypeConverter<Level> {
-
-        private static final Logger LOGGER = LogManager.getLogger(LogLevelConverter.class);
-
-        @Override
-        public Level convert(String value) {
-            try {
-                return Level.valueOf(value);
-            } catch (NullPointerException | IllegalArgumentException exception) {
-                LOGGER.atError()
-                        .withThrowable(exception)
-                        .log("Log level {} is not valid.", value);
-                throw new CommandLine.TypeConversionException(
-                        String.format(
-                                "Log level \"%s\" is not valid. %s",
-                                value,
-                                exception.getMessage())
-                );
-            }
-        }
-
-    }
-
-    private static class RegisteredLogLevels extends ArrayList<String> {
-
-        private RegisteredLogLevels() {
-            super(Arrays.stream(Level.values())
-                    .map(Level::name)
-                    .collect(Collectors.toUnmodifiableList())
-            );
-        }
-
     }
 
 }
