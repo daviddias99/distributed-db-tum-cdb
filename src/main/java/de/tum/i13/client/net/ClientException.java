@@ -22,7 +22,7 @@ public class ClientException extends Exception {
     /**
      * Creates a new {@link ClientException} with the supplied message and a cause
      *
-     * @param cause  the cause of the exception
+     * @param cause   the cause of the exception
      * @param message the message of the exceptino
      */
     public ClientException(Throwable cause, String message) {
@@ -32,7 +32,7 @@ public class ClientException extends Exception {
     /**
      * Creates a new {@link ClientException} with the supplied message and type
      *
-     * @param type the {@link Type} of the exception
+     * @param type    the {@link Type} of the exception
      * @param message the message of the exception
      */
     public ClientException(Type type, String message) {
@@ -65,8 +65,8 @@ public class ClientException extends Exception {
      * Creates a new {@link ClientException} with the supplied format string and objects, and a cause
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
-     * @param cause the cause of the exception
+     * @param args   the parameters for the string formatting
+     * @param cause  the cause of the exception
      * @see String#format(String, Object...)
      */
     public ClientException(Throwable cause, String format, Object... args) {
@@ -77,8 +77,8 @@ public class ClientException extends Exception {
      * Creates a new {@link ClientException} with the supplied format string and objects, and a type
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
-     * @param type the {@link Type} of the exception
+     * @param args   the parameters for the string formatting
+     * @param type   the {@link Type} of the exception
      * @see String#format(String, Object...)
      */
     public ClientException(Type type, String format, Object... args) {
@@ -89,7 +89,7 @@ public class ClientException extends Exception {
      * Creates a new {@link ClientException} with the supplied format string and objects
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
+     * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
     public ClientException(String format, Object... args) {

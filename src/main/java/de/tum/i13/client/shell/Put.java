@@ -36,7 +36,7 @@ class Put implements Callable<Integer> {
 
     @CommandLine.Parameters(
             index = "1",
-            description = "arbitrary String (max. length 120 KByte). Default: ${DEFAULT-VALUE}" ,
+            description = "arbitrary String (max. length 120 KByte). Default: ${DEFAULT-VALUE}",
             defaultValue = CommandLine.Parameters.NULL_VALUE,
             arity = "0..1"
     )
@@ -59,16 +59,15 @@ class Put implements Callable<Integer> {
             LOGGER.info("Remote storage successfully updated key {} to value {}", key, value);
             out.printf("Successfully put value \"%s\" for key %s via update%n", value, key);
             return ExitCode.SUCCESS.getValue();
-        }
-        else if (storageStatus == KVMessage.StatusType.PUT_ERROR) {
+        } else if (storageStatus == KVMessage.StatusType.PUT_ERROR) {
             LOGGER.info("Remote storage returned error while putting key {} to value {}", key, value);
             out.printf("Could not put key %s to value %s on remote storage%n", key, value);
             return ExitCode.STORAGE_ERROR.getValue();
-        } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_SUCCESS ) {
+        } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_SUCCESS) {
             LOGGER.info("Remote storage successfully deleted key {}", key);
             out.printf("Successfully deleted key %s%n", key);
             return ExitCode.SUCCESS.getValue();
-        } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_ERROR ) {
+        } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_ERROR) {
             LOGGER.info("Remote storage returned error while deleting key {}", key);
             out.printf("Could not delete key %s on remote storage%n", key);
             return ExitCode.STORAGE_ERROR.getValue();
