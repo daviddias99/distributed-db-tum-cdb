@@ -79,7 +79,6 @@ public class Main {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Closing btree storage");
-            System.out.println("Oi1");
             storage.close();
         }));
 
