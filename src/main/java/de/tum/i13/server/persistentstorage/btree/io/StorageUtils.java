@@ -75,10 +75,11 @@ public class StorageUtils {
    * @throws StorageException an exception is thrown if either the file can't be
    *                          found or an error occured while reading
    */
-  public static Object readObject(Path filePath) throws StorageException {
+  public static <V> V readObject(Path filePath) throws StorageException {
     try (FileInputStream fileIn = new FileInputStream(filePath.toString())) {
       ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-      Object obj = objectIn.readObject();
+      @SuppressWarnings("unchecked")
+      V obj = (V) objectIn.readObject();
       objectIn.close();
       return obj;
     } catch (FileNotFoundException e) {
@@ -104,7 +105,7 @@ public class StorageUtils {
    * @throws StorageException an exception is thrown if either the file can't be
    *                          found or an error occured while writing
    */
-  public static void writeObject(Path filePath, Object obj) throws StorageException {
+  public static <V> void writeObject(Path filePath, V obj) throws StorageException {
     try (FileOutputStream fileOut = new FileOutputStream(filePath.toString())) {
       var objectOut = new ObjectOutputStream(fileOut);
       objectOut.writeObject(obj);

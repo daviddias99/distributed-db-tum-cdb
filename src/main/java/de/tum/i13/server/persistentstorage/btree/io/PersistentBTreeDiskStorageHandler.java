@@ -3,9 +3,6 @@ package de.tum.i13.server.persistentstorage.btree.io;
 import java.io.Serializable;
 import java.nio.file.Paths;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkDiskStorageHandler;
@@ -89,10 +86,7 @@ public class PersistentBTreeDiskStorageHandler<V> implements PersistentBTreeStor
 
     @Override
     public PersistentBTreeNode<V> load() throws StorageException {
-        @SuppressWarnings("unchecked")
-        PersistentBTreeNode<V> root = (PersistentBTreeNode<V>) StorageUtils
-                .readObject(Paths.get(storageFolder, "root"));
-        return root;
+        return StorageUtils.readObject(Paths.get(storageFolder, "root"));
     }
 
     @Override

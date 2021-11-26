@@ -3,7 +3,6 @@ package de.tum.i13.server.persistentstorage.btree.io;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
-import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler;
 
 /**
  * Handles storage of {@link PersistentBTree}s. Implementations of this

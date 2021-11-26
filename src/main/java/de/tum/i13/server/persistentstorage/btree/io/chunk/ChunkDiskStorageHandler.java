@@ -33,7 +33,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
      * 
      * @param storageFolder path to the folder where chunks are storage
      * @param chunkId       ID of the current chunk
-     * @param transHandler transactionHandler
+     * @param transHandler  transactionHandler
      */
     public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler<V> transHandler) {
         this.chunkId = chunkId;
@@ -43,9 +43,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public Chunk<V> readChunk() throws StorageException {
-        @SuppressWarnings("unchecked")
-        Chunk<V> chunk = (Chunk<V>) StorageUtils.readObject(Paths.get(storageFolder, chunkId));
-        return chunk;
+        return StorageUtils.readObject(Paths.get(storageFolder, chunkId));
     }
 
     @Override

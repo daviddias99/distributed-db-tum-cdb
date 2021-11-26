@@ -15,7 +15,7 @@ import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
 import de.tum.i13.shared.Constants;
 
-/** 
+/**
  * An implementation of a {@link TransactionHandler}
  */
 public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
@@ -35,8 +35,9 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
 
   /**
    * Create a new transaction handler
+   * 
    * @param storageFolder folder where chunks are stored
-   * @param backupFolder folder where backup chunks are stored
+   * @param backupFolder  folder where backup chunks are stored
    */
   public TransactionHandlerImpl(String storageFolder, String backupFolder) {
     TransactionHandlerImpl.changedChunks = new HashSet<>();
@@ -48,6 +49,7 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
 
   /**
    * Create a new transaction handler
+   * 
    * @param storageFolder folder where chunks are stored
    */
   public TransactionHandlerImpl(String storageFolder) {
@@ -119,11 +121,8 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
     // Replace tree structure
     this.chunkTransfer(Paths.get(this.storageFolder, this.backupFolder, "root"), Paths.get(this.storageFolder, "root"));
     this.endTransaction();
-    @SuppressWarnings("unchecked")
     // Read new root and return it
-    PersistentBTreeNode<V> newRoot = (PersistentBTreeNode<V>) StorageUtils
-        .readObject(Paths.get(this.storageFolder, "root"));
-    return newRoot;
+    return StorageUtils.readObject(Paths.get(this.storageFolder, "root"));
   }
 
   @Override
