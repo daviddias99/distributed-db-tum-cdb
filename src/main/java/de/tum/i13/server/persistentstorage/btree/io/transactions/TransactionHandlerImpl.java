@@ -84,11 +84,9 @@ public class TransactionHandlerImpl<V> implements TransactionHandler<V> {
 
   @Override
   public void notifyChunkCreation(String chunkId) {
-    if (!transactionStarted) {
-      return;
+    if (transactionStarted) {
+      createdChunks.add(chunkId);
     }
-
-    createdChunks.add(chunkId);
   }
 
   @Override
