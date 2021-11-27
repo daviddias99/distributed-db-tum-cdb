@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
-import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 import de.tum.i13.shared.Constants;
 
 /**
@@ -25,7 +25,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
     private String chunkId; // Chunk ID
     private String storageFolder; // Storage folder
 
-    private TransactionHandler<V> tHandler;
+    private ChangeListener cListener;
 
     /**
      * Create new storage handler. This handler interfaces with a chunk at
@@ -35,9 +35,9 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
      * @param chunkId       ID of the current chunk
      * @param transHandler  transactionHandler
      */
-    public ChunkDiskStorageHandler(String chunkId, String storageFolder, TransactionHandler<V> transHandler) {
+    public ChunkDiskStorageHandler(String chunkId, String storageFolder, ChangeListener transHandler) {
         this.chunkId = chunkId;
-        this.tHandler = transHandler;
+        this.cListener = transHandler;
         this.storageFolder = storageFolder;
     }
 
@@ -48,7 +48,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public void storeChunk(Chunk<V> chunk) throws StorageException {
-        this.tHandler.notifyChunkChange(chunkId);
+        this.cListener.notifyChunkChange(chunkId);
         if (chunk.getElementCount() == 0) {
             this.deleteChunk();
             return;
@@ -59,7 +59,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
 
     @Override
     public void createChunk(Chunk<V> chunk) throws StorageException {
-        this.tHandler.notifyChunkCreation(chunkId);
+        this.cListener.notifyChunkCreation(chunkId);
         StorageUtils.writeObject(Paths.get(storageFolder, chunkId), chunk);
     }
 

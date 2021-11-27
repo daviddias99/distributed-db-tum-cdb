@@ -1,39 +1,18 @@
 package de.tum.i13.server.persistentstorage.btree.io.transactions;
 
-import java.io.Serializable;
-
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
 /**
- * A transaction handler is reponsible for transactions on the persistent
+ * A transaction controller is reponsible for transactions on the persistent
  * storage. It is meant to be able to rollback mutable operations (insert
  * deletes) done after the transaction start. The normal flow of using a
  * transaction handler should be {@code beginTransaction} 'operation'
  * {@code endTransaction} or {code rollbackTransaction} depending on the success
  * of the operation.
  */
-public interface TransactionHandler<V> extends Serializable {
-
-  /**
-   * Method called when a chunk has changed.
-   * 
-   * @param chunkId id of the chunk that changed
-   * @throws StorageException an exception is thrown when an error occurs when
-   *                          trying to acess disk.
-   */
-  public void notifyChunkChange(String chunkId) throws StorageException;
-
-  /**
-   * Method called when a chunk has been creted.
-   * 
-   * @param chunkId id of the newly created chunk
-   * @throws StorageException an exception is thrown when an error occurs when
-   *                          trying to acess disk.
-   */
-  public void notifyChunkCreation(String chunkId) throws StorageException;
-
-  /**
+public interface TransactionController<V> {
+    /**
    * Reverts operations made since the last {@code beginTransaction} operation and
    * returns previous tree state. This state is used to update the in-memory
    * version of the tree, since the disk version is updated by this method.

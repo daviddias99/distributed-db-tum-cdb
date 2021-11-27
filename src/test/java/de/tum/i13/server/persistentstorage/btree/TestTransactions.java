@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
-import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandlerImpl;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListenerImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class TestTransactions {
   private PersistentBTree<String> tree;
   private static PersistentBTreeDisplay<String> display;
   private static PersistentBTreeDiskStorageHandler<String> sHandler;
-  private static TransactionHandlerImpl<String> tHandler;
+  private static ChangeListenerImpl cHandler;
 
   @BeforeAll
   public static void setLogLevel() {
@@ -32,10 +32,9 @@ public class TestTransactions {
 
   @BeforeEach
   public void createTree() throws StorageException {
-    tHandler = new TransactionHandlerImpl<>("database");
-    sHandler = new PersistentBTreeDiskStorageHandler<>("database", true, tHandler);
-    sHandler.disableTransactions();
-    tree = new PersistentBTree<>(3, sHandler);
+    cHandler = new ChangeListenerImpl("database");
+    sHandler = new PersistentBTreeDiskStorageHandler<>("database", true, cHandler);
+    tree = new PersistentBTree<>(3, sHandler, false);
   }
 
   @AfterEach
@@ -48,28 +47,30 @@ public class TestTransactions {
     String before, after;
     // Transaction 1
     before = display.traverseSpecial(tree);
-    tHandler.beginTransaction();
+    sHandler.beginTransaction();
     tree.insert(key, value);
-    PersistentBTreeNode<String> newRoot = tHandler.rollbackTransaction();
+    PersistentBTreeNode<String> newRoot = sHandler.rollbackTransaction();
     tree.setRoot(newRoot);
     after = display.traverseSpecial(tree);
     assertThat(TreeValidator.validTree(tree)).isTrue();
     assertThat(after).isEqualTo(before);
     tree.insert(key, value);
+    cHandler.reset();
   }
 
   private void doManualDelTransRolTransCycle(String key) throws StorageException, PersistentBTreeException {
     String before, after;
     // Transaction 1
     before = display.traverseSpecial(tree);
-    tHandler.beginTransaction();
+    sHandler.beginTransaction();
     tree.remove(key);
-    PersistentBTreeNode<String> newRoot = tHandler.rollbackTransaction();
+    PersistentBTreeNode<String> newRoot = sHandler.rollbackTransaction();
     tree.setRoot(newRoot);
     after = display.traverseSpecial(tree);
     assertThat(TreeValidator.validTree(tree)).isTrue();
     assertThat(after).isEqualTo(before);
     tree.remove(key);
+    cHandler.reset();
   }
 
   @Test
@@ -119,6 +120,7 @@ public class TestTransactions {
     tree.insert("L", "A");
     tree.insert("M", "A");
     tree.insert("N", "A");
+    cHandler.reset();
 
     this.doManualDelTransRolTransCycle("A");
     this.doManualDelTransRolTransCycle("B");
@@ -148,6 +150,7 @@ public class TestTransactions {
         tree.insert(c + "", c + "");
         assertThat(TreeValidator.validTree(tree)).isTrue();
       }
+      cHandler.reset();
 
       StringBuilder sb1 = new StringBuilder();
 

@@ -3,17 +3,18 @@ package de.tum.i13.server.persistentstorage.btree.io;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionController;
 
 /**
  * Handles storage of {@link PersistentBTree}s. Implementations of this
  * interface also provide factory methods for generating
  * {@link ChunkStorageHandler}s. Thus, an implementation of this interface
  * couples the Tree structure storage with the chunk storage. This interface
- * also supports transactions {@link de.tum.i13.server.persistentstorage.btree.io.transactions.TransactionHandler}.
+ * also supports transactions {@link de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener}.
  * 
  * @param <V> Type of the values used in the BTree
  */
-public interface PersistentBTreeStorageHandler<V> {
+public interface PersistentBTreeStorageHandler<V> extends TransactionController<V> {
 
     /**
      * Save the state of the {@link PersistentBTree}

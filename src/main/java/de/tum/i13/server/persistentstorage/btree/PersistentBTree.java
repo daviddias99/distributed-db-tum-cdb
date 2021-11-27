@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
  * 
  * @param <V> Type of values used in the BTree
  */
-public class PersistentBTree<V> implements Serializable, Closeable  {
+public class PersistentBTree<V> implements Serializable, Closeable {
     private static final long serialVersionUID = 6529685098267757690L;
     private static final Logger LOGGER = LogManager.getLogger(PersistentBTree.class);
 
@@ -35,6 +35,7 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
                                                                         // exclusive
                                                                         // access writes
     private AtomicBoolean treeClosed;
+    private boolean useTransactions = true;
 
     /**
      * Create a new PersistentBTree. It is possible to configure the tree's
@@ -56,6 +57,32 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
         this.storageHandler = storageHandler;
         this.treeClosed = new AtomicBoolean(false);
         this.storageHandler.save(this);
+    }
+
+    /**
+     * Create a new PersistentBTree. It is possible to configure the tree's
+     * minimumDegree, which gives a measure of the number of keys a node may contain
+     * [minimumDegree - 1, 2 * minimumDegree - 1]. The tree is also injected with a
+     * {@link PersistentBTreeStorageHandler} in order to configure storage.
+     * 
+     * @param minimumDegree   minimum degree of the tree (see PersistentBTree for
+     *                        details)
+     * @param storageHandler  handler used to store the tree (used to generate the
+     *                        contained chunk storage handler)
+     * @param useTransactions true if the tree should use transactions, false
+     *                        otherwise
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
+     */
+    public PersistentBTree(int minimumDegree, PersistentBTreeStorageHandler<V> storageHandler, boolean useTransactions)
+            throws StorageException {
+        Preconditions.check(minimumDegree >= 2);
+        this.root = null;
+        this.minimumDegree = minimumDegree;
+        this.storageHandler = storageHandler;
+        this.treeClosed = new AtomicBoolean(false);
+        this.storageHandler.save(this);
+        this.useTransactions = useTransactions;
     }
 
     /**
@@ -106,7 +133,8 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
             return false;
 
         this.readWriteLock.writeLock().lock();
-        this.storageHandler.beginTransaction();
+        if (this.useTransactions)
+            this.storageHandler.beginTransaction();
 
         try {
             // Call the remove function for root
@@ -120,10 +148,12 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
 
             this.readWriteLock.writeLock().unlock();
             this.storageHandler.save(this);
-            this.storageHandler.endTransaction();
+            if (this.useTransactions)
+                this.storageHandler.endTransaction();
             return result;
         } catch (StorageException e) {
-            this.storageHandler.rollbackTransaction();
+            if (this.useTransactions)
+                this.storageHandler.rollbackTransaction();
             throw e;
         }
     }
@@ -184,7 +214,9 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
         }
 
         try {
-            this.storageHandler.beginTransaction();
+            if (this.useTransactions)
+                this.storageHandler.beginTransaction();
+
             this.readWriteLock.writeLock().lock();
 
             // If tree is empty
@@ -192,7 +224,8 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
                 this.createRoot(key, value);
                 this.storageHandler.save(this);
                 this.readWriteLock.writeLock().unlock();
-                this.storageHandler.endTransaction();
+                if (this.useTransactions)
+                    this.storageHandler.endTransaction();
                 return null;
             }
 
@@ -201,7 +234,8 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
             if (previousValue != null) {
                 this.storageHandler.save(this);
                 this.readWriteLock.writeLock().unlock();
-                this.storageHandler.endTransaction();
+                if (this.useTransactions)
+                    this.storageHandler.endTransaction();
                 return previousValue;
             }
 
@@ -211,14 +245,15 @@ public class PersistentBTree<V> implements Serializable, Closeable  {
             // If root is not full, call insertNonFull for root
             else
                 root.insertNonFull(key, value);
-
-            this.storageHandler.endTransaction();
+            if (this.useTransactions)
+                this.storageHandler.endTransaction();
             this.storageHandler.save(this);
             this.readWriteLock.writeLock().unlock();
 
             return null;
         } catch (StorageException ex) {
-            this.root = this.storageHandler.rollbackTransaction();
+            if (this.useTransactions)
+                this.root = this.storageHandler.rollbackTransaction();
             throw ex;
         }
     }
