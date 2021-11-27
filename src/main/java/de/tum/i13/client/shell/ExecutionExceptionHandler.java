@@ -1,14 +1,14 @@
 package de.tum.i13.client.shell;
 
 import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.RemotePersistentStorage;
+import de.tum.i13.client.net.NetworkPersistentStorage;
 import de.tum.i13.server.kv.KVException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 /**
- * Handles {@link KVException} thrown by the {@link RemotePersistentStorage}
+ * Handles {@link KVException} thrown by the {@link NetworkPersistentStorage}
  */
 class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
 

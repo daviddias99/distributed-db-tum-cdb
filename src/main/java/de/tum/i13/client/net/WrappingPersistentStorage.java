@@ -10,22 +10,22 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer}.
- * This storage hides the network communication from the user
+ * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer} and wraps
+ * around it. This storage hides the network communication from the user.
  */
-public class RemotePersistentStorage implements PersistentStorage, NetworkMessageServer {
+public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
-    private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
+    private static final Logger LOGGER = LogManager.getLogger(WrappingPersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
 
     /**
-     * Creates a new remote persistent storage with the given network component
+     * Creates a new {@link WrappingPersistentStorage} that wraps around the given {@link NetworkMessageServer}
      *
      * @param networkMessageServer the server to use for network communication
      */
-    public RemotePersistentStorage(NetworkMessageServer networkMessageServer) {
+    public WrappingPersistentStorage(NetworkMessageServer networkMessageServer) {
         this.networkMessageServer = networkMessageServer;
     }
 
