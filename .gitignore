@@ -62,3 +62,5 @@ database/
 
 # Copied from root to site source files by maven-resources-plugin
 src/site/markdown/index.md
+
+.vscode

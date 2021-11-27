@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentstorage.btree;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -6,18 +6,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentStorage.btree.chunk.ChunkImpl;
-import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentStorage.btree.storage.ChunkStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.chunk.ChunkImpl;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
 import de.tum.i13.shared.Preconditions;
 
 /**
  * Node of a {@link PersistentBTree}
  */
-class PersistentBTreeNode<V> implements Serializable {
+public class PersistentBTreeNode<V> implements Serializable {
 
     int minimumDegree; // Minimum degree (defines the range for number of keys), see PersistentBTree.
     List<PersistentBTreeNode<V>> children; // List of children
@@ -48,7 +48,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
         Preconditions.check(minimumDegree >= 2);
         this.minimumDegree = minimumDegree;
-        this.children = new ArrayList<PersistentBTreeNode<V>>(Collections.nCopies((2 * minimumDegree), null));
+        this.children = new ArrayList<>(Collections.nCopies((2 * minimumDegree), null));
         this.leaf = leaf;
 
         // Storage
@@ -57,13 +57,11 @@ class PersistentBTreeNode<V> implements Serializable {
         this.treeStorageInterface = treeStorageHandler;
 
         // Create chunk
-        ChunkImpl<V> newChunk = initialElement == null ? new ChunkImpl<V>(minimumDegree)
-                : new ChunkImpl<V>(minimumDegree, Arrays.asList(initialElement));
+        Chunk<V> newChunk = initialElement == null ? new ChunkImpl<>(minimumDegree)
+                : new ChunkImpl<>(minimumDegree, Arrays.asList(initialElement));
 
         this.elementCount = initialElement == null ? 0 : 1;
-
-        // Force is used because chunk may be empty if initial element is null
-        this.setChunkForce(newChunk);
+        this.chunkStorageInterface.createChunk(newChunk);
     }
 
     /**
@@ -116,11 +114,11 @@ class PersistentBTreeNode<V> implements Serializable {
         }
 
         // If the key is not found here and this is a leaf node
-        if (leaf == true)
+        if (leaf)
             return null;
 
         // Remove chunk from memory
-        chunk = null;
+        chunk.releaseStoredElements();
 
         // Go to the appropriate child
         return children.get(i).search(key, insert, value);
@@ -166,12 +164,12 @@ class PersistentBTreeNode<V> implements Serializable {
 
         Chunk<V> chunk = this.getChunk();
 
-        if (leaf == true) {
+        if (leaf) {
 
             i = chunk.shiftRightOneAfterFirstGreaterThan(key);
 
             // Insert the new key at found location
-            chunk.set(i, new Pair<V>(key, value));
+            chunk.set(i, new Pair<>(key, value));
 
             this.setChunk(chunk);
             this.setElementCount(chunk.getElementCount());
@@ -197,7 +195,7 @@ class PersistentBTreeNode<V> implements Serializable {
 
                 this.setChunk(chunk);
             }
-            chunk = null;
+            chunk.releaseStoredElements();
             this.children.get(i + 1).insertNonFull(key, value);
         }
     }
@@ -215,7 +213,7 @@ class PersistentBTreeNode<V> implements Serializable {
         // Create a new node which is going to store (minimumDegree-1) keys
         // of child
         PersistentBTreeNode<V> child = this.children.get(i);
-        PersistentBTreeNode<V> newNode = new PersistentBTreeNode<V>(child.minimumDegree, child.leaf,
+        PersistentBTreeNode<V> newNode = new PersistentBTreeNode<>(child.minimumDegree, child.leaf,
                 this.treeStorageInterface);
         newNode.setElementCount(this.minimumDegree - 1);
 
@@ -229,10 +227,10 @@ class PersistentBTreeNode<V> implements Serializable {
 
         newNode.setChunk(newNodeChunk);
 
-        newNodeChunk = null;
+        newNodeChunk.releaseStoredElements();
 
         // Copy the last minimumDegree children of child to newNode
-        if (child.leaf == false) {
+        if (!child.leaf) {
             for (int j = 0; j < this.minimumDegree; j++) {
                 newNode.children.set(j, child.children.get(j + this.minimumDegree));
                 child.children.set(j + this.minimumDegree, null);
@@ -313,9 +311,7 @@ class PersistentBTreeNode<V> implements Serializable {
             // The key to be removed is present in the sub-tree rooted with this node
             // The flag indicates whether the key is present in the sub-tree rooted
             // with the last child of this node
-            boolean flag = ((idx == this.elementCount) ? true : false);
-
-            List<PersistentBTreeNode<V>> children = this.getChildren();
+            boolean flag = idx == this.elementCount;
 
             // If the child where the key is supposed to exist has less that t keys,
             // we fill that child
@@ -484,7 +480,6 @@ class PersistentBTreeNode<V> implements Serializable {
             else
                 merge(idx - 1);
         }
-        return;
     }
 
     /**
@@ -539,8 +534,6 @@ class PersistentBTreeNode<V> implements Serializable {
         this.setChunk(chunk);
         child.setChunk(childChunk);
         sibling.setChunk(siblingChunk);
-
-        return;
     }
 
     /**
@@ -590,8 +583,6 @@ class PersistentBTreeNode<V> implements Serializable {
         this.setChunk(chunk);
         child.setChunk(childChunk);
         sibling.setChunk(siblingChunk);
-
-        return;
     }
 
     /**
@@ -654,7 +645,6 @@ class PersistentBTreeNode<V> implements Serializable {
         this.setChunk(chunk);
         child.setChunk(childChunk);
         sibling.setChunk(siblingChunk);
-        return;
     }
 
     /**
@@ -743,16 +733,5 @@ class PersistentBTreeNode<V> implements Serializable {
      */
     void setChunk(Chunk<V> chunk) throws StorageException {
         this.chunkStorageInterface.storeChunk(chunk);
-    }
-
-    /**
-     * Stores given chunk in memory.
-     * 
-     * @param chunk Chunk to store
-     * @throws StorageException Throws an exception if some error occured while
-     *                          storing chunk in memory
-     */
-    void setChunkForce(Chunk<V> chunk) throws StorageException {
-        this.chunkStorageInterface.storeChunkForce(chunk);
     }
 }

@@ -1,17 +1,17 @@
-package de.tum.i13.server.persistentStorage.btree.chunk;
-
+package de.tum.i13.server.persistentstorage.btree.chunk;
+import java.io.Serializable;
 import java.util.List;
 
+
 /**
- * An array-like data-structure containing key-value pairs (see {@link Pair}) to
+ * A data-structure containing key-value pairs (see {@link Pair}) to
  * be used as data-blocks in a B-Tree. Contains operations commonly performed on
  * these data-blocks. The structure is sorted by the key values in increasing
  * order.
  * 
  * @param <V> type to be used in values
  */
-public interface Chunk<V> {
-
+public interface Chunk<V> extends Serializable{
     /**
      * Finds index that contains the first element with a key greater than
      * {@code key}
@@ -30,15 +30,6 @@ public interface Chunk<V> {
     public Pair<V> get(int index);
 
     /**
-     * Removes element at specified position in the chunk. After calling this
-     * method, the {@code index} position will contain the value null.
-     * 
-     * @param index the index of the element to be removed
-     * @return the element previously at the specified position
-     */
-    public Pair<V> remove(int index);
-
-    /**
      * Replaces the element at the specified position in this list with the
      * specified element
      * 
@@ -49,12 +40,13 @@ public interface Chunk<V> {
     public Pair<V> set(int index, Pair<V> element);
 
     /**
-     * Shifts all the elements after {@code startIndex} left one position. If the
-     * {@code startIndex} position contains any element it will be overriden.
+     * Removes element at specified position in the chunk. After calling this
+     * method, the {@code index} position will contain the value null.
      * 
-     * @param startIndex index of first element to shift left
+     * @param index the index of the element to be removed
+     * @return the element previously at the specified position
      */
-    public void shiftLeftOne(int startIndex);
+    public Pair<V> remove(int index);
 
     /**
      * Shifts all the elements after {@code startIndex} right one position.
@@ -64,6 +56,14 @@ public interface Chunk<V> {
     public void shiftRightOne(int startIndex);
 
     /**
+     * Shifts all the elements after {@code startIndex} left one position. If the
+     * {@code startIndex} position contains any element it will be overriden.
+     * 
+     * @param startIndex index of first element to shift left
+     */
+    public void shiftLeftOne(int startIndex);
+
+    /**
      * Shifts all the elements after the first element with a key larger than key
      * {@code key} right one position.
      * 
@@ -71,13 +71,6 @@ public interface Chunk<V> {
      * @return index the chunk position where a new element should be in.
      */
     public int shiftRightOneAfterFirstGreaterThan(String key);
-
-    /**
-     * Create a copy of the chunk.
-     * 
-     * @return a copy of the chunk
-     */
-    public Chunk<V> clone();
 
     /**
      * Get number of elements in chunk.
@@ -91,5 +84,12 @@ public interface Chunk<V> {
      * 
      * @return list of key-value elements
      */
-    List<Pair<V>> getElements();
+    public List<Pair<V>> getElements();
+
+        /**
+     * Used in hopes of allowing the garbage collector to clear the elements object.
+     * This is done to remove the memory footprint of the Chunk objects. It should
+     * be called once there is no expectation to acess the elements again.
+     */
+    public void releaseStoredElements();
 }
