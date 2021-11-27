@@ -22,126 +22,127 @@ import de.tum.i13.shared.Constants;
  * copying/deleting files
  */
 public class StorageUtils {
-  private static final Logger LOGGER = LogManager.getLogger(StorageUtils.class);
+    private static final Logger LOGGER = LogManager.getLogger(StorageUtils.class);
 
-  /**
-   * Copies file at {@code src} to {@code dst}, replacing if {@code dst} already
-   * exists
-   * 
-   * @param src path to the source location
-   * @param dst path to the destination location
-   * @throws IOException See
-   *                     {@link java.nio.file.Files#copy(Path, Path, CopyOption...)}
-   */
-  public static void copyAndReplaceFile(Path src, Path dst) throws IOException {
-    Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
-  }
-
-  /**
-   * Create a new directory
-   * 
-   * @param storageFolder path of the new directory
-   */
-  public static void createDirectory(Path storageFolder) {
-    File theDir = storageFolder.toFile();
-    if (!theDir.exists()) {
-      theDir.mkdirs();
-    }
-  }
-
-  /**
-   * Delete a directory
-   * 
-   * @param directoryToBeDeleted directory to be deleted
-   * @return true if directory was deleted successfuly, false otherwise
-   * @throws IOException
-   */
-  private static void deleteDirectory(Path directoryToBeDeleted) throws IOException {
-    File[] allContents = directoryToBeDeleted.toFile().listFiles();
-    if (allContents != null) {
-      for (File file : allContents) {
-        deleteDirectory(file.toPath());
-      }
+    /**
+     * Copies file at {@code src} to {@code dst}, replacing if {@code dst} already
+     * exists
+     * 
+     * @param src path to the source location
+     * @param dst path to the destination location
+     * @throws IOException See
+     *                     {@link java.nio.file.Files#copy(Path, Path, CopyOption...)}
+     */
+    public static void copyAndReplaceFile(Path src, Path dst) throws IOException {
+        Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
     }
 
-    Files.delete(directoryToBeDeleted);
-  }
-
-  /**
-   * Read object from disk
-   * 
-   * @param filePath path to the object in disk
-   * @return read object
-   * @throws StorageException an exception is thrown if either the file can't be
-   *                          found or an error occured while reading
-   */
-  public static <V> V readObject(Path filePath) throws StorageException {
-    try (FileInputStream fileIn = new FileInputStream(filePath.toString())) {
-      ObjectInputStream objectIn = new ObjectInputStream(fileIn);
-      @SuppressWarnings("unchecked")
-      V obj = (V) objectIn.readObject();
-      objectIn.close();
-      return obj;
-    } catch (FileNotFoundException e) {
-      StorageException storageException = new StorageException(e,
-          "Throwing exception because the file %s could not be found.", filePath);
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
-    } catch (IOException e) {
-      StorageException storageException = new StorageException(e, "I/O error while reading object from memory");
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
-    } catch (ClassNotFoundException e) {
-      StorageException storageException = new StorageException(e, "Unknown error while reading object from memory");
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
+    /**
+     * Create a new directory
+     * 
+     * @param storageFolder path of the new directory
+     */
+    public static void createDirectory(Path storageFolder) {
+        File theDir = storageFolder.toFile();
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
     }
-  }
 
-  /**
-   * 
-   * @param filePath path where the object will be stored
-   * @param obj      object to store
-   * @throws StorageException an exception is thrown if either the file can't be
-   *                          found or an error occured while writing
-   */
-  public static <V> void writeObject(Path filePath, V obj) throws StorageException {
-    try (FileOutputStream fileOut = new FileOutputStream(filePath.toString())) {
-      var objectOut = new ObjectOutputStream(fileOut);
-      objectOut.writeObject(obj);
-      objectOut.close();
-    } catch (FileNotFoundException e) {
-      StorageException storageException = new StorageException(e,
-          "Throwing exception because the file %s could not be found.", filePath);
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
-    } catch (IOException e) {
-      StorageException storageException = new StorageException(e, "I/O error while writing object to disk");
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
+    /**
+     * Delete a directory
+     * 
+     * @param directoryToBeDeleted directory to be deleted
+     * @return true if directory was deleted successfuly, false otherwise
+     * @throws IOException
+     */
+    private static void deleteDirectory(Path directoryToBeDeleted) throws IOException {
+        File[] allContents = directoryToBeDeleted.toFile().listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file.toPath());
+            }
+        }
+
+        Files.delete(directoryToBeDeleted);
     }
-  }
 
-  /**
-   * Delete file from disk
-   * 
-   * @param filePath path to file
-   * @throws StorageException an exception is thrown for unexpected I/O errors
-   */
-  public static void deleteFile(Path filePath) throws StorageException {
-    try {
-
-      if (filePath.toFile().isDirectory()) {
-        deleteDirectory(filePath);
-        return;
-      }
-
-      Files.deleteIfExists(filePath);
-      LOGGER.debug("Deleted chunk ({}) from disk.", filePath);
-    } catch (IOException e) {
-      StorageException storageException = new StorageException(e, "I/O error while deleting file from disk");
-      LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-      throw storageException;
+    /**
+     * Read object from disk
+     * 
+     * @param filePath path to the object in disk
+     * @return read object
+     * @throws StorageException an exception is thrown if either the file can't be
+     *                          found or an error occured while reading
+     */
+    public static <V> V readObject(Path filePath) throws StorageException {
+        try (FileInputStream fileIn = new FileInputStream(filePath.toString())) {
+            ObjectInputStream objectIn = new ObjectInputStream(fileIn);
+            @SuppressWarnings("unchecked")
+            V obj = (V) objectIn.readObject();
+            objectIn.close();
+            return obj;
+        } catch (FileNotFoundException e) {
+            StorageException storageException = new StorageException(e,
+                    "Throwing exception because the file %s could not be found.", filePath);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        } catch (IOException e) {
+            StorageException storageException = new StorageException(e, "I/O error while reading object from memory");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        } catch (ClassNotFoundException e) {
+            StorageException storageException = new StorageException(e,
+                    "Unknown error while reading object from memory");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        }
     }
-  }
+
+    /**
+     * 
+     * @param filePath path where the object will be stored
+     * @param obj      object to store
+     * @throws StorageException an exception is thrown if either the file can't be
+     *                          found or an error occured while writing
+     */
+    public static <V> void writeObject(Path filePath, V obj) throws StorageException {
+        try (FileOutputStream fileOut = new FileOutputStream(filePath.toString())) {
+            var objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(obj);
+            objectOut.close();
+        } catch (FileNotFoundException e) {
+            StorageException storageException = new StorageException(e,
+                    "Throwing exception because the file %s could not be found.", filePath);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        } catch (IOException e) {
+            StorageException storageException = new StorageException(e, "I/O error while writing object to disk");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        }
+    }
+
+    /**
+     * Delete file from disk
+     * 
+     * @param filePath path to file
+     * @throws StorageException an exception is thrown for unexpected I/O errors
+     */
+    public static void deleteFile(Path filePath) throws StorageException {
+        try {
+
+            if (filePath.toFile().isDirectory()) {
+                deleteDirectory(filePath);
+                return;
+            }
+
+            Files.deleteIfExists(filePath);
+            LOGGER.debug("Deleted chunk ({}) from disk.", filePath);
+        } catch (IOException e) {
+            StorageException storageException = new StorageException(e, "I/O error while deleting file from disk");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
+            throw storageException;
+        }
+    }
 }
