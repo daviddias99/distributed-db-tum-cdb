@@ -145,7 +145,7 @@ public class LFUCache implements Cache {
      * Updates a key in the cache, if it was not present before
      * Replaces the key last in the list, if the cache was already full, otherwise is appended to end
      */
-    private KVMessageImpl putAbsentKey(String key, String value) {
+    private KVMessage putAbsentKey(String key, String value) {
         LOGGER.debug("Putting key {} with previously absent value to value {}", key, value);
         if (accessFrequencyList.size() < size) {
             LOGGER.debug("Putting key {} to value {} in non-full cache", key, value);
