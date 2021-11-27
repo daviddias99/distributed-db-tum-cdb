@@ -71,6 +71,11 @@ class Put implements Callable<Integer> {
             LOGGER.info("Remote storage returned error while deleting key '{}'", key);
             out.printf("Could not delete key '%s' on remote storage%n", key);
             return ExitCode.STORAGE_ERROR.getValue();
+        } else if (storageStatus == KVMessage.StatusType.UNDEFINED) {
+            LOGGER.warn("Remote storage returned error while putting key '{}' with value '{}' with message: {}",
+                    () -> key, () -> value, storageResponse::toString);
+            out.printf("Remote storage returned an error with message: %s", storageResponse);
+            return ExitCode.STORAGE_ERROR.getValue();
         } else {
             final PutException putException = new PutException(
                     "Remote storage returned unprocessable status code %s while putting key '%s'",
