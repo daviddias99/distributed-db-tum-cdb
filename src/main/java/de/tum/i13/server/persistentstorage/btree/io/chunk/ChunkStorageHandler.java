@@ -1,6 +1,7 @@
-package de.tum.i13.server.persistentStorage.btree.storage;
+package de.tum.i13.server.persistentstorage.btree.io.chunk;
 
-import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
 /**
  * Handles storage of {@link Chunk}s.
@@ -21,6 +22,8 @@ public interface ChunkStorageHandler<V> {
     /**
      * Store the chunk. If the chunk is empty, the chunk is deleted instead.
      * 
+     * @param chunk chunk to store
+     * 
      * @throws StorageException An exception is thrown when the handler wansn't able
      *                          to store or delete the chunk
      */
@@ -30,8 +33,11 @@ public interface ChunkStorageHandler<V> {
      * Store the chunk. This method differs from {@link #storeChunk(Chunk)
      * storeChunk} by storing the chunk even if it's empty.
      * 
+     * @param chunk chunk to create
+     * 
+     * 
      * @throws StorageException An exception is thrown when the handler wansn't able
      *                          to store or delete the chunk
      */
-    public void storeChunkForce(Chunk<V> chunk) throws StorageException;
+    public void createChunk(Chunk<V> chunk) throws StorageException;
 }

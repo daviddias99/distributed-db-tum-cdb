@@ -1,4 +1,5 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentstorage.btree;
+
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,16 +9,16 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
-import de.tum.i13.server.persistentStorage.btree.storage.PersistentBTreeStorageHandler;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
  * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
  */
-public class BTreePersistentStorage implements PersistentStorage {
-    private static final Logger LOGGER = LogManager.getLogger(PersistentStorage.class);
+public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
+    private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
     private PersistentBTree<String> tree;
 
@@ -28,11 +29,15 @@ public class BTreePersistentStorage implements PersistentStorage {
      * 
      * @param minimumDegree  B-Tree minimum degree
      * @param storageHandler Handler used by the BTree to persist
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
      */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler) {
+    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler)
+            throws StorageException {
         try {
-            this.tree = storageHandler.load();
+            this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler);
         } catch (StorageException e) {
+            // Purposefuly empty
         }
 
         if (this.tree == null) {
@@ -55,13 +60,12 @@ public class BTreePersistentStorage implements PersistentStorage {
             LOGGER.info("Found value {} with key {}", value, key);
             return new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS);
         } catch (Exception e) {
-            GetException ex = new GetException("An error occured while fetching key %s from storage.", key);
-            throw ex;
+            throw new GetException("An error occured while fetching key %s from storage.", key);
         }
     }
 
     @Override
-    public KVMessage put(String key, String value) throws PutException {
+    public synchronized KVMessage put(String key, String value) throws PutException {
         Preconditions.notNull(key, "Key cannot be null");
 
         try {
@@ -80,7 +84,7 @@ public class BTreePersistentStorage implements PersistentStorage {
 
             // Note: this returns a PUT_SUCCESS if the value already exists but is updated
             // with the same value.
-            if (value != previousValue && previousValue != null) {
+            if (!value.equals(previousValue) && previousValue != null) {
                 LOGGER.info("Updated key {} with value {}", key, value);
 
                 return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
@@ -93,5 +97,21 @@ public class BTreePersistentStorage implements PersistentStorage {
             throw new PutException("An error occured while %s key %s from storage.",
                     value == null ? "deleting" : "putting", key);
         }
+    }
+
+    /**
+     * Closes tree ensuring that modifying operations (inserts and deletes) can
+     * finish first.
+     */
+    @Override
+    public synchronized void close() {
+        this.tree.close();
+    }
+
+    /**
+     * Enables tree operations have it has been closed.
+     */
+    public synchronized void reopen() {
+        this.tree.reopen();
     }
 }

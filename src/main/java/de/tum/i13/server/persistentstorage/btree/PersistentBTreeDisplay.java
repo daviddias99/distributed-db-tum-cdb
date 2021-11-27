@@ -1,8 +1,8 @@
-package de.tum.i13.server.persistentStorage.btree;
+package de.tum.i13.server.persistentstorage.btree;
 
-import de.tum.i13.server.persistentStorage.btree.chunk.Chunk;
-import de.tum.i13.server.persistentStorage.btree.chunk.Pair;
-import de.tum.i13.server.persistentStorage.btree.storage.StorageException;
+import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
 public class PersistentBTreeDisplay<V> {
     /*
@@ -10,31 +10,37 @@ public class PersistentBTreeDisplay<V> {
      */
 
     // function to traverse the tree
-    void traverse(PersistentBTree<V> tree) {
-
+    String traverse(PersistentBTree<V> tree) {
+        StringBuilder result = new StringBuilder();
         PersistentBTreeNodeDisplay nodeDisplay = new PersistentBTreeNodeDisplay();
         if (tree.root != null)
-            nodeDisplay.traverse(tree.root);
-        System.out.println();
+            nodeDisplay.traverse(tree.root, result);
+        return result.toString();
     }
 
-    void traverseCondensed(PersistentBTree<V> tree) {
+    String traverseCondensed(PersistentBTree<V> tree) {
+        StringBuilder result = new StringBuilder();
+
         PersistentBTreeNodeDisplay nodeDisplay = new PersistentBTreeNodeDisplay();
         if (tree.root != null)
-            nodeDisplay.traverseCondensed(tree.root);
-        System.out.println();
+            nodeDisplay.traverseCondensed(tree.root, result);
+        return result.toString();
+
     }
 
-    void traverseSpecial(PersistentBTree<V> tree) {
+    String traverseSpecial(PersistentBTree<V> tree) {
+        StringBuilder result = new StringBuilder();
+
         PersistentBTreeNodeDisplay nodeDisplay = new PersistentBTreeNodeDisplay();
         if (tree.root != null)
-            nodeDisplay.traverseSpecial(tree.root);
-        System.out.println();
+            nodeDisplay.traverseSpecial(tree.root, result);
+        return result.toString();
+
     }
 
     private class PersistentBTreeNodeDisplay {
         // A function to traverse all nodes in a subtree rooted with this node
-        void traverse(PersistentBTreeNode<V> node) {
+        void traverse(PersistentBTreeNode<V> node, StringBuilder result) {
 
             // There are n keys and n+1 children, traverse through n keys
             // and first n children
@@ -43,8 +49,8 @@ public class PersistentBTreeDisplay<V> {
 
                 // If this is not leaf, then before printing key[i],
                 // traverse the subtree rooted with child C[i].
-                if (node.leaf == false) {
-                    this.traverse(node.children.get(i));
+                if (!node.leaf) {
+                    this.traverse(node.children.get(i), result);
                 }
 
                 Chunk<V> chunk;
@@ -59,17 +65,17 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk = null;
-                System.out.println(pair.key + " -> " + pair.value);
+                chunk.releaseStoredElements();
+                result.append(pair.key + " -> " + pair.value + "\n");
             }
 
             // Print the subtree rooted with last child
-            if (node.leaf == false)
-                this.traverse(node.children.get(i));
+            if (!node.leaf)
+                this.traverse(node.children.get(i), result);
         }
 
         // A function to traverse all nodes in a subtree rooted with this node
-        void traverseCondensed(PersistentBTreeNode<V> node) {
+        void traverseCondensed(PersistentBTreeNode<V> node, StringBuilder result) {
 
             // There are n keys and n+1 children, traverse through n keys
             // and first n children
@@ -78,8 +84,8 @@ public class PersistentBTreeDisplay<V> {
 
                 // If this is not leaf, then before printing key[i],
                 // traverse the subtree rooted with child C[i].
-                if (node.leaf == false) {
-                    this.traverseCondensed(node.children.get(i));
+                if (!node.leaf) {
+                    this.traverseCondensed(node.children.get(i), result);
                 }
 
                 Chunk<V> chunk;
@@ -94,21 +100,21 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                chunk = null;
-                System.out.print(pair.key + " ");
+                chunk.releaseStoredElements();
+                result.append(pair.key + " ");
             }
 
             // Print the subtree rooted with last child
-            if (node.leaf == false)
-                this.traverseCondensed(node.children.get(i));
+            if (!node.leaf)
+                this.traverseCondensed(node.children.get(i), result);
         }
 
-        void traverseSpecial(PersistentBTreeNode<V> node) {
+        void traverseSpecial(PersistentBTreeNode<V> node, StringBuilder result) {
 
-            System.out.println("--");
-            System.out.println("Node(" + Integer.toString(node.id) + ")");
-            System.out.println("Key count: " + node.elementCount);
-            System.out.print("Keys: ");
+            result.append("--\n");
+            result.append("Node(" + Integer.toString(node.id) + ")\n");
+            result.append("Key count: " + node.elementCount + "\n");
+            result.append("Keys: ");
 
             // There are n keys and n+1 children, traverse through n keys
             // and first n children
@@ -125,12 +131,16 @@ public class PersistentBTreeDisplay<V> {
                 }
 
                 Pair<V> pair = chunk.get(i);
-                System.out.print(pair.key + " ");
+                result.append(pair.key + " ");
             }
-            chunk = null;
-            System.out.print("\n");
 
-            System.out.print("Children: ");
+            if (chunk != null) {
+                chunk.releaseStoredElements();
+            }
+
+            result.append("\n");
+
+            result.append("Children: ");
 
             for (PersistentBTreeNode<V> bTreeNode : node.children) {
 
@@ -138,10 +148,10 @@ public class PersistentBTreeDisplay<V> {
                     break;
                 }
 
-                System.out.print(Integer.toString(bTreeNode.id) + " ");
+                result.append(Integer.toString(bTreeNode.id) + " ");
             }
 
-            System.out.print("\n");
+            result.append("\n");
 
             for (PersistentBTreeNode<V> bTreeNode : node.children) {
 
@@ -149,7 +159,7 @@ public class PersistentBTreeDisplay<V> {
                     break;
                 }
 
-                this.traverseSpecial(bTreeNode);
+                this.traverseSpecial(bTreeNode, result);
             }
         }
 
