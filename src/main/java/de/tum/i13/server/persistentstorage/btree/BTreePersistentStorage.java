@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import java.io.Closeable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,7 +17,7 @@ import de.tum.i13.shared.Preconditions;
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
  * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
  */
-public class BTreePersistentStorage implements PersistentStorage, Closeable {
+public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
     private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
     private PersistentBTree<String> tree;
