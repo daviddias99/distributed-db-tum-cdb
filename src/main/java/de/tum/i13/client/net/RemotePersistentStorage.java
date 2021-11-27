@@ -17,6 +17,7 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
 
     private static final Logger LOGGER = LogManager.getLogger(RemotePersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
+    private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
 
     /**
@@ -32,6 +33,13 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
     public KVMessage get(String key) throws GetException {
         LOGGER.info("Trying to get value of key '{}'", key);
 
+        if (getByteLength(key) >= Constants.MAX_KEY_SIZE_BYTES) {
+            final GetException getException = new GetException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
+                    Constants.MAX_KEY_SIZE_BYTES);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
+            throw getException;
+        }
+
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
             return sendAndReceive(getMessage);
@@ -45,7 +53,27 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
     public KVMessage put(String key, String value) throws PutException {
         LOGGER.info("Trying to put key '{}' to value '{}'", key, value);
 
+        // This code is duplicated from the get function due to different thrown exception that cannot be handled
+        // in a common method
+        if (getByteLength(key) >= Constants.MAX_KEY_SIZE_BYTES) {
+            final PutException putException = new PutException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
+                    Constants.MAX_KEY_SIZE_BYTES);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
+            throw putException;
+        }
+
+        if (value != null && getByteLength(value) >= Constants.MAX_VALUE_SIZE_BYTES) {
+            final PutException putException = new PutException("Value '%s' exceeded maximum byte length of %s",
+                    value, Constants.MAX_VALUE_SIZE_BYTES);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
+            throw putException;
+        }
+
         return value == null ? deleteKey(key) : putKey(key, value);
+    }
+
+    private int getByteLength(String string) {
+        return string.getBytes(Constants.TELNET_ENCODING).length;
     }
 
     private KVMessage deleteKey(String key) throws PutException {
