@@ -42,8 +42,7 @@ public class Shell {
         boolean quit = false;
         while (!quit) {
             //print prompt
-            out.print(Constants.PROMPT);
-            out.flush();
+            out.printf(Constants.PROMPT);
 
             //read user input from console
             try {
