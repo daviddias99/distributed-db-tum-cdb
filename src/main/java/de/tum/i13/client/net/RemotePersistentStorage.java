@@ -102,7 +102,8 @@ public class RemotePersistentStorage implements PersistentStorage, NetworkMessag
 
     private KVMessage sendAndReceive(KVMessage message) throws ClientException {
         LOGGER.debug("Sending message to server: '{}'", message::packMessage);
-        networkMessageServer.send((message.packMessage() + Constants.TERMINATING_STR).getBytes());
+        final String terminatedMessage = message.packMessage() + Constants.TERMINATING_STR;
+        networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
         return KVMessage.unpackMessage(receiveMessage());
     }
 
