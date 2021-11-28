@@ -1,5 +1,7 @@
 package de.tum.i13.server.threadperconnection;
 
+import de.tum.i13.server.kv.PeerAuthenticator;
+import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.shared.ActiveConnection;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
@@ -17,15 +19,13 @@ import java.net.Socket;
 public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
-    
+
     private CommandProcessor cp;
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
-    private ActiveConnection activeConnection;
-    private BufferedReader in;
-    private PrintWriter out;
 
-    public ConnectionHandleThread(CommandProcessor commandProcessor, Socket clientSocket, InetSocketAddress serverAddress) {
+    public ConnectionHandleThread(CommandProcessor commandProcessor, Socket clientSocket,
+            InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;
         this.serverAddress = serverAddress;
@@ -34,28 +34,34 @@ public class ConnectionHandleThread implements Runnable {
     @Override
     public void run() {
         try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
-            out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING));
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
+            PrintWriter out = new PrintWriter(
+                    new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING));
 
-            activeConnection = new ActiveConnection(clientSocket, out, in);
+            ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
+            PeerType peerType = (new PeerAuthenticator()).authenticate(activeConnection);
 
-            //Send a confirmation message to client upon connection
-            String connSuccess = cp.connectionAccepted(this.serverAddress, (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-            activeConnection.write(connSuccess);
+            // Send a confirmation message to peer upon connection if he needs the greet
+            if (peerType.needsGreet()) {
+                String connSuccess = cp.connectionAccepted(this.serverAddress,
+                        (InetSocketAddress) clientSocket.getRemoteSocketAddress());
+                activeConnection.write(connSuccess);
+            }
 
-            //read messages from client and process using the CommandProcessor 
+            // read messages from client and process using the CommandProcessor
             String firstLine;
-            while ((firstLine = activeConnection.readline()) != null && firstLine != "-1") {
-                String response = cp.process(firstLine);
+            while ((firstLine = activeConnection.readline()) != null && !firstLine.equals("-1")) {
+                String response = cp.process(firstLine, peerType);
                 activeConnection.write(response);
             }
 
             activeConnection.close();
             cp.connectionClosed(clientSocket.getInetAddress());
 
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             LOGGER.fatal("Caught exception while trying to read from {}.", clientSocket.getInetAddress());
-        } catch(Exception ex){
+        } catch (Exception ex) {
             LOGGER.fatal("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
         }
     }

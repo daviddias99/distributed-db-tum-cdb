@@ -1,6 +1,7 @@
 package de.tum.i13.server.kv;
 
 import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import org.apache.logging.log4j.LogManager;
@@ -21,8 +22,8 @@ public class KVCommandProcessor implements CommandProcessor {
     }
 
     @Override
-    public String process(String command) {
-        if(this.serverState.isStopped()) {
+    public String process(String command, PeerType peerType) {
+        if(this.serverState.isStopped() && !peerType.canBypassStop()) {
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 

@@ -9,6 +9,8 @@ public class ServerState {
   }
 
   private State currentState;
+  private String keyRangeLowerBound;
+  private String keyRangeUpperBound;
 
   public ServerState() {
     this.setState(State.STOPPED);
@@ -56,5 +58,13 @@ public class ServerState {
 
   public void start() {
     this.currentState = State.ACTIVE;
+  }
+
+  public void setKeyRangeUpperBound(String upperBound){
+    this.keyRangeUpperBound = upperBound;
+  }
+
+  public void setKeyRangeLowerBound(String lowerBound){
+    this.keyRangeLowerBound = lowerBound;
   }
 }

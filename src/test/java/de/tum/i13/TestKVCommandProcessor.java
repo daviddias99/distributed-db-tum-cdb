@@ -5,6 +5,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
 
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState(ServerState.State.ACTIVE));
-        kvcp.process("put key hello");
+        kvcp.process("put key hello", PeerType.CLIENT);
 
         verify(kv).put("key", "hello");
     }
@@ -34,7 +35,7 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
-        String response = kvcp.process("put key hello");
+        String response = kvcp.process("put key hello", PeerType.CLIENT);
         assertThat(KVMessage
                 .unpackMessage(response))
                         .extracting(
@@ -48,5 +49,25 @@ class TestKVCommandProcessor {
         ;
 
         verify(kv, never()).put("key", "hello");
+    }
+
+    @Test
+    void ecsBypassesStop() throws PutException {
+
+        PersistentStorage kv = mock(PersistentStorage.class);
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
+        kvcp.process("put key hello", PeerType.ECS);
+        verify(kv).put("key", "hello");
+    }
+
+    @Test
+    void serverBypassesStop() throws PutException {
+
+        PersistentStorage kv = mock(PersistentStorage.class);
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
+        kvcp.process("put key hello", PeerType.SERVER);
+        verify(kv).put("key", "hello");
     }
 }
