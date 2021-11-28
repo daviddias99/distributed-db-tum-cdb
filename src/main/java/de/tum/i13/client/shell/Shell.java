@@ -32,7 +32,8 @@ public class Shell {
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())
-                .setExecutionExceptionHandler(new ExecutionExceptionHandler());
+                .setExecutionExceptionHandler(new ExecutionExceptionHandler())
+                .setCaseInsensitiveEnumValuesAllowed(true);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
@@ -41,8 +42,7 @@ public class Shell {
         boolean quit = false;
         while (!quit) {
             //print prompt
-            out.print(Constants.PROMPT);
-            out.flush();
+            out.printf(Constants.PROMPT);
 
             //read user input from console
             try {

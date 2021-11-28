@@ -12,7 +12,7 @@ public interface MessageServer {
      *
      * @param message Message to be sent to the host
      * @throws ClientException if the message is too large, the client isn't connected or
-     * the message fails to be sent
+     *                         the message fails to be sent
      * @see Constants#MAX_MESSAGE_SIZE_BYTES
      */
     void send(byte[] message) throws ClientException;

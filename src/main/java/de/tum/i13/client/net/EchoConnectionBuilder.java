@@ -1,5 +1,7 @@
 package de.tum.i13.client.net;
 
+import de.tum.i13.shared.ActiveConnection;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,4 +29,5 @@ public class EchoConnectionBuilder {
 
         return new ActiveConnection(s, output, input);
     }
+
 }

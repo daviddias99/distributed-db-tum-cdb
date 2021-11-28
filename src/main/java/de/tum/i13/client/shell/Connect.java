@@ -60,12 +60,12 @@ class Connect implements Callable<Integer> {
     @Override
     public Integer call() throws ClientException {
         //create new connection and receive confirmation from server
-        LOGGER.info("Initiating connection to {}:{}", address, port);
+        LOGGER.info("Initiating connection to '{}:{}'", address, port);
 
-        byte[] response = parent.remoteStorage.getNetworkMessageServer().connectAndReceive(address, port);
+        byte[] response = parent.remoteStorage.connectAndReceive(address, port);
         String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
         commandSpec.commandLine().getOut().println(confirmation);
-        LOGGER.info("Connection to {}:{} successful.", address, port);
+        LOGGER.info("Connection to '{}:{}' successful.", address, port);
         return ExitCode.SUCCESS.getValue();
     }
 

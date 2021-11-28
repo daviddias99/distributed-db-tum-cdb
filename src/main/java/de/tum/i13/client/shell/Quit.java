@@ -33,9 +33,9 @@ class Quit implements Callable<Integer> {
      */
     @Override
     public Integer call() throws ClientException {
-        final NetworkLocation networkLocation = parent.remoteStorage.getNetworkLocation();
+        final NetworkLocation networkLocation = parent.remoteStorage;
         if (networkLocation.isConnected()) {
-            LOGGER.info("Disconnecting from {}:{}", networkLocation.getAddress(), networkLocation.getPort());
+            LOGGER.info("Disconnecting from '{}:{}'", networkLocation.getAddress(), networkLocation.getPort());
             commandSpec.commandLine().getOut().println("Disconnecting from server");
             networkLocation.disconnect();
         }

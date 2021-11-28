@@ -9,6 +9,9 @@ public class Constants {
     public static final int BYTES_PER_KB = 1024;
     public static final int MAX_MESSAGE_SIZE_KB = 128;
     public static final int MAX_MESSAGE_SIZE_BYTES = MAX_MESSAGE_SIZE_KB * BYTES_PER_KB;
+    public static final int MAX_KEY_SIZE_BYTES = 20;
+    public static final int MAX_VALUE_SIZE_KB = 120;
+    public static final int MAX_VALUE_SIZE_BYTES = MAX_VALUE_SIZE_KB * BYTES_PER_KB;
     public static final String LOGS_DIR = "logs";
     public static final String PROMPT = "EchoClient> ";
     public static final String CONNECT_COMMAND = "connect";

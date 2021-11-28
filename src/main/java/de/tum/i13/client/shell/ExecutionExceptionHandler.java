@@ -1,14 +1,14 @@
 package de.tum.i13.client.shell;
 
 import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.RemotePersistentStorage;
+import de.tum.i13.client.net.NetworkPersistentStorage;
 import de.tum.i13.server.kv.KVException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 /**
- * Handles {@link KVException} thrown by the {@link RemotePersistentStorage}
+ * Handles {@link KVException} thrown by the {@link NetworkPersistentStorage}
  */
 class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
 
@@ -23,7 +23,7 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
                     .log("Caught {}", ex.getClass().getSimpleName());
             final String exceptionLocation = ex instanceof KVException ? "remote storage" : "network connection";
             commandLine.getOut().printf("Error in %s: %s%n", exceptionLocation, ex.getMessage());
-            return (ex instanceof KVException ? ExitCode.STORAGE_EXCEPTION: ExitCode.CLIENT_EXCEPTION).getValue();
+            return (ex instanceof KVException ? ExitCode.STORAGE_EXCEPTION : ExitCode.CLIENT_EXCEPTION).getValue();
         } else {
             LOGGER.fatal("Caught unexpected exception. Rethrowing the exception.", ex);
             commandLine.getOut().println("An unexpected error occurred. " +

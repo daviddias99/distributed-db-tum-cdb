@@ -29,7 +29,7 @@ public class ShellException extends RuntimeException {
      * Creates a new {@link ShellException} with the supplied format string and objects
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
+     * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
     public ShellException(String format, Object... args) {
@@ -40,8 +40,8 @@ public class ShellException extends RuntimeException {
      * Creates a new {@link ShellException} with the supplied format string and objects, and a cause
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
-     * @param cause the cause of the exception
+     * @param args   the parameters for the string formatting
+     * @param cause  the cause of the exception
      * @see String#format(String, Object...)
      */
     public ShellException(Throwable cause, String format, Object... args) {
