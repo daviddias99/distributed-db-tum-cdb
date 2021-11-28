@@ -1,6 +1,7 @@
 package de.tum.i13.server.kv;
 
 import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,15 +11,21 @@ import java.net.InetSocketAddress;
 
 public class KVCommandProcessor implements CommandProcessor {
 
+    private ServerState serverState;
     private PersistentStorage kvStore;
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
-    public KVCommandProcessor(PersistentStorage storage) {
+    public KVCommandProcessor(PersistentStorage storage, ServerState serverState) {
         this.kvStore = storage;
+        this.serverState = serverState;
     }
 
     @Override
     public String process(String command) {
+        if(this.serverState.isStopped()) {
+            return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
+        }
+
         String[] tokens = KVMessage.extractTokens(command);
         KVMessage message = switch (tokens[0]) {
             case "get" -> this.get(tokens[1]);
@@ -28,7 +35,6 @@ public class KVCommandProcessor implements CommandProcessor {
         };
 
         return message.toString();
-
     }
 
     @Override

@@ -8,6 +8,7 @@ import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
@@ -55,9 +56,10 @@ public class Main {
 
             // set up storage options
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
+            final ServerState state = new ServerState();
 
             // start server
-            startListening(serverSocket, storage);
+            startListening(serverSocket, storage, state);
 
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
@@ -85,11 +87,11 @@ public class Main {
     }
 
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, PersistentStorage storage) {
+    private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state) {
         // Replace with your Key value server logic.
         // If you use multithreading you need locking
 
-        CommandProcessor logic = new KVCommandProcessor(storage);
+        CommandProcessor logic = new KVCommandProcessor(storage, state);
 
         // Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
