@@ -47,19 +47,18 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
 
     private KVMessage putKeyToValue(String key, String value) {
         LOGGER.debug("Putting key {} to value {}", key, value);
-        cache.put(key, value);
-        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+
+        return Optional.ofNullable(cache.put(key, value))
+                .map(previousValue -> new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE))
+                .orElseGet(() -> new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS));
     }
 
     private KVMessage deleteKey(String key) {
         LOGGER.debug("Deleting key {}", key);
-        final String removedElement = cache.remove(key);
-        return new KVMessageImpl(
-                key,
-                removedElement == null ?
-                        KVMessage.StatusType.DELETE_ERROR :
-                        KVMessage.StatusType.DELETE_SUCCESS
-        );
+
+        return Optional.ofNullable(cache.remove(key))
+                .map(previousValue -> new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS))
+                .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR));
     }
 
     @Override
