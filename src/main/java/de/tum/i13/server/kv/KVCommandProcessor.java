@@ -23,19 +23,55 @@ public class KVCommandProcessor implements CommandProcessor {
 
     @Override
     public String process(String command, PeerType peerType) {
-        if(this.serverState.isStopped() && !peerType.canBypassStop()) {
+        if (this.serverState.isStopped() && !peerType.canBypassStop()) {
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 
-        String[] tokens = KVMessage.extractTokens(command);
-        KVMessage message = switch (tokens[0]) {
-            case "get" -> this.get(tokens[1]);
-            case "put" -> this.put(tokens[1], tokens[2]);
-            case "delete" -> this.delete(tokens[1]);
+        KVMessage incomingMessage = KVMessage.unpackMessage(command);
+        KVMessage response = null;
+
+        if (peerType == PeerType.ECS) {
+            response = processEcs(incomingMessage);
+        } else if (peerType == PeerType.CLIENT) {
+            response = processClient(incomingMessage);
+        } else if (peerType == PeerType.SERVER) {
+            response = processServer(incomingMessage);
+        } 
+        
+        if(response == null || response.getStatus() == StatusType.UNDEFINED){
+            response = processCommon(incomingMessage);
+        }
+
+        return response.toString();
+    }
+
+    // TODO: can possibly be each it's own class
+    private KVMessage processEcs(KVMessage incomingMessage) {
+        return switch (incomingMessage.getStatus()) {
+            case HEART_BEAT -> new KVMessageImpl(StatusType.HEART_BEAT);
             default -> new KVMessageImpl(StatusType.UNDEFINED);
         };
+    }
 
-        return message.toString();
+    private KVMessage processClient(KVMessage incomingMessage) {
+        return switch (incomingMessage.getStatus()) {
+            case GET -> this.get(incomingMessage.getValue());
+            default -> new KVMessageImpl(StatusType.UNDEFINED);
+        };
+    }
+
+    private KVMessage processServer(KVMessage incomingMessage) {
+        return switch (incomingMessage.getStatus()) {
+            default -> new KVMessageImpl(StatusType.UNDEFINED);
+        };
+    }
+
+    private KVMessage processCommon(KVMessage incomingMessage) {
+        return switch (incomingMessage.getStatus()) {
+            case PUT -> this.put(incomingMessage.getKey(), incomingMessage.getValue());
+            case DELETE -> this.delete(incomingMessage.getKey());
+            default -> new KVMessageImpl(StatusType.UNDEFINED);
+        };
     }
 
     @Override
