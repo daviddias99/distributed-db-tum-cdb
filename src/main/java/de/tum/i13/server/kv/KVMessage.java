@@ -1,7 +1,5 @@
 package de.tum.i13.server.kv;
 
-import de.tum.i13.shared.Constants;
-
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -17,61 +15,92 @@ public interface KVMessage {
         /**
          * Undefined status, for example unprocessable command
          */
-        UNDEFINED(true),
+        UNDEFINED(false, false),
         /**
          * Get - request
          */
-        GET(true),
+        GET(true, false),
         /**
          * requested tuple (i.e. value) not found
          */
-        GET_ERROR(true),
+        GET_ERROR(true, false),
         /**
          * requested tuple (i.e. value) found
          */
-        GET_SUCCESS(false),
+        GET_SUCCESS(true, true),
         /**
          * Put - request
          */
-        PUT(false),
+        PUT(true, true),
         /**
          * Put - request successful, tuple inserted
          */
-        PUT_SUCCESS(false),
+        PUT_SUCCESS(true, true),
         /**
          * Put - request successful, i.e. value updated
          */
-        PUT_UPDATE(false),
+        PUT_UPDATE(true, true),
         /**
          * Put - request not successful
          */
-        PUT_ERROR(false),
+        PUT_ERROR(true, true),
         /**
          * Delete - request
          */
-        DELETE(true),
+        DELETE(true, false),
         /**
          * Delete - request successful
          */
-        DELETE_SUCCESS(true),
+        DELETE_SUCCESS(true, false),
         /**
          * Delete - request successful
          */
-        DELETE_ERROR(true);
+        DELETE_ERROR(true, false),
+        /**
+         * Indicates that currently no requests are processed by the server since the
+         * whole storage service is under initialization.
+         * Retries with exponential back-off with jitter should be used.
+         */
+        SERVER_STOPPED(false, false),
+        /**
+         * Indicates that the requested key is not within the range of the answering server
+         */
+        SERVER_NOT_RESPONSIBLE(true, false),
+        /**
+         * Indicates that the storage server is currently blocked for write requests due
+         * to reallocation of data in case of joining or leaving storage nodes
+         */
+        SERVER_WRITE_LOCK(false, false),
+        /**
+         * Indicates the return of the key ranges and which KVStores are responsible for the ranges
+         */
+        KEYRANGE_SUCCESS(true, false);
 
-        private final boolean canHavEmptyValue;
 
-        StatusType(boolean canHavEmptyValue) {
-            this.canHavEmptyValue = canHavEmptyValue;
+        private final boolean needsKey;
+        private final boolean needsValue;
+
+        StatusType(boolean needsKey, boolean needsValue) {
+            this.needsKey = needsKey;
+            this.needsValue = needsValue;
         }
 
         /**
-         * Check if this type of {@link KVMessage} can have an empty value
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty key
          *
-         * @return if it can have an empty value
+         * @return if it needs a non-empty key
          */
-        public boolean canHaveEmptyValue() {
-            return this.canHavEmptyValue;
+        public boolean needsKey() {
+            return needsKey;
+        }
+
+        /**
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty value
+         *
+         * @return if it needs a non-empty value
+         */
+        public boolean needsValue() {
+            return this.needsValue;
         }
     }
 
@@ -113,7 +142,8 @@ public interface KVMessage {
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
      * Refer to the specification document for further details.
      *
-     * @param message the message encoded as a {@link String}
+     * @param message the message encoded as a {@link String}, must not be empty and adhere to one of the message
+     *                format from the specification
      * @return the message converted to a {@link KVMessage}
      * @throws IllegalArgumentException if the message could not be converted according to the specification
      * @see KVMessageImpl
@@ -125,7 +155,20 @@ public interface KVMessage {
         final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
                 string.toUpperCase()
         );
-        if (msgTokens.length == 2) {
+        final Function<String, IllegalArgumentException> exceptionFunction =
+                receivedMessage -> new IllegalArgumentException(String.format(
+                        "Could not convert \"%s\" to a %s",
+                        receivedMessage,
+                        KVMessage.class.getSimpleName()
+                ));
+
+        if (msgTokens.length == 1) {
+            if ("".equals(msgTokens[0])) {
+                throw exceptionFunction.apply(message);
+            } else {
+                return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
+            }
+        } else if (msgTokens.length == 2) {
             return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
         } else if (msgTokens.length == 3) {
             return new KVMessageImpl(
@@ -133,11 +176,7 @@ public interface KVMessage {
                     msgTokens[2],
                     stringToStatusType.apply(msgTokens[0]));
         } else {
-            throw new IllegalArgumentException(String.format(
-                    "Could not convert \"%s\" to a %s",
-                    message,
-                    KVMessage.class.getSimpleName()
-            ));
+            throw exceptionFunction.apply("message");
         }
     }
 
@@ -148,21 +187,14 @@ public interface KVMessage {
      * I.e.
      * <pre>"    put   thisKey     to this   value   "</pre>
      * will produce the following tokens
-     * <pre>{"put", "thisKey     to this   value" }</pre>
+     * <pre>{"put", "thisKey", "to this   value" }</pre>
      *
      * @param message the message from which to extract the tokens
      * @return the extracted tokens of the message
      * @see String#trim()
      */
     static String[] extractTokens(String message) {
-        final String trimmedMsg = message.trim();
-        String[] msgTokens = trimmedMsg.split("\\s+");
-        if (msgTokens.length >= 3 && Constants.PUT_COMMAND.equals(msgTokens[0])) {
-            final String[] putAndParameters = trimmedMsg.split("\\s+", 2);
-            final String[] parameters = putAndParameters[1].split("\\s+", 2);
-            msgTokens = new String[]{putAndParameters[0], parameters[0], parameters[1]};
-        }
-        return msgTokens;
+        return message.trim().split("\\s+", 3);
     }
 
 }
