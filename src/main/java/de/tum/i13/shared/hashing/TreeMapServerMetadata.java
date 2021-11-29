@@ -12,7 +12,7 @@ import java.util.TreeMap;
 /**
  * A {@link ConsistentHashRing} that wraps around a {@link TreeMap}
  */
-public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing implements ConsistentHashRing {
+public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
 
     private static final Logger LOGGER = LogManager.getLogger(TreeMapServerMetadata.class);
 
