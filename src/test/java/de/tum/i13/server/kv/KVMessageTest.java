@@ -127,10 +127,10 @@ class KVMessageTest {
         final KVMessage message = spy(KVMessage.class);
         when(message.getKey()).thenReturn(null);
         when(message.getValue()).thenReturn(null);
-        when(message.getStatus()).thenReturn(KVMessage.StatusType.UNDEFINED);
+        when(message.getStatus()).thenReturn(KVMessage.StatusType.ERROR);
 
         assertThat(message.packMessage())
-                .isEqualTo("error undefined error");
+                .isEqualTo("error");
     }
 
     @Test
