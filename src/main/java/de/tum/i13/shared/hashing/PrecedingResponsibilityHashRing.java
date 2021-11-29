@@ -42,14 +42,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         LOGGER.info("Adding {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
 
         final BigInteger hash = getHashingAlgorithm().hash(networkLocation);
-        Optional.ofNullable(getNavigableMap().put(hash, networkLocation))
-                .ifPresent(previousValue -> {
-                    throw new IllegalStateException(
-                            String.format(
-                                    "Hash collision. Cannot have two network location at the same hash location %s",
-                                    hash)
-                    );
-                });
+        addNetworkLocation(hash, networkLocation);
     }
 
     @Override
@@ -58,6 +51,48 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
         final BigInteger hash = getHashingAlgorithm().hash(networkLocation);
         getNavigableMap().remove(hash);
+    }
+
+    @Override
+    public String toString() {
+        return packMessage();
+    }
+
+    @Override
+    public String packMessage() {
+        final NavigableMap<BigInteger, NetworkLocation> map = getNavigableMap();
+        if (!map.isEmpty()) {
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            final Map.Entry<BigInteger, NetworkLocation> lastEntry = map.lastEntry();
+            final BigInteger lastHash = lastEntry.getKey();
+            final NetworkLocation lastNetworkLocation = lastEntry.getValue();
+
+            stringBuilder.append(HashingAlgorithm.convertHashToHex(lastHash.add(BigInteger.ONE)));
+
+            for (Map.Entry<BigInteger, NetworkLocation> entry : map.headMap(lastHash).entrySet()) {
+                final BigInteger hash = entry.getKey();
+                final NetworkLocation networkLocation = entry.getValue();
+                stringBuilder.append(",")
+                        .append(HashingAlgorithm.convertHashToHex(hash))
+                        .append(",")
+                        .append(networkLocation.getAddress())
+                        .append(":")
+                        .append(networkLocation.getPort())
+                        .append(";")
+                        .append(HashingAlgorithm.convertHashToHex(hash.add(BigInteger.ONE)));
+            }
+
+            stringBuilder.append(",")
+                    .append(HashingAlgorithm.convertHashToHex(lastHash))
+                    .append(lastNetworkLocation.getAddress())
+                    .append(":")
+                    .append(lastNetworkLocation.getPort())
+                    .append(";");
+
+
+            return stringBuilder.toString();
+        } else return "";
     }
 
 }

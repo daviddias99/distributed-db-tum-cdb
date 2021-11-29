@@ -13,6 +13,8 @@ import java.math.BigInteger;
  */
 public interface HashingAlgorithm {
 
+    String HEX_PREFIX = "0x";
+
     /**
      * Converts a hash value into a hexadecimal string format without a prefix.
      *
@@ -30,7 +32,20 @@ public interface HashingAlgorithm {
      * @return the hexadecimal string representation
      */
     static String convertHashToHexWithPrefix(BigInteger hash) {
-        return "0x" + convertHashToHex(hash);
+        return HEX_PREFIX + convertHashToHex(hash);
+    }
+
+    /**
+     * Converts a hexadecimal string with or without a prefix into a hash value.
+     *
+     * @param hexString the hexadecimal string value to convert
+     * @return the hash value representing that string
+     */
+    static BigInteger convertHexToHash(String hexString) {
+        if (hexString.startsWith(HEX_PREFIX)) {
+            hexString = hexString.substring(HEX_PREFIX.length());
+        }
+        return new BigInteger(hexString, 16);
     }
 
     /**
