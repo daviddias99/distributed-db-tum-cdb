@@ -1,6 +1,6 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.client.net.NetworkLocation;
+import de.tum.i13.shared.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

@@ -1,7 +1,7 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.client.net.NetworkLocation;
-import de.tum.i13.client.net.NetworkLocationImpl;
+import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.NetworkLocationImpl;
 import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;

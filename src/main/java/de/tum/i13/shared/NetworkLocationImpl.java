@@ -1,4 +1,4 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared;
 
 public class NetworkLocationImpl implements NetworkLocation {
 

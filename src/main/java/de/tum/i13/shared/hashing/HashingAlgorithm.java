@@ -1,6 +1,6 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.client.net.NetworkLocation;
+import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.Constants;
 
 import java.math.BigInteger;

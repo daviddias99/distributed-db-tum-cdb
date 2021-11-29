@@ -1,5 +1,7 @@
 package de.tum.i13.client.net;
 
+import de.tum.i13.shared.NetworkLocation;
+
 /**
  * A {@link NetworkLocation} that can be connected to.
  */
