@@ -126,6 +126,7 @@ public interface ConsistentHashRing {
     /**
      * Packs the metadata of this {@link ConsistentHashRing} into a {@link String}.
      * The metadata format is specified in the specification document.
+     * The ranges from and to key range values are both inclusive.
      *
      * @return a {@link String} representation of this {@link ConsistentHashRing}
      */

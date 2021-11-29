@@ -73,26 +73,23 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
             for (Map.Entry<BigInteger, NetworkLocation> entry : map.headMap(lastHash).entrySet()) {
                 final BigInteger hash = entry.getKey();
                 final NetworkLocation networkLocation = entry.getValue();
-                stringBuilder.append(",")
-                        .append(HashingAlgorithm.convertHashToHex(hash))
-                        .append(",")
-                        .append(networkLocation.getAddress())
-                        .append(":")
-                        .append(networkLocation.getPort())
-                        .append(";")
+                appendNetworkLocation(stringBuilder, hash, networkLocation)
                         .append(HashingAlgorithm.convertHashToHex(hash.add(BigInteger.ONE)));
             }
 
-            stringBuilder.append(",")
-                    .append(HashingAlgorithm.convertHashToHex(lastHash))
-                    .append(lastNetworkLocation.getAddress())
-                    .append(":")
-                    .append(lastNetworkLocation.getPort())
-                    .append(";");
-
-
-            return stringBuilder.toString();
+            return appendNetworkLocation(stringBuilder, lastHash, lastNetworkLocation)
+                    .toString();
         } else return "";
+    }
+
+    private StringBuilder appendNetworkLocation(StringBuilder stringBuilder, BigInteger hash,
+                                                NetworkLocation networkLocation) {
+        return stringBuilder.append(",")
+                .append(HashingAlgorithm.convertHashToHex(hash))
+                .append(networkLocation.getAddress())
+                .append(":")
+                .append(networkLocation.getPort())
+                .append(";");
     }
 
 }
