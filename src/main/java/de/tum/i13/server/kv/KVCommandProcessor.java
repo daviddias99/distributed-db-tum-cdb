@@ -38,7 +38,7 @@ public class KVCommandProcessor implements CommandProcessor {
             response = processServer(incomingMessage);
         } 
         
-        if(response == null || response.getStatus() == StatusType.UNDEFINED){
+        if(response == null){
             response = processCommon(incomingMessage);
         }
 
@@ -49,20 +49,25 @@ public class KVCommandProcessor implements CommandProcessor {
     private KVMessage processEcs(KVMessage incomingMessage) {
         return switch (incomingMessage.getStatus()) {
             case HEART_BEAT -> new KVMessageImpl(StatusType.HEART_BEAT);
-            default -> new KVMessageImpl(StatusType.UNDEFINED);
+            case DO_WRITE_LOCK -> this.writeLock();
+            default -> null;
         };
     }
 
     private KVMessage processClient(KVMessage incomingMessage) {
         return switch (incomingMessage.getStatus()) {
+            case PUT -> this.putByClient(incomingMessage.getKey(), incomingMessage.getValue());
+            case DELETE -> this.deleteByClient(incomingMessage.getKey());
             case GET -> this.get(incomingMessage.getValue());
-            default -> new KVMessageImpl(StatusType.UNDEFINED);
+            default -> null;
         };
     }
 
     private KVMessage processServer(KVMessage incomingMessage) {
         return switch (incomingMessage.getStatus()) {
-            default -> new KVMessageImpl(StatusType.UNDEFINED);
+            case PUT -> this.put(incomingMessage.getKey(), incomingMessage.getValue());
+            case DELETE -> this.delete(incomingMessage.getKey());
+            default -> null;
         };
     }
 
@@ -101,6 +106,14 @@ public class KVCommandProcessor implements CommandProcessor {
         }
     }
 
+    private KVMessage putByClient(String key, String value) {
+        if(this.serverState.canWrite()) {
+            return this.put(key, value);
+        }
+
+        return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
+    }
+
     /**
      * Helper method to store a new KV pair in the database
      *
@@ -118,6 +131,15 @@ public class KVCommandProcessor implements CommandProcessor {
         }
     }
 
+    private KVMessage deleteByClient(String key) {
+        if(this.serverState.canWrite()) {
+            return this.delete(key);
+        }
+
+        return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
+    }
+
+
     private KVMessage delete(String key) {
         try {
             LOGGER.info("Trying to delete key: {}", key);
@@ -126,6 +148,11 @@ public class KVCommandProcessor implements CommandProcessor {
             LOGGER.error(e);
             return new KVMessageImpl(key, StatusType.DELETE_ERROR);
         }
+    }
+
+    private KVMessage writeLock() {
+        this.serverState.writeLock();
+        return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
     }
 
 }

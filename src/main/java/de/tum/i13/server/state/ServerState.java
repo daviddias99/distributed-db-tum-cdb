@@ -41,7 +41,7 @@ public class ServerState {
   }
 
   public boolean canWrite() {
-    return this.currentState == State.WRITE_LOCK;
+    return this.currentState != State.WRITE_LOCK;
   }
 
   public void stop() {

@@ -67,6 +67,12 @@ public interface KVMessage {
          * server
          */
         SERVER_NOT_RESPONSIBLE(true, false),
+
+        /**
+         * Signal a server to enter a write lock state
+         */
+        DO_WRITE_LOCK(false, false),
+
         /**
          * Indicates that the storage server is currently blocked for write requests due
          * to reallocation of data in case of joining or leaving storage nodes
@@ -139,7 +145,7 @@ public interface KVMessage {
         final StatusType status = getStatus();
         return String.format(
                 "%s %s %s",
-                status == StatusType.UNDEFINED ? "error undefined error" : status.toString().toLowerCase(),
+                status == StatusType.UNDEFINED ? "undefined error error" : status.toString().toLowerCase(),
                 Objects.toString(getKey(), ""),
                 Objects.toString(getValue(), "")).trim();
     }
