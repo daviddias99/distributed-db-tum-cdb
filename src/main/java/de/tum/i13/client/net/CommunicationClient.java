@@ -34,7 +34,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination. Must be between 0 and 65535 inclusive.
      * @throws ClientException if connection fails
-     * @see NetworkLocation#connect(String, int)
+     * @see NetworkConnection#connect(String, int)
      */
     public CommunicationClient(String address, int port) throws ClientException {
         this.connect(address, port);
