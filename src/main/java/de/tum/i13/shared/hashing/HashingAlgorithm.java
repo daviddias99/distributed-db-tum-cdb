@@ -14,8 +14,28 @@ import java.math.BigInteger;
 public interface HashingAlgorithm {
 
     /**
+     * Converts a hash value into a hexadecimal string format without a prefix.
+     *
+     * @param hash the hash value to convert
+     * @return the hexadecimal string representation
+     */
+    static String convertHashToHex(BigInteger hash) {
+        return hash.toString(16);
+    }
+
+    /**
+     * Converts a hash value into a hexadecimal string format with a "0x" prefix.
+     *
+     * @param hash the hash value to convert
+     * @return the hexadecimal string representation
+     */
+    static String convertHashToHexWithPrefix(BigInteger hash) {
+        return "0x" + convertHashToHex(hash);
+    }
+
+    /**
      * Returns the hash of the supplied {@link String} using the encoding from {@link Constants#TELNET_ENCODING} to
-     * turn the {@link String} into bytes.
+     * turn the {@link String} into {@code byte}s.
      *
      * @param string the {@link String} to hash
      * @return the hash value of the supplied {@link String}
@@ -36,26 +56,6 @@ public interface HashingAlgorithm {
      */
     default BigInteger hash(NetworkLocation networkLocation) {
         return hash(String.format("%s:%s", networkLocation.getAddress(), networkLocation.getPort()));
-    }
-
-    /**
-     * Converts a hash value into a hexadecimal string format without a prefix.
-     *
-     * @param hash the hash value to convert
-     * @return the hexadecimal string representation
-     */
-    static String convertHashToHex(BigInteger hash) {
-        return hash.toString(16);
-    }
-
-    /**
-     * Converts a hash value into a hexadecimal string format with a "0x" prefix.
-     *
-     * @param hash the hash value to convert
-     * @return the hexadecimal string representation
-     */
-    static String convertHashToHexWithPrefix(BigInteger hash) {
-        return "0x" + convertHashToHex(hash);
     }
 
 }

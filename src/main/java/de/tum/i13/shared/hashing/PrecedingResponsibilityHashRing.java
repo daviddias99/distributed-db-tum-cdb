@@ -12,10 +12,13 @@ import java.util.Optional;
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
  * to minimize the effort to implement the {@link ConsistentHashRing} interface.
+ * <p>
+ * In this implementation a {@link NetworkLocation} is responsible for all keys between its position (inclusive) and
+ * the position of its predecessor (exclusive) in the ring.
  */
-public abstract class NavigableMapHashRing implements ConsistentHashRing {
+public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
-    private static final Logger LOGGER = LogManager.getLogger(NavigableMapHashRing.class);
+    private static final Logger LOGGER = LogManager.getLogger(PrecedingResponsibilityHashRing.class);
 
     /**
      * Returns the {@link NavigableMap} used by this {@link ConsistentHashRing}
@@ -25,17 +28,13 @@ public abstract class NavigableMapHashRing implements ConsistentHashRing {
     protected abstract NavigableMap<BigInteger, NetworkLocation> getNavigableMap();
 
     @Override
-    public NetworkLocation getResponsibleNetworkLocation(String key) {
+    public Optional<NetworkLocation> getResponsibleNetworkLocation(String key) {
         LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
 
-
         final BigInteger hash = getHashingAlgorithm().hash(key);
-        final Map.Entry<BigInteger, NetworkLocation> responsibleEntry =
-                Optional.ofNullable(getNavigableMap().floorEntry(hash))
-                        .or(() -> Optional.ofNullable(getNavigableMap().lastEntry()))
-                        .orElseThrow(() -> new IllegalStateException("The consistent hash ring is empty"));
-
-        return responsibleEntry.getValue();
+        return Optional.ofNullable(getNavigableMap().ceilingEntry(hash))
+                .or(() -> Optional.ofNullable(getNavigableMap().firstEntry()))
+                .map(Map.Entry::getValue);
     }
 
     @Override
@@ -43,12 +42,11 @@ public abstract class NavigableMapHashRing implements ConsistentHashRing {
         LOGGER.info("Adding {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
 
         final BigInteger hash = getHashingAlgorithm().hash(networkLocation);
-
         Optional.ofNullable(getNavigableMap().put(hash, networkLocation))
                 .ifPresent(previousValue -> {
                     throw new IllegalStateException(
                             String.format(
-                                    "Hash collision. Cannot have two network location at same hash location %s",
+                                    "Hash collision. Cannot have two network location at the same hash location %s",
                                     hash)
                     );
                 });

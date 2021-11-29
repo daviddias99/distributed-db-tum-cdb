@@ -2,6 +2,8 @@ package de.tum.i13.shared.hashing;
 
 import de.tum.i13.client.net.NetworkLocation;
 
+import java.util.Optional;
+
 /**
  * Contains the metadata of a ring based data structure that maps {@link String} keys of a key-value store to a set of
  * {@link NetworkLocation}s.
@@ -12,9 +14,10 @@ public interface ConsistentHashRing {
      * Returns the {@link NetworkLocation} responsible for this key in this {@link ConsistentHashRing}.
      *
      * @param key the key of a key value pair
-     * @return the {@link NetworkLocation} responsible for that key
+     * @return an {@link Optional} containing the {@link NetworkLocation} responsible for that key.
+     * Empty if the {@link ConsistentHashRing} is empty
      */
-    NetworkLocation getResponsibleNetworkLocation(String key);
+    Optional<NetworkLocation> getResponsibleNetworkLocation(String key);
 
     /**
      * Adds a {@link NetworkLocation} to the ring.

@@ -9,7 +9,7 @@ import java.util.TreeMap;
 /**
  * A {@link ConsistentHashRing} that wraps around a {@link TreeMap}
  */
-public class TreeMapServerMetadata extends NavigableMapHashRing implements ConsistentHashRing {
+public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
     private final HashingAlgorithm hashingAlgorithm;
     private final TreeMap<BigInteger, NetworkLocation> networkLocationMap;
