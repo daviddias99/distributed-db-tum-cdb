@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
@@ -98,7 +99,7 @@ public class PersistentBTreeNode<V> implements Serializable {
         Chunk<V> chunk = this.getChunk();
 
         // Find the first key greater than or equal to key
-        int i = chunk.findIndexOfFirstGreaterThen(key);
+        int i = chunk.findIndexOfFirstGreaterOrEqualThen(key);
 
         if (i < this.elementCount) {
             Pair<V> pair = chunk.get(i);
@@ -122,6 +123,34 @@ public class PersistentBTreeNode<V> implements Serializable {
 
         // Go to the appropriate child
         return children.get(i).search(key, insert, value);
+    }
+
+    void searchInRange(String lowerBound, String upperBound, LinkedList<String> result) throws StorageException {
+        Chunk<V> chunk = this.getChunk();
+
+        // Find the first key greater than or equal to key
+
+        // There are n keys and n+1 children, traverse through n keys
+        // and first n children
+        int i = chunk.findIndexOfFirstGreaterOrEqualThen(lowerBound);
+        int j = chunk.findIndexOfFirstGreaterThen(upperBound);
+        for (; i < Math.min(this.elementCount, j); i++) {
+            Pair<V> pair = chunk.get(i);
+
+            // If this is not leaf, then before printing key[i],
+            // traverse the subtree rooted with child C[i].
+            if (!this.leaf && !pair.key.equals(lowerBound)) {
+                this.children.get(i).searchInRange(lowerBound, upperBound, result);
+            }
+
+            result.addLast(pair.key);
+        }
+
+        chunk.releaseStoredElements();
+        
+        // Print the subtree rooted with last child
+        if (!this.leaf && i == this.elementCount)
+            this.children.get(i).searchInRange(lowerBound, upperBound, result);
     }
 
     /**

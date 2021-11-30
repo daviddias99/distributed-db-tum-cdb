@@ -270,4 +270,45 @@ class TestPersistentBTree {
         assertThat(TreeValidator.validTree(tree)).isTrue();
         assertDoesNotThrow(() -> tree.insert("a", "value"));
     }
+
+    @Test
+    void getRange() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        tree.insert("C", "Value");
+        tree.insert("B", "Value");
+        tree.insert("D", "Value");
+        tree.insert("E", "Value");
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        System.out.println((new PersistentBTreeDisplay<String>()).traverseSpecial(tree));
+        List<String> result = tree.getInRange("C", "F");
+
+        for (String string : result) {
+            System.out.println(string);
+        }
+    }
+
+    @Test
+    void getRange2() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        tree.insert("C", "Value");
+        tree.insert("B", "Value");
+        tree.insert("D", "Value");
+        tree.insert("E", "Value");
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        tree.insert("H", "Value");
+        tree.insert("J", "Value");
+        tree.insert("K", "Value");
+        tree.insert("L", "Value");
+        tree.insert("M", "Value");
+        tree.insert("N", "Value");
+        tree.insert("O", "Value");
+        System.out.println((new PersistentBTreeDisplay<String>()).traverseSpecial(tree));
+        List<String> result = tree.getInRange("D", "K");
+
+        for (String string : result) {
+            System.out.println(string);
+        }
+    }
 }

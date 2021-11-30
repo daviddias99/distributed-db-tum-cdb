@@ -6,11 +6,13 @@ import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -212,4 +214,8 @@ public class CachedPersistentStorage implements PersistentStorage {
         }
     }
 
+    @Override
+    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
+        return this.persistentStorage.getElementsInRange(lowerBound, upperBound);
+    }
 }

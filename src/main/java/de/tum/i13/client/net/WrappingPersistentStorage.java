@@ -5,7 +5,11 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
+
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -161,4 +165,9 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         return networkMessageServer.getPort();
     }
 
+    @Override
+    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

@@ -1,6 +1,8 @@
 package de.tum.i13.server.persistentstorage.btree;
 
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -125,5 +127,11 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
      */
     public synchronized void reopen() {
         this.tree.reopen();
+    }
+
+    @Override
+    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

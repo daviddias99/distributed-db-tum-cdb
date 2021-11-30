@@ -9,6 +9,8 @@ import de.tum.i13.shared.Preconditions;
 
 import java.io.Closeable;
 import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -188,6 +190,27 @@ public class PersistentBTree<V> implements Serializable, Closeable {
             V searchResult = this.root.search(key);
             this.readWriteLock.readLock().unlock();
             return searchResult;
+        }
+    }
+
+    public List<String> getInRange(String lowerBound, String upperBound) throws StorageException, PersistentBTreeException {
+        if (treeClosed.get()) {
+            PersistentBTreeException ex = new PersistentBTreeException(
+                    "Could not perform operation because tree is closed");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
+            throw ex;
+        }
+
+        this.readWriteLock.readLock().lock();
+
+        if (this.root == null) {
+            this.readWriteLock.readLock().unlock();
+            return new LinkedList<>();
+        } else {
+            LinkedList<String> result = new LinkedList<>();
+            this.root.searchInRange(lowerBound, upperBound, result);
+            this.readWriteLock.readLock().unlock();
+            return result;
         }
     }
 
