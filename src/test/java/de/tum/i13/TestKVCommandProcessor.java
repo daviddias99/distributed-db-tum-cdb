@@ -17,7 +17,7 @@ class TestKVCommandProcessor {
     void correctParsingOfPut() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv);
         kvcp.process("put key hello");
 

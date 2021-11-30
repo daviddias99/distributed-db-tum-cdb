@@ -24,7 +24,7 @@ public class KVCommandProcessor implements CommandProcessor {
             case "get" -> this.get(tokens[1]);
             case "put" -> this.put(tokens[1], tokens[2]);
             case "delete" -> this.delete(tokens[1]);
-            default -> new KVMessageImpl(StatusType.UNDEFINED);
+            default -> new KVMessageImpl(StatusType.ERROR);
         };
 
         return message.toString();
