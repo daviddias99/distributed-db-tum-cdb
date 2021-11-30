@@ -34,4 +34,10 @@ public class NetworkLocationImpl implements NetworkLocation {
         return this.port;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        NetworkLocation that = (NetworkLocation) o;
+        return that != null && this.address.equals(that.getAddress()) && this.port == that.getPort();
+    }
 }

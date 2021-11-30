@@ -11,10 +11,13 @@ import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.server.state.ServerState.State;
 import de.tum.i13.shared.NetworkLocationImpl;
+import de.tum.i13.shared.hashing.ConsistentHashRing;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 class TestKVCommandProcessor {
 
@@ -23,7 +26,12 @@ class TestKVCommandProcessor {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
-        KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState(State.ACTIVE, new NetworkLocationImpl("127.0.0.1", 25565)));
+        ServerState state =  new ServerState(State.ACTIVE, new NetworkLocationImpl("127.0.0.1", 25565));
+        ConsistentHashRing hr = mock(ConsistentHashRing.class);
+        when(hr.getResponsibleNetworkLocation("key")).thenReturn(Optional.of(new NetworkLocationImpl("127.0.0.1", 25565)));
+        state.setRingMetadata(hr);
+        
+        KVCommandProcessor kvcp = new KVCommandProcessor(kv, state);
         kvcp.process("put key hello", PeerType.CLIENT);
 
         verify(kv).put("key", "hello");

@@ -7,6 +7,7 @@ import de.tum.i13.server.kv.KVConnectionHandler;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ServerState;
@@ -61,7 +62,8 @@ public class Main {
             // set up storage options
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
 
-            // TODO: if listenAddress is default (localhost, it won't correspond to the correct metadata)
+            // TODO: if listenAddress is default (localhost, it won't correspond to the
+            // correct metadata)
             final ServerState state = new ServerState(new NetworkLocationImpl(cfg.listenAddress, cfg.port));
 
             // start server
@@ -85,9 +87,12 @@ public class Main {
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
-        PersistentBTreeDiskStorageHandler<String> handler = new PersistentBTreeDiskStorageHandler<>(dataDir.toString(),
+        PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
+                dataDir.toString(),
                 false);
 
+        // TODO: is using MD5 by default, should somehow be configured with the one used
+        // in the Ring
         BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }

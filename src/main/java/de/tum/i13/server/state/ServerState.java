@@ -3,6 +3,8 @@ package de.tum.i13.server.state;
 import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 
+import java.util.Optional;
+
 public class ServerState {
   public enum State {
     ACTIVE,
@@ -78,7 +80,8 @@ public class ServerState {
   }
 
   public boolean responsibleForKey(String key) {
-    return this.ringMetadata.getResponsibleNetworkLocation(key)
+    Optional<NetworkLocation> opt = this.ringMetadata.getResponsibleNetworkLocation(key);
+    return opt
         .map(curNetworkLocation::equals)
         .orElseGet(() -> false);
   }
