@@ -1,0 +1,84 @@
+package de.tum.i13.server.kv.commandprocessing;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import de.tum.i13.server.kv.GetException;
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.kv.PersistentStorage;
+import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
+import de.tum.i13.server.state.ServerState;
+import de.tum.i13.shared.CommandProcessor;
+
+public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
+
+  private static final Logger LOGGER = LogManager.getLogger(KVClientCommandProcessor.class);
+
+  private ServerState serverState;
+  private PersistentStorage kvStore;
+
+  public KVClientCommandProcessor(PersistentStorage storage, ServerState serverState) {
+    this.kvStore = storage;
+    this.serverState = serverState;
+  }
+
+  @Override
+  public KVMessage process(KVMessage command, PeerType peerType) {
+    if (peerType != PeerType.CLIENT) {
+      return null;
+    }
+
+    return switch (command.getStatus()) {
+      case PUT -> this.put(command.getKey(), command.getValue());
+      case DELETE -> this.delete(command.getKey());
+      case GET -> this.get(command.getKey());
+      default -> null;
+    };
+  }
+
+      /**
+     * Method to search for a key in the persistent storage.
+     *
+     * @param key the key to search
+     * @return a KVMessage with the status of the query
+     */
+    private KVMessage get(String key) {
+      try {
+          LOGGER.info("Trying to read key: {}", key);
+          return kvStore.get(key);
+      } catch (GetException e) {
+          LOGGER.error(e);
+          return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
+      }
+  }
+
+  private KVMessage put(String key, String value) {
+      if (this.serverState.canWrite()) {
+        try {
+          LOGGER.info("Trying to put key: {} and value: {}", key, value);
+          return kvStore.put(key, value);
+      } catch (PutException e) {
+          LOGGER.error(e);
+          return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
+      }
+      }
+
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+  }
+
+  private KVMessage delete(String key) {
+      if (this.serverState.canWrite()) {
+        try {
+          LOGGER.info("Trying to delete key: {}", key);
+          return kvStore.put(key, null);
+      } catch (PutException e) {
+          LOGGER.error(e);
+          return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+      }
+      }
+
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+  }
+}

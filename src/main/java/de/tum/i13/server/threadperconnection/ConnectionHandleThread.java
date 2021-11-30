@@ -21,12 +21,12 @@ public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
 
-    private CommandProcessor cp;
+    private CommandProcessor<String> cp;
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
     private ConnectionHandler connectionHandler;
 
-    public ConnectionHandleThread(CommandProcessor commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
+    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
             InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;

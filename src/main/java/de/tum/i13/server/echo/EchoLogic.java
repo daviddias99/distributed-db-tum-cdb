@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-public class EchoLogic implements CommandProcessor, ConnectionHandler {
+public class EchoLogic implements CommandProcessor<String>, ConnectionHandler {
     private static final Logger LOGGER = LogManager.getLogger(EchoLogic.class);
 
     public String process(String command, PeerType peerType) {

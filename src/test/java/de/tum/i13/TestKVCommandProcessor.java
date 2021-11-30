@@ -1,6 +1,5 @@
 package de.tum.i13;
 
-import de.tum.i13.server.kv.KVCommandProcessor;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PersistentStorage;
@@ -8,6 +7,7 @@ import de.tum.i13.server.kv.PutException;
 import org.junit.jupiter.api.Test;
 
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
+import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.server.state.ServerState.State;
 
