@@ -19,6 +19,7 @@ class TestCommunicationClient {
     private static Thread serverThread;
     private static ServerSocket serverSocket;
     private static ServerStub server;
+    private static CommunicationClient client;
 
     @BeforeEach
     public void createServer() {
@@ -30,33 +31,42 @@ class TestCommunicationClient {
         }
         TestCommunicationClient.serverThread = new Thread(server);
         TestCommunicationClient.serverThread.start();
+
+        TestCommunicationClient.client = new CommunicationClient();
     }
 
     @AfterEach
     public void closeServer() {
         serverThread.interrupt();
+
         try {
             serverSocket.close();
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            client.close();
+        } catch (ClientException e) {
             e.printStackTrace();
         }
     }
 
     @Test
     void correctLocalhost() {
-        CommunicationClient client = assertDoesNotThrow(() -> new CommunicationClient("localhost", serverSocket.getLocalPort()));
+        CommunicationClient client = assertDoesNotThrow(
+                () -> new CommunicationClient("localhost", serverSocket.getLocalPort()));
         assertThat(client.isConnected()).isTrue();
     }
 
     @Test
     void defaultConstructor() {
-        CommunicationClient client = new CommunicationClient();
         assertThat(client.isConnected()).isFalse();
     }
 
     @Test
     void wrongLocalhost() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(() -> new CommunicationClient("localhost00", serverSocket.getLocalPort()))
                 .extracting(ClientException::getType)
@@ -66,7 +76,7 @@ class TestCommunicationClient {
 
     @Test
     void connectSingleTime() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
@@ -76,8 +86,6 @@ class TestCommunicationClient {
 
     @Test
     void connectMultipleTimes() {
-        CommunicationClient client = new CommunicationClient();
-
         for (int i = 0; i < 3; i++) {
             assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
                     .doesNotThrowAnyException();
@@ -87,7 +95,6 @@ class TestCommunicationClient {
 
     @Test
     void connectIncorrectly() {
-        CommunicationClient client = new CommunicationClient();
 
         assertThatExceptionOfType(ClientException.class)
                 .isThrownBy(() -> client.connect("localhost00", serverSocket.getLocalPort()))
@@ -98,10 +105,11 @@ class TestCommunicationClient {
 
     @Test
     void connectAndReceiveSimultaneously() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
-        byte[] receivedData = assertDoesNotThrow(() -> client.connectAndReceive("localhost", serverSocket.getLocalPort()));
+        byte[] receivedData = assertDoesNotThrow(
+                () -> client.connectAndReceive("localhost", serverSocket.getLocalPort()));
         assertThat(receivedData)
                 .asString()
                 .isEqualTo("Welcome!");
@@ -109,7 +117,7 @@ class TestCommunicationClient {
 
     @Test
     void connectAndReceiveSeparately() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
@@ -122,7 +130,7 @@ class TestCommunicationClient {
 
     @Test
     void unconnectedReceive() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatExceptionOfType(ClientException.class)
@@ -133,7 +141,7 @@ class TestCommunicationClient {
 
     @Test
     void connectAndSend() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
@@ -147,7 +155,7 @@ class TestCommunicationClient {
 
     @Test
     void unconnectedSend() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatExceptionOfType(ClientException.class)
@@ -158,7 +166,7 @@ class TestCommunicationClient {
 
     @Test
     void messageToLarge() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
@@ -171,7 +179,7 @@ class TestCommunicationClient {
 
     @Test
     void disconnect() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
@@ -184,7 +192,7 @@ class TestCommunicationClient {
 
     @Test
     void disconnectUnconnected() {
-        CommunicationClient client = new CommunicationClient();
+
         assertThat(client.isConnected()).isFalse();
 
         assertThatExceptionOfType(ClientException.class)

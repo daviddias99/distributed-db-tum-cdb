@@ -160,7 +160,7 @@ class TestKVCommandProcessor {
         ServerState serverState = new ServerState(State.ACTIVE);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, serverState);
         kvcp.process("do_write_lock", PeerType.ECS);
-        String response = kvcp.process("get key", PeerType.CLIENT);
+        kvcp.process("get key", PeerType.CLIENT);
         assertThat(serverState.canWrite()).isFalse();
         verify(kv).get("key");
     }
