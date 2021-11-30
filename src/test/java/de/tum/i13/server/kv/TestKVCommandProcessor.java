@@ -161,16 +161,6 @@ class TestKVCommandProcessor {
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, serverState);
         kvcp.process("do_write_lock", PeerType.ECS);
         String response = kvcp.process("get key", PeerType.CLIENT);
-        assertThat(KVMessage
-                .unpackMessage(response))
-                        .extracting(
-                                KVMessage::getKey,
-                                KVMessage::getValue,
-                                KVMessage::getStatus)
-                        .containsExactly(
-                                null,
-                                null,
-                                KVMessage.StatusType.SERVER_WRITE_LOCK);
         assertThat(serverState.canWrite()).isFalse();
         verify(kv).get("key");
     }

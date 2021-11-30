@@ -145,13 +145,13 @@ public interface KVMessage {
         final StatusType status = getStatus();
         return String.format(
                 "%s %s %s",
-                status == StatusType.UNDEFINED ? "undefined error error" : status.toString().toLowerCase(),
+                status == StatusType.UNDEFINED ? "error undefined error" : status.toString().toLowerCase(),
                 Objects.toString(getKey(), ""),
                 Objects.toString(getValue(), "")).trim();
     }
 
     /**
-     * Unpacks a message in the {@link String} format using the standard
+     * Unpacks a message in the {@link String} format using the standardc
      * implementation {@link KVMessageImpl}.
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
      * Refer to the specification document for further details.
