@@ -2,13 +2,15 @@ package de.tum.i13.server.echo;
 
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.ConnectionHandler;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-public class EchoLogic implements CommandProcessor {
+public class EchoLogic implements CommandProcessor, ConnectionHandler {
     private static final Logger LOGGER = LogManager.getLogger(EchoLogic.class);
 
     public String process(String command, PeerType peerType) {

@@ -4,11 +4,9 @@ import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
 public class KVCommandProcessor implements CommandProcessor {
 
@@ -78,17 +76,6 @@ public class KVCommandProcessor implements CommandProcessor {
             case DELETE -> this.delete(incomingMessage.getKey());
             default -> new KVMessageImpl(StatusType.ERROR);
         };
-    }
-
-    @Override 
-    public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
-        LOGGER.info("new connection: {}", remoteAddress);
-        return "Connection to KVServer established: " + address.toString();
-    }
-
-    @Override
-    public void connectionClosed(InetAddress remoteAddress) {
-        LOGGER.info("connection closed: {}", remoteAddress);
     }
 
     /**

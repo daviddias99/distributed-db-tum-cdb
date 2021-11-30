@@ -4,12 +4,14 @@ import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVCommandProcessor;
+import de.tum.i13.server.kv.KVConnectionHandler;
 import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,6 +94,7 @@ public class Main {
         // If you use multithreading you need locking
 
         CommandProcessor logic = new KVCommandProcessor(storage, state);
+        ConnectionHandler cHandler = new KVConnectionHandler();
 
         // Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
@@ -102,7 +105,7 @@ public class Main {
                 Socket clientSocket = serverSocket.accept();
 
                 // start a new Thread for this connection
-                executorService.submit(new ConnectionHandleThread(logic, clientSocket,
+                executorService.submit(new ConnectionHandleThread(logic, cHandler, clientSocket,
                         (InetSocketAddress) serverSocket.getLocalSocketAddress()));
             }
         } catch (IOException ex) {

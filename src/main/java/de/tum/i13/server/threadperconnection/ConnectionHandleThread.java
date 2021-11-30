@@ -4,6 +4,7 @@ import de.tum.i13.server.kv.PeerAuthenticator;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.shared.ActiveConnection;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,12 +24,14 @@ public class ConnectionHandleThread implements Runnable {
     private CommandProcessor cp;
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
+    private ConnectionHandler connectionHandler;
 
-    public ConnectionHandleThread(CommandProcessor commandProcessor, Socket clientSocket,
+    public ConnectionHandleThread(CommandProcessor commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
             InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;
         this.serverAddress = serverAddress;
+        this.connectionHandler = connectionHandler;
     }
 
     @Override
@@ -44,7 +47,7 @@ public class ConnectionHandleThread implements Runnable {
 
             // Send a confirmation message to peer upon connection if he needs the greet
             if (peerType.needsGreet()) {
-                String connSuccess = cp.connectionAccepted(this.serverAddress,
+                String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                         (InetSocketAddress) clientSocket.getRemoteSocketAddress());
                 activeConnection.write(connSuccess);
             }
@@ -57,7 +60,7 @@ public class ConnectionHandleThread implements Runnable {
             }
 
             activeConnection.close();
-            cp.connectionClosed(clientSocket.getInetAddress());
+            connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception while trying to read from {}.", clientSocket.getInetAddress());
