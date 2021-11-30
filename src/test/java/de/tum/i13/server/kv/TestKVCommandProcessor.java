@@ -18,7 +18,7 @@ class TestKVCommandProcessor {
     void correctParsingOfPut() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState(ServerState.State.ACTIVE));
         kvcp.process("put key hello", PeerType.CLIENT);
 
@@ -29,7 +29,7 @@ class TestKVCommandProcessor {
     void commandNotExecutedWhenStopped() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
         String response = kvcp.process("put key hello", PeerType.CLIENT);
         assertThat(KVMessage
@@ -50,7 +50,7 @@ class TestKVCommandProcessor {
     void ecsBypassesStop() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
         kvcp.process("put key hello", PeerType.ECS);
         verify(kv).put("key", "hello");
@@ -60,7 +60,7 @@ class TestKVCommandProcessor {
     void serverBypassesStop() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, new ServerState());
         kvcp.process("put key hello", PeerType.SERVER);
         verify(kv).put("key", "hello");
@@ -101,9 +101,9 @@ class TestKVCommandProcessor {
                                 KVMessage::getValue,
                                 KVMessage::getStatus)
                         .containsExactly(
-                                "error",
-                                "error",
-                                KVMessage.StatusType.UNDEFINED);
+                                null,
+                                null,
+                                KVMessage.StatusType.ERROR);
 
         assertThat(serverState.canWrite()).isTrue();
     }
@@ -156,7 +156,7 @@ class TestKVCommandProcessor {
     void getSucceedsOnWriteLock() throws GetException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.get("key")).thenReturn(new KVMessageImpl(KVMessage.StatusType.UNDEFINED));
+        when(kv.get("key")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         ServerState serverState = new ServerState(State.ACTIVE);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, serverState);
         kvcp.process("do_write_lock", PeerType.ECS);

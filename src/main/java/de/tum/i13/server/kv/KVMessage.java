@@ -13,9 +13,9 @@ public interface KVMessage {
      */
     enum StatusType {
         /**
-         * Undefined status, for example unprocessable command
+         * Error status, for example unprocessable command
          */
-        UNDEFINED(false, false),
+        ERROR(false, false),
         /**
          * Get - request
          */
@@ -145,7 +145,7 @@ public interface KVMessage {
         final StatusType status = getStatus();
         return String.format(
                 "%s %s %s",
-                status == StatusType.UNDEFINED ? "error undefined error" : status.toString().toLowerCase(),
+                status.toString().toLowerCase(),
                 Objects.toString(getKey(), ""),
                 Objects.toString(getValue(), "")).trim();
     }

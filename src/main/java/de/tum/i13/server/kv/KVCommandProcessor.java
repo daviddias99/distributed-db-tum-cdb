@@ -36,9 +36,9 @@ public class KVCommandProcessor implements CommandProcessor {
             response = processClient(incomingMessage);
         } else if (peerType == PeerType.SERVER) {
             response = processServer(incomingMessage);
-        } 
-        
-        if(response == null){
+        }
+
+        if (response == null) {
             response = processCommon(incomingMessage);
         }
 
@@ -58,7 +58,7 @@ public class KVCommandProcessor implements CommandProcessor {
         return switch (incomingMessage.getStatus()) {
             case PUT -> this.putByClient(incomingMessage.getKey(), incomingMessage.getValue());
             case DELETE -> this.deleteByClient(incomingMessage.getKey());
-            case GET -> this.get(incomingMessage.getValue());
+            case GET -> this.get(incomingMessage.getKey());
             default -> null;
         };
     }
@@ -75,7 +75,7 @@ public class KVCommandProcessor implements CommandProcessor {
         return switch (incomingMessage.getStatus()) {
             case PUT -> this.put(incomingMessage.getKey(), incomingMessage.getValue());
             case DELETE -> this.delete(incomingMessage.getKey());
-            default -> new KVMessageImpl(StatusType.UNDEFINED);
+            default -> new KVMessageImpl(StatusType.ERROR);
         };
     }
 
@@ -107,7 +107,7 @@ public class KVCommandProcessor implements CommandProcessor {
     }
 
     private KVMessage putByClient(String key, String value) {
-        if(this.serverState.canWrite()) {
+        if (this.serverState.canWrite()) {
             return this.put(key, value);
         }
 
@@ -132,13 +132,12 @@ public class KVCommandProcessor implements CommandProcessor {
     }
 
     private KVMessage deleteByClient(String key) {
-        if(this.serverState.canWrite()) {
+        if (this.serverState.canWrite()) {
             return this.delete(key);
         }
 
         return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
     }
-
 
     private KVMessage delete(String key) {
         try {
