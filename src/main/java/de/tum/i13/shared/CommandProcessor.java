@@ -9,7 +9,10 @@ public interface CommandProcessor {
 
     String process(String command, PeerType peerType);
 
-    String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress);
 
+    // TODO: Should this be a responsability of a command processor?
+    String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress);
+    
+    // TODO: Should this be a responsability of a command processor?
     void connectionClosed(InetAddress address);
 }

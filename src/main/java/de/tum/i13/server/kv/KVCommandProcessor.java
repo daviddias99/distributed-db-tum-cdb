@@ -49,7 +49,8 @@ public class KVCommandProcessor implements CommandProcessor {
     private KVMessage processEcs(KVMessage incomingMessage) {
         return switch (incomingMessage.getStatus()) {
             case HEART_BEAT -> new KVMessageImpl(StatusType.HEART_BEAT);
-            case DO_WRITE_LOCK -> this.writeLock();
+            case ECS_WRITE_LOCK -> this.writeLock();
+            case ECS_KEYRANGE -> this.writeLock();
             default -> null;
         };
     }
@@ -79,7 +80,7 @@ public class KVCommandProcessor implements CommandProcessor {
         };
     }
 
-    @Override
+    @Override 
     public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
         LOGGER.info("new connection: {}", remoteAddress);
         return "Connection to KVServer established: " + address.toString();

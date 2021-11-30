@@ -71,7 +71,12 @@ public interface KVMessage {
         /**
          * Signal a server to enter a write lock state
          */
-        DO_WRITE_LOCK(false, false),
+        ECS_WRITE_LOCK(false, false),
+
+        /**
+         * Signal a server to enter a write lock state
+         */
+        ECS_KEYRANGE(true, false),
 
         /**
          * Indicates that the storage server is currently blocked for write requests due
