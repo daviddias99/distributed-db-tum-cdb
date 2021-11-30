@@ -1,9 +1,11 @@
 package de.tum.i13.client.net;
 
+import de.tum.i13.shared.NetworkLocation;
+
 /**
- * Represents a location somewhere on the network with a host address anda a port.
+ * A {@link NetworkLocation} that can be connected to.
  */
-public interface NetworkLocation {
+public interface NetworkConnection extends NetworkLocation {
 
     /**
      * Connects client to {@code <address>:<port>}.
@@ -30,19 +32,5 @@ public interface NetworkLocation {
      * @return True if client is connected to host, false otherwise
      */
     boolean isConnected();
-
-    /**
-     * Returns the host address of the network location.
-     *
-     * @return the address of the network location
-     */
-    String getAddress();
-
-    /**
-     * Returns the port of the network location.
-     *
-     * @return the port of the network location
-     */
-    int getPort();
 
 }

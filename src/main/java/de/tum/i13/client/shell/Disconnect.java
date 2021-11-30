@@ -1,7 +1,7 @@
 package de.tum.i13.client.shell;
 
 import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.NetworkLocation;
+import de.tum.i13.client.net.NetworkConnection;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,9 +32,9 @@ class Disconnect implements Callable<Integer> {
      */
     @Override
     public Integer call() throws ClientException {
-        final NetworkLocation networkLocation = parent.remoteStorage;
-        LOGGER.info("Disconnecting from '{}:{}'", networkLocation.getAddress(), networkLocation.getPort());
-        networkLocation.disconnect();
+        final NetworkConnection networkConnection = parent.remoteStorage;
+        LOGGER.info("Disconnecting from '{}:{}'", networkConnection.getAddress(), networkConnection.getPort());
+        networkConnection.disconnect();
         commandSpec.commandLine().getOut().println("Successfully disconnected.");
         return ExitCode.SUCCESS.getValue();
     }
