@@ -73,10 +73,11 @@ public interface KVMessage {
          */
         ECS_WRITE_LOCK(false, false),
 
-        /**
-         * Signal a server to enter a write lock state
-         */
-        ECS_KEYRANGE(true, false),
+        ECS_WRITE_UNLOCK(false, false),
+
+        KEYRANGE(false, false),
+
+        SET_KEYRANGE(true, false),
 
         /**
          * Indicates that the storage server is currently blocked for write requests due
@@ -88,6 +89,9 @@ public interface KVMessage {
          * the ranges
          */
         KEYRANGE_SUCCESS(true, false),
+
+        SERVER_ACK(false, false),
+
         /**
          * Used to indicate that the server is still alive. Usually an HEART_BEAT
          * message is sent in response to another HEART_BEAT

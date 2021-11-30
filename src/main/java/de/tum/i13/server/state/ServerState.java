@@ -1,5 +1,8 @@
 package de.tum.i13.server.state;
 
+import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.hashing.ConsistentHashRing;
+
 public class ServerState {
   public enum State {
     ACTIVE,
@@ -9,15 +12,21 @@ public class ServerState {
   }
 
   private State currentState;
-  private String keyRangeLowerBound;
-  private String keyRangeUpperBound;
+  private ConsistentHashRing ringMetadata;
+  private NetworkLocation curNetworkLocation;
 
-  public ServerState() {
-    this.setState(State.STOPPED);
+  public ServerState(NetworkLocation curNetworkLocation) {
+    this(State.STOPPED, curNetworkLocation);
   }
 
-  public ServerState(State startState) {
+  public ServerState(State startState, NetworkLocation curNetworkLocation) {
+    this(startState, curNetworkLocation, null);
+  }
+
+  public ServerState(State startState, NetworkLocation curNetworkLocation, ConsistentHashRing ringMetadata) {
     this.setState(startState);
+    this.setRingMetadata(ringMetadata);
+    this.curNetworkLocation = curNetworkLocation;
   }
 
   public State getState() {
@@ -60,11 +69,17 @@ public class ServerState {
     this.currentState = State.ACTIVE;
   }
 
-  public void setKeyRangeUpperBound(String upperBound){
-    this.keyRangeUpperBound = upperBound;
+  public ConsistentHashRing getRingMetadata() {
+    return ringMetadata;
   }
 
-  public void setKeyRangeLowerBound(String lowerBound){
-    this.keyRangeLowerBound = lowerBound;
+  public void setRingMetadata(ConsistentHashRing ringMetadata) {
+    this.ringMetadata = ringMetadata;
+  }
+
+  public boolean responsibleForKey(String key) {
+    return this.ringMetadata.getResponsibleNetworkLocation(key)
+        .map(curNetworkLocation::equals)
+        .orElseGet(() -> false);
   }
 }

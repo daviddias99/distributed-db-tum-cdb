@@ -13,6 +13,8 @@ import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.NetworkLocationImpl;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,7 +60,9 @@ public class Main {
 
             // set up storage options
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
-            final ServerState state = new ServerState();
+
+            // TODO: if listenAddress is default (localhost, it won't correspond to the correct metadata)
+            final ServerState state = new ServerState(new NetworkLocationImpl(cfg.listenAddress, cfg.port));
 
             // start server
             startListening(serverSocket, storage, state);
@@ -93,7 +97,7 @@ public class Main {
         // Replace with your Key value server logic.
         // If you use multithreading you need locking
 
-        CommandProcessor logic = new KVCommandProcessor(storage, state);
+        CommandProcessor<String> logic = new KVCommandProcessor(storage, state);
         ConnectionHandler cHandler = new KVConnectionHandler();
 
         // Use ThreadPool

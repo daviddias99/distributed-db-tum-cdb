@@ -34,51 +34,69 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
       case PUT -> this.put(command.getKey(), command.getValue());
       case DELETE -> this.delete(command.getKey());
       case GET -> this.get(command.getKey());
+      case KEYRANGE -> this.keyRange();
       default -> null;
     };
   }
 
-      /**
-     * Method to search for a key in the persistent storage.
-     *
-     * @param key the key to search
-     * @return a KVMessage with the status of the query
-     */
-    private KVMessage get(String key) {
-      try {
-          LOGGER.info("Trying to read key: {}", key);
-          return kvStore.get(key);
-      } catch (GetException e) {
-          LOGGER.error(e);
-          return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
-      }
+  /**
+   * Method to search for a key in the persistent storage.
+   *
+   * @param key the key to search
+   * @return a KVMessage with the status of the query
+   */
+  private KVMessage get(String key) {
+    if (!this.serverState.responsibleForKey(key)) {
+      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(),
+          KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+    }
+
+    try {
+      LOGGER.info("Trying to read key: {}", key);
+      return kvStore.get(key);
+    } catch (GetException e) {
+      LOGGER.error(e);
+      return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
+    }
   }
 
   private KVMessage put(String key, String value) {
-      if (this.serverState.canWrite()) {
-        try {
-          LOGGER.info("Trying to put key: {} and value: {}", key, value);
-          return kvStore.put(key, value);
-      } catch (PutException e) {
-          LOGGER.error(e);
-          return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
-      }
-      }
+    if(! this.serverState.responsibleForKey(key)) {
+      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+    }
 
-      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+    if (this.serverState.canWrite()) {
+      try {
+        LOGGER.info("Trying to put key: {} and value: {}", key, value);
+        return kvStore.put(key, value);
+      } catch (PutException e) {
+        LOGGER.error(e);
+        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
+      }
+    }
+
+    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
   }
 
   private KVMessage delete(String key) {
-      if (this.serverState.canWrite()) {
-        try {
-          LOGGER.info("Trying to delete key: {}", key);
-          return kvStore.put(key, null);
-      } catch (PutException e) {
-          LOGGER.error(e);
-          return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
-      }
-      }
+    if(! this.serverState.responsibleForKey(key)) {
+      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+    }
 
-      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+    if (this.serverState.canWrite()) {
+      try {
+        LOGGER.info("Trying to delete key: {}", key);
+        return kvStore.put(key, null);
+      } catch (PutException e) {
+        LOGGER.error(e);
+        return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+      }
+    }
+
+    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+  }
+
+  private KVMessage keyRange() {
+    return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.KEYRANGE_SUCCESS);
   }
 }

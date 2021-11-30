@@ -27,8 +27,8 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         this.processors = Arrays.asList(
             new KVServerCommandProcessor(storage),
             new KVEcsCommandProcessor(serverState),
-            new KVClientCommandProcessor(storage, serverState),
-            new KVCommonCommandProcessor(kvStore)
+            new KVClientCommandProcessor(storage, serverState)
+            // new KVCommonCommandProcessor(kvStore)
         );
     }
 
