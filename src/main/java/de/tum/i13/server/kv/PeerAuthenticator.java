@@ -1,8 +1,11 @@
 package de.tum.i13.server.kv;
 
-import de.tum.i13.shared.ActiveConnection;
+import de.tum.i13.server.state.ServerState;
+import de.tum.i13.shared.NetworkLocation;
 
 public class PeerAuthenticator {
+
+  ServerState currentServerState;
 
   public enum PeerType {
     CLIENT(true, false),
@@ -26,12 +29,18 @@ public class PeerAuthenticator {
     }
   }
 
-  public PeerAuthenticator() {
-    // Add authentication based on metadata, methods may need to become static
+  public PeerAuthenticator(ServerState serverState) {
+    this.currentServerState = serverState;
   }
 
-  public PeerType authenticate(ActiveConnection activeConnection) {
+  public PeerType authenticate(NetworkLocation location) {
 
+    if(this.currentServerState.getEcsLocation().equals(location)) {
+      return PeerType.ECS;
+    } else if (this.currentServerState.getRingMetadata().containsNetworkLocation(location)) {
+      return PeerType.SERVER;
+    }
+    
     return PeerType.CLIENT;
   }
 }

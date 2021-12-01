@@ -14,6 +14,7 @@ import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.NetworkLocationImpl;
 
 import org.apache.logging.log4j.LogManager;
@@ -64,7 +65,9 @@ public class Main {
 
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
-            final ServerState state = new ServerState(new NetworkLocationImpl(cfg.listenAddress, cfg.port));
+            NetworkLocation curLocation = new NetworkLocationImpl(cfg.listenAddress, cfg.port);
+            NetworkLocation ecsLocation = new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(), cfg.bootstrap.getPort());
+            final ServerState state = new ServerState(curLocation, ecsLocation);
 
             // start server
             startListening(serverSocket, storage, state);
@@ -114,7 +117,7 @@ public class Main {
                 Socket clientSocket = serverSocket.accept();
 
                 // start a new Thread for this connection
-                executorService.submit(new ConnectionHandleThread(logic, cHandler, clientSocket,
+                executorService.submit(new ConnectionHandleThread(logic, cHandler, state, clientSocket,
                         (InetSocketAddress) serverSocket.getLocalSocketAddress()));
             }
         } catch (IOException ex) {

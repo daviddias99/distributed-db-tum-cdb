@@ -116,6 +116,13 @@ public interface ConsistentHashRing {
     void removeNetworkLocation(NetworkLocation networkLocation);
 
     /**
+     * TODO: comment
+     * @param networkLocation
+     * @return
+     */
+    boolean containsNetworkLocation(NetworkLocation networkLocation);
+
+    /**
      * Returns the hashing algorithm responsible for calculating the hashes and therefore the locations of the keys
      * and {@link NetworkLocation}s on the {@link ConsistentHashRing}
      *

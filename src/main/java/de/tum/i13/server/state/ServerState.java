@@ -17,18 +17,20 @@ public class ServerState {
   private State currentState;
   private ConsistentHashRing ringMetadata;
   private NetworkLocation curNetworkLocation;
+  private NetworkLocation ecsLocation;
 
-  public ServerState(NetworkLocation curNetworkLocation) {
-    this(State.STOPPED, curNetworkLocation);
+  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
+    this(curNetworkLocation, ecsLocation, State.STOPPED);
   }
 
-  public ServerState(State startState, NetworkLocation curNetworkLocation) {
-    this(startState, curNetworkLocation, null);
+  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, State startState) {
+    this(curNetworkLocation, ecsLocation, null, startState);
   }
 
-  public ServerState(State startState, NetworkLocation curNetworkLocation, ConsistentHashRing ringMetadata) {
+  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata, State startState) {
     this.setState(startState);
     this.setRingMetadata(ringMetadata);
+    this.setEcsLocation(ecsLocation);
     this.curNetworkLocation = curNetworkLocation;
   }
 
@@ -74,6 +76,14 @@ public class ServerState {
 
   public ConsistentHashRing getRingMetadata() {
     return ringMetadata;
+  }
+
+  public NetworkLocation getEcsLocation() {
+    return ecsLocation;
+  }
+
+  public void setEcsLocation(NetworkLocation ecsLocation) {
+    this.ecsLocation = ecsLocation;
   }
 
   public void setRingMetadata(ConsistentHashRing ringMetadata) {

@@ -54,5 +54,8 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
         return hashingAlgorithm;
     }
 
-
+    @Override
+    public boolean containsNetworkLocation(NetworkLocation networkLocation) {
+        return this.networkLocationMap.values().contains(networkLocation);
+    }
 }

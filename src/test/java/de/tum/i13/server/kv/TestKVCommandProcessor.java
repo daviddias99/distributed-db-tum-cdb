@@ -38,7 +38,7 @@ class TestKVCommandProcessor {
 
     @BeforeEach
     void setState() {
-        state = new ServerState(server1Location);
+        state = new ServerState(server1Location, new NetworkLocationImpl("127.0.0.1", 25566));
         state.setRingMetadata(ring);
     }
 

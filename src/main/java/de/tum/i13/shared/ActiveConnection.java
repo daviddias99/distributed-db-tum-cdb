@@ -38,4 +38,9 @@ public class ActiveConnection implements AutoCloseable {
     public String getInfo() {
         return "/" + this.socket.getRemoteSocketAddress().toString();
     }
+
+    // TODO: check this
+    public NetworkLocation getNetworkLocation() {
+        return new NetworkLocationImpl(this.socket.getInetAddress().getHostAddress(), this.socket.getPort());
+    }
 }
