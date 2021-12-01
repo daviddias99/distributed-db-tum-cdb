@@ -11,6 +11,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
+import de.tum.i13.server.kv.commandprocessing.ShutdownHandler;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
@@ -75,6 +76,8 @@ public class Main {
             NetworkLocation curLocation = new NetworkLocationImpl(cfg.listenAddress, cfg.port);
             NetworkLocation ecsLocation = new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(), cfg.bootstrap.getPort());
             final ServerState state = new ServerState(curLocation, ecsLocation);
+
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsLocation)));
 
             // start server
             startListening(serverSocket, storage, state);

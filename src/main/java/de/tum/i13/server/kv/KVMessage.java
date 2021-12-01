@@ -109,7 +109,9 @@ public interface KVMessage {
          * Used to indicate that the server is still alive. Usually an HEART_BEAT
          * message is sent in response to another HEART_BEAT
          */
-        HEART_BEAT(false, false);
+        HEART_BEAT(false, false),
+        
+        SERVER_SHUTDOWN(false, false);
 
         private final boolean needsKey;
         private final boolean needsValue;

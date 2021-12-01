@@ -57,6 +57,18 @@ public class ServerCommunicator implements NetworkMessageServer {
     }
   }
 
+  public KVMessage sendShutdown() throws ClientException {
+    KVMessage message = new KVMessageImpl(StatusType.SERVER_SHUTDOWN);
+    final String terminatedMessage = message.packMessage() + Constants.TERMINATING_STR;
+    networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
+
+    try {
+      return KVMessage.unpackMessage(receiveMessage());
+    } catch (IllegalArgumentException ex) {
+      throw new ClientException(ex, "Could not unpack message received by the server");
+    }
+  }
+
   private String receiveMessage() throws ClientException {
     byte[] response = networkMessageServer.receive();
     final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
