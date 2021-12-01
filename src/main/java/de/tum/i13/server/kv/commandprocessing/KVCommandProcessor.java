@@ -11,18 +11,12 @@ import de.tum.i13.shared.CommandProcessor;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class KVCommandProcessor implements CommandProcessor<String> {
 
     private ServerState serverState;
-    private PersistentStorage kvStore;
     private List<CommandProcessor<KVMessage>> processors;
-    private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
     public KVCommandProcessor(PersistentStorage storage, ServerState serverState) {
-        this.kvStore = storage;
         this.serverState = serverState;
         this.processors = Arrays.asList(
             new KVServerCommandProcessor(storage),

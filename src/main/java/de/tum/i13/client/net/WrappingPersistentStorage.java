@@ -8,6 +8,7 @@ import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -168,6 +169,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     @Override
     public List<Pair<String>> getRange(String lowerBound, String upperBound) {
         // TODO Auto-generated method stub
-        return null;
+        return new LinkedList<>();
     }
 }
