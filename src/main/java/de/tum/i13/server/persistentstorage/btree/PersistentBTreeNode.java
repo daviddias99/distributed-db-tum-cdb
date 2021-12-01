@@ -125,7 +125,7 @@ public class PersistentBTreeNode<V> implements Serializable {
         return children.get(i).search(key, insert, value);
     }
 
-    void searchInRange(String lowerBound, String upperBound, LinkedList<String> result) throws StorageException {
+    void searchInRange(String lowerBound, String upperBound, LinkedList<Pair<V>> result) throws StorageException {
         Chunk<V> chunk = this.getChunk();
 
         // Find the first key greater than or equal to key
@@ -134,22 +134,21 @@ public class PersistentBTreeNode<V> implements Serializable {
         // and first n children
         int i = chunk.findIndexOfFirstGreaterOrEqualThen(lowerBound);
         int j = chunk.findIndexOfFirstGreaterThen(upperBound);
+
         for (; i < Math.min(this.elementCount, j); i++) {
             Pair<V> pair = chunk.get(i);
 
-            // If this is not leaf, then before printing key[i],
-            // traverse the subtree rooted with child C[i].
             if (!this.leaf && !pair.key.equals(lowerBound)) {
                 this.children.get(i).searchInRange(lowerBound, upperBound, result);
             }
 
-            result.addLast(pair.key);
+            result.addLast(pair);
         }
 
         chunk.releaseStoredElements();
         
         // Print the subtree rooted with last child
-        if (!this.leaf && i == this.elementCount)
+        if (!this.leaf && (i == this.elementCount || i == j))
             this.children.get(i).searchInRange(lowerBound, upperBound, result);
     }
 

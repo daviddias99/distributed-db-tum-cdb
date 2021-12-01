@@ -28,7 +28,6 @@ public class KVCommandProcessor implements CommandProcessor<String> {
             new KVServerCommandProcessor(storage),
             new KVEcsCommandProcessor(serverState),
             new KVClientCommandProcessor(storage, serverState)
-            // new KVCommonCommandProcessor(kvStore)
         );
     }
 

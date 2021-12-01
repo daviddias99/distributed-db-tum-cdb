@@ -25,4 +25,21 @@ public class Pair<V> implements Serializable {
         this.key = key;
         this.value = value;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+ 
+        if (!(obj instanceof Pair)) {
+            return false;
+        }
+         
+        // typecast o to Complex so that we can compare data members
+        Pair<?> c = (Pair<?>) obj;
+         
+        // Compare the data members and return accordingly
+        return  c.key.equals(this.key) && c.value.equals(this.value);
+    }
 }

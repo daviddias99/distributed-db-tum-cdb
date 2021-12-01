@@ -193,7 +193,9 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         }
     }
 
-    public List<String> getInRange(String lowerBound, String upperBound) throws StorageException, PersistentBTreeException {
+    public List<Pair<V>> getInRange(String lowerBound, String upperBound) throws StorageException, PersistentBTreeException {
+        Preconditions.check(lowerBound.compareTo(upperBound) <= 0);
+
         if (treeClosed.get()) {
             PersistentBTreeException ex = new PersistentBTreeException(
                     "Could not perform operation because tree is closed");
@@ -207,7 +209,7 @@ public class PersistentBTree<V> implements Serializable, Closeable {
             this.readWriteLock.readLock().unlock();
             return new LinkedList<>();
         } else {
-            LinkedList<String> result = new LinkedList<>();
+            LinkedList<Pair<V>> result = new LinkedList<>();
             this.root.searchInRange(lowerBound, upperBound, result);
             this.readWriteLock.readLock().unlock();
             return result;

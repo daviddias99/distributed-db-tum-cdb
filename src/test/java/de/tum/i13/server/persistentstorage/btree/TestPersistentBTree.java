@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
@@ -280,12 +281,8 @@ class TestPersistentBTree {
         tree.insert("E", "Value");
         tree.insert("F", "Value");
         tree.insert("G", "Value");
-        System.out.println((new PersistentBTreeDisplay<String>()).traverseSpecial(tree));
-        List<String> result = tree.getInRange("C", "F");
-
-        for (String string : result) {
-            System.out.println(string);
-        }
+        List<Pair<String>> result = tree.getInRange("C", "F");
+        assertThat(result.stream().map(elem -> elem.key)).containsExactly("C", "D", "E", "F");
     }
 
     @Test
@@ -304,11 +301,69 @@ class TestPersistentBTree {
         tree.insert("M", "Value");
         tree.insert("N", "Value");
         tree.insert("O", "Value");
-        System.out.println((new PersistentBTreeDisplay<String>()).traverseSpecial(tree));
-        List<String> result = tree.getInRange("D", "K");
+        List<Pair<String>> result = tree.getInRange("D", "K");
 
-        for (String string : result) {
-            System.out.println(string);
-        }
+        assertThat(result.stream().map(elem -> elem.key)).containsExactly("D", "E", "F", "G", "H", "J", "K");
+    }
+
+    @Test
+    void getsRangeDoesNotExist() throws StorageException, PersistentBTreeException {
+        tree.insert("A", "Value");
+        tree.insert("C", "Value");
+        tree.insert("B", "Value");
+        tree.insert("D", "Value");
+        tree.insert("E", "Value");
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        tree.insert("H", "Value");
+        tree.insert("J", "Value");
+        tree.insert("K", "Value");
+        tree.insert("L", "Value");
+        tree.insert("M", "Value");
+        tree.insert("N", "Value");
+        tree.insert("O", "Value");
+        List<Pair<String>> result = tree.getInRange("R", "T");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getsRangeWithMinLessThanLowerBound() throws StorageException, PersistentBTreeException {
+
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        tree.insert("H", "Value");
+        tree.insert("J", "Value");
+        tree.insert("K", "Value");
+        tree.insert("L", "Value");
+        tree.insert("M", "Value");
+        tree.insert("N", "Value");
+        tree.insert("O", "Value");
+        List<Pair<String>> result = tree.getInRange("A", "N");
+
+        assertThat(result.stream().map(elem -> elem.key)).containsExactly("F", "G", "H", "J", "K", "L", "M", "N");
+    }
+
+    @Test
+    void getRangesWithEqualBounds() throws StorageException, PersistentBTreeException {
+
+        tree.insert("F", "Value");
+        tree.insert("G", "Value");
+        tree.insert("H", "Value");
+        tree.insert("J", "Value");
+        tree.insert("K", "Value");
+        tree.insert("L", "Value");
+        tree.insert("M", "Value");
+        tree.insert("N", "Value");
+        tree.insert("O", "Value");
+
+        List<Pair<String>> result = tree.getInRange("F", "F");
+        assertThat(result.stream().map(elem -> elem.key)).containsExactly("F");
+
+        result = tree.getInRange("O", "O");
+        assertThat(result.stream().map(elem -> elem.key)).containsExactly("O");
+        
+        result = tree.getInRange("A", "A");
+        assertThat(result).isEmpty();
     }
 }
