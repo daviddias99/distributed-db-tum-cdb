@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.GetException;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
@@ -132,7 +132,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     }
 
     @Override
-    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException {
+    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
             return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
                     .collect(Collectors.toList());

@@ -73,11 +73,23 @@ public interface KVMessage {
          */
         ECS_WRITE_LOCK(false, false),
 
+        // TODO: comment
         ECS_WRITE_UNLOCK(false, false),
 
+        // TODO: comment
+        ECS_HANDOFF(true, true),
+
+        // TODO: comment
+        SERVER_HANDOFF_SUCCESS(false, false),
+
+        // TODO: comment
+        SERVER_GET_METADATA(false, false),
+
+        // TODO: comment
         KEYRANGE(false, false),
 
-        SET_KEYRANGE(true, false),
+        // TODO: comment
+        ECS_SET_KEYRANGE(true, false),
 
         /**
          * Indicates that the storage server is currently blocked for write requests due
@@ -90,6 +102,7 @@ public interface KVMessage {
          */
         KEYRANGE_SUCCESS(true, false),
 
+        // TODO: comment
         SERVER_ACK(false, false),
 
         /**

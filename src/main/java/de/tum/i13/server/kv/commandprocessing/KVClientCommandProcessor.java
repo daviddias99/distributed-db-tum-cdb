@@ -3,12 +3,12 @@ package de.tum.i13.server.kv.commandprocessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
+import de.tum.i13.server.persistentstorage.GetException;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 

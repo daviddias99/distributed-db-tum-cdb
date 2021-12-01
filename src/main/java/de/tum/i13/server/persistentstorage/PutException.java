@@ -1,4 +1,6 @@
-package de.tum.i13.server.kv;
+package de.tum.i13.server.persistentstorage;
+
+import de.tum.i13.server.kv.KVException;
 
 /**
  * A checked {@link Exception} thrown when putting a key with a value in a {@link PersistentStorage} fails

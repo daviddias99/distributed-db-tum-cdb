@@ -1,11 +1,18 @@
 package de.tum.i13.server.threadperconnection;
 
+import de.tum.i13.client.net.ClientException;
+import de.tum.i13.client.net.CommunicationClient;
+import de.tum.i13.client.net.NetworkMessageServer;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVConnectionHandler;
-import de.tum.i13.server.kv.PersistentStorage;
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
+import de.tum.i13.server.net.ServerCommunicator;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
@@ -107,6 +114,21 @@ public class Main {
 
         CommandProcessor<String> logic = new KVCommandProcessor(storage, state);
         ConnectionHandler cHandler = new KVConnectionHandler();
+
+        NetworkMessageServer messageServer = new CommunicationClient();
+        ServerCommunicator communicator = new ServerCommunicator(messageServer);
+        try {
+            communicator.connect(state.getEcsLocation().getAddress(), state.getEcsLocation().getPort());
+            KVMessage message = communicator.requestMetadata();
+
+            if(message.getStatus() == StatusType.ECS_SET_KEYRANGE) {
+                logic.process(message.packMessage(), PeerType.ECS);
+            }
+
+        } catch (ClientException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         // Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);

@@ -1,7 +1,9 @@
-package de.tum.i13.server.kv;
+package de.tum.i13.server.persistentstorage;
 
 import java.util.List;
 
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 
 /**
@@ -34,5 +36,5 @@ public interface PersistentStorage extends KVStore {
      * @throws GetException an exception is thrown if any error occurs with fetching
      *                      the elements
      */
-    List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException;
+    List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException;
 }

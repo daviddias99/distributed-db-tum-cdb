@@ -1,11 +1,11 @@
 package de.tum.i13.server.cache;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.GetException;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
@@ -215,7 +215,7 @@ public class CachedPersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException {
-        return this.persistentStorage.getElementsInRange(lowerBound, upperBound);
+    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+        return this.persistentStorage.getRange(lowerBound, upperBound);
     }
 }

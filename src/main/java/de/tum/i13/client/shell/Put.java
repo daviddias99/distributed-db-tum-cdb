@@ -1,7 +1,7 @@
 package de.tum.i13.client.shell;
 
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

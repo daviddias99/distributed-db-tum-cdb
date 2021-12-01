@@ -1,7 +1,8 @@
 package de.tum.i13.shared;
 
 /**
- * Represents a location somewhere on the network with a host address anda a port.
+ * Represents a location somewhere on the network with a host address anda a
+ * port.
  */
 public interface NetworkLocation {
 
@@ -19,4 +20,15 @@ public interface NetworkLocation {
      */
     int getPort();
 
+    // TODO: comment
+    static NetworkLocation extractNetworkLocation(String networkLocationString) {
+        final String[] networkLocationData = networkLocationString.split(":");
+        if (networkLocationData.length != 2) {
+            throw new IllegalArgumentException();
+        }
+        final String address = networkLocationData[0];
+        final String port = networkLocationData[1];
+
+        return new NetworkLocationImpl(address, Integer.parseInt(port));
+    }
 }

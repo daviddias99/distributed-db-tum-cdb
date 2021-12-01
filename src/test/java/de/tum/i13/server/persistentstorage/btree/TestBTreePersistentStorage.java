@@ -1,8 +1,8 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.GetException;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;

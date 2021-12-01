@@ -1,10 +1,10 @@
 package de.tum.i13.client.net;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.GetException;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
+import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 
@@ -166,7 +166,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     }
 
     @Override
-    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
+    public List<Pair<String>> getRange(String lowerBound, String upperBound) {
         // TODO Auto-generated method stub
         return null;
     }

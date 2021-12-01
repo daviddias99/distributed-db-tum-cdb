@@ -2,9 +2,9 @@ package de.tum.i13.server.kv.commandprocessing;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
+import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 
@@ -26,7 +26,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         this.serverState = serverState;
         this.processors = Arrays.asList(
             new KVServerCommandProcessor(storage),
-            new KVEcsCommandProcessor(serverState),
+            new KVEcsCommandProcessor(storage, serverState),
             new KVClientCommandProcessor(storage, serverState)
         );
     }
