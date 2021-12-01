@@ -125,13 +125,21 @@ public class PersistentBTreeNode<V> implements Serializable {
         return children.get(i).search(key, insert, value);
     }
 
-    void searchInRange(String lowerBound, String upperBound, LinkedList<Pair<V>> result) throws StorageException {
+    /**
+     * Searches for key-value pairs in the range [lowerBound-upperBound] (limits
+     * included)
+     * 
+     * @param lowerBound lower bound for keys
+     * @param upperBound upper bounds for keys
+     * @return key-value pairs with keys in range [lowerBound-upperBound] in the
+     *         subtree rooted in the current node
+     * @throws StorageException An exception is thrown if a problem occurs
+     *                          with persistent storage.
+     */
+    LinkedList<Pair<V>> searchRange(String lowerBound, String upperBound) throws StorageException {
+        LinkedList<Pair<V>> result = new LinkedList<>();
         Chunk<V> chunk = this.getChunk();
 
-        // Find the first key greater than or equal to key
-
-        // There are n keys and n+1 children, traverse through n keys
-        // and first n children
         int i = chunk.findIndexOfFirstGreaterOrEqualThen(lowerBound);
         int j = chunk.findIndexOfFirstGreaterThen(upperBound);
 
@@ -139,17 +147,19 @@ public class PersistentBTreeNode<V> implements Serializable {
             Pair<V> pair = chunk.get(i);
 
             if (!this.leaf && !pair.key.equals(lowerBound)) {
-                this.children.get(i).searchInRange(lowerBound, upperBound, result);
+                result.addAll(this.children.get(i).searchRange(lowerBound, upperBound));
             }
 
             result.addLast(pair);
         }
 
         chunk.releaseStoredElements();
-        
+
         // Print the subtree rooted with last child
         if (!this.leaf && (i == this.elementCount || i == j))
-            this.children.get(i).searchInRange(lowerBound, upperBound, result);
+            result.addAll(this.children.get(i).searchRange(lowerBound, upperBound));
+
+        return result;
     }
 
     /**

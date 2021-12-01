@@ -193,7 +193,17 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         }
     }
 
-    public List<Pair<V>> getInRange(String lowerBound, String upperBound) throws StorageException, PersistentBTreeException {
+    /**
+     * Searches for key-value pairs in the range [lowerBound-upperBound] (limits included)
+     * @param lowerBound    lower bound for keys
+     * @param upperBound    upper bounds for keys
+     * @return  key-value pairs with keys in range [lowerBound-upperBound]
+     * @throws StorageException         An exception is thrown if a problem occurs
+     *                                  with persistent storage.
+     * @throws PersistentBTreeException An exception is thrown when an operation is
+     *                                  performed in a closed tree
+     */
+    public List<Pair<V>> searchRange(String lowerBound, String upperBound) throws StorageException, PersistentBTreeException {
         Preconditions.check(lowerBound.compareTo(upperBound) <= 0);
 
         if (treeClosed.get()) {
@@ -209,8 +219,7 @@ public class PersistentBTree<V> implements Serializable, Closeable {
             this.readWriteLock.readLock().unlock();
             return new LinkedList<>();
         } else {
-            LinkedList<Pair<V>> result = new LinkedList<>();
-            this.root.searchInRange(lowerBound, upperBound, result);
+            LinkedList<Pair<V>> result = this.root.searchRange(lowerBound, upperBound);
             this.readWriteLock.readLock().unlock();
             return result;
         }

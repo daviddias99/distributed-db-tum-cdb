@@ -1,7 +1,7 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +20,7 @@ import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
- * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
+ * by ({@link PersistentBTree}) to provide a {@link PersistentStorage}.
  */
 public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
     private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
@@ -36,10 +36,12 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
      * 
      * @param minimumDegree  B-Tree minimum degree
      * @param storageHandler Handler used by the BTree to persist
+     * 
      * @throws StorageException An exception is thrown when an error occures while
      *                          saving tree to persistent storage
      */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler, HashingAlgorithm hashingAlgorithm)
+    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler,
+            HashingAlgorithm hashingAlgorithm)
             throws StorageException {
         try {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler);
@@ -130,8 +132,12 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     }
 
     @Override
-    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException {
+        try {
+            return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound, upperBound);
+        }
     }
 }

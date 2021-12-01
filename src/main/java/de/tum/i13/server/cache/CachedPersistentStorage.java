@@ -215,7 +215,7 @@ public class CachedPersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) {
+    public List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException {
         return this.persistentStorage.getElementsInRange(lowerBound, upperBound);
     }
 }

@@ -281,7 +281,7 @@ class TestPersistentBTree {
         tree.insert("E", "Value");
         tree.insert("F", "Value");
         tree.insert("G", "Value");
-        List<Pair<String>> result = tree.getInRange("C", "F");
+        List<Pair<String>> result = tree.searchRange("C", "F");
         assertThat(result.stream().map(elem -> elem.key)).containsExactly("C", "D", "E", "F");
     }
 
@@ -301,7 +301,7 @@ class TestPersistentBTree {
         tree.insert("M", "Value");
         tree.insert("N", "Value");
         tree.insert("O", "Value");
-        List<Pair<String>> result = tree.getInRange("D", "K");
+        List<Pair<String>> result = tree.searchRange("D", "K");
 
         assertThat(result.stream().map(elem -> elem.key)).containsExactly("D", "E", "F", "G", "H", "J", "K");
     }
@@ -322,7 +322,7 @@ class TestPersistentBTree {
         tree.insert("M", "Value");
         tree.insert("N", "Value");
         tree.insert("O", "Value");
-        List<Pair<String>> result = tree.getInRange("R", "T");
+        List<Pair<String>> result = tree.searchRange("R", "T");
 
         assertThat(result).isEmpty();
     }
@@ -339,7 +339,7 @@ class TestPersistentBTree {
         tree.insert("M", "Value");
         tree.insert("N", "Value");
         tree.insert("O", "Value");
-        List<Pair<String>> result = tree.getInRange("A", "N");
+        List<Pair<String>> result = tree.searchRange("A", "N");
 
         assertThat(result.stream().map(elem -> elem.key)).containsExactly("F", "G", "H", "J", "K", "L", "M", "N");
     }
@@ -357,13 +357,13 @@ class TestPersistentBTree {
         tree.insert("N", "Value");
         tree.insert("O", "Value");
 
-        List<Pair<String>> result = tree.getInRange("F", "F");
+        List<Pair<String>> result = tree.searchRange("F", "F");
         assertThat(result.stream().map(elem -> elem.key)).containsExactly("F");
 
-        result = tree.getInRange("O", "O");
+        result = tree.searchRange("O", "O");
         assertThat(result.stream().map(elem -> elem.key)).containsExactly("O");
         
-        result = tree.getInRange("A", "A");
+        result = tree.searchRange("A", "A");
         assertThat(result).isEmpty();
     }
 }

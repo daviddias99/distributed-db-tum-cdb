@@ -5,7 +5,8 @@ import java.util.List;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 
 /**
- * An interface for a persistent storage with altered exceptions compared to {@link KVStore}
+ * An interface for a persistent storage with altered exceptions compared to
+ * {@link KVStore}
  */
 public interface PersistentStorage extends KVStore {
 
@@ -22,6 +23,16 @@ public interface PersistentStorage extends KVStore {
      */
     @Override
     KVMessage put(String key, String value) throws PutException;
-    
-    List<Pair<String>> getElementsInRange(String lowerBound, String upperBound);
+
+    /**
+     * Get elements of storage that contain keys in range [lowerBound-upperBound]
+     * (limits included).
+     * 
+     * @param lowerBound lower bound of keys
+     * @param upperBound upper bound of keys
+     * @return elements with keys in interval [lowerBound-upperBound]
+     * @throws GetException an exception is thrown if any error occurs with fetching
+     *                      the elements
+     */
+    List<Pair<String>> getElementsInRange(String lowerBound, String upperBound) throws GetException;
 }
