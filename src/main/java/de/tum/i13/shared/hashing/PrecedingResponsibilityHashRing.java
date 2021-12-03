@@ -86,6 +86,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                                                 NetworkLocation networkLocation) {
         return stringBuilder.append(",")
                 .append(HashingAlgorithm.convertHashToHex(hash))
+                .append(",")
                 .append(networkLocation.getAddress())
                 .append(":")
                 .append(networkLocation.getPort())
