@@ -110,4 +110,22 @@ class PrecedingResponsibilityHashRingTest {
                 .hasToString(STRING_REPRESENTATION);
     }
 
+    @Test
+    void removesLocation(@Mock(name = "My network location") NetworkLocation location) {
+        when(hashingAlgorithm.hash(location))
+                .thenReturn(BigInteger.valueOf(4));
+        when(hashingAlgorithm.hash(anyString()))
+                .thenReturn(BigInteger.valueOf(3));
+
+        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+                .get()
+                .isEqualTo(location2);
+
+        hashRing.removeNetworkLocation(location);
+
+        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+                .get()
+                .isEqualTo(location3);
+    }
+
 }
