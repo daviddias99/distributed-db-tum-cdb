@@ -2,7 +2,6 @@ package de.tum.i13.shared.hashing;
 
 import de.tum.i13.shared.NetworkLocation;
 
-import java.math.BigInteger;
 import java.util.TreeMap;
 
 /**

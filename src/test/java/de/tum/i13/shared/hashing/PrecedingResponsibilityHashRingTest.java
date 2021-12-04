@@ -26,9 +26,9 @@ import static org.mockito.Mockito.withSettings;
 @ExtendWith(MockitoExtension.class)
 class PrecedingResponsibilityHashRingTest {
 
+    public static final String NEEDS_LOCATION_STUBBING = "needs_location_stubbing";
     private static final String IGNORED_STRING = "ignoredString";
     private static final String STRING_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
-    public static final String NEEDS_LOCATION_STUBBING = "needs_location_stubbing";
     @Mock
     private HashingAlgorithm hashingAlgorithm;
     private PrecedingResponsibilityHashRing hashRing;

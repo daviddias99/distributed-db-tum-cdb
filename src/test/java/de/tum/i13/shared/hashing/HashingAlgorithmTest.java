@@ -12,7 +12,6 @@ import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHex;
 import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHexWithPrefix;
 import static java.math.BigInteger.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
