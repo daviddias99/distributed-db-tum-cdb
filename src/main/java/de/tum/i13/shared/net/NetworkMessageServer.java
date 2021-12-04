@@ -1,4 +1,4 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.net;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -15,11 +15,11 @@ public interface NetworkMessageServer extends NetworkConnection, MessageServer {
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.
      * @return Bytes sent by the host.
-     * @throws ClientException if the connecting or receiving fails
+     * @throws CommunicationClientException if the connecting or receiving fails
      * @see NetworkConnection#connect(String, int)
      * @see MessageServer#receive()
      */
-    default byte[] connectAndReceive(String address, int port) throws ClientException {
+    default byte[] connectAndReceive(String address, int port) throws CommunicationClientException {
         LogManager.getLogger(NetworkMessageServer.class).info("Connecting and receiving");
         this.connect(address, port);
         return this.receive();

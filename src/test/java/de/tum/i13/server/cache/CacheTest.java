@@ -1,7 +1,8 @@
 package de.tum.i13.server.cache;
 
-import de.tum.i13.server.kv.KVMessage;
 import org.junit.jupiter.api.Test;
+
+import de.tum.i13.shared.kv.KVMessage;
 
 import java.util.Set;
 import java.util.stream.Collectors;

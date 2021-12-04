@@ -1,4 +1,4 @@
-package de.tum.i13.server.kv;
+package de.tum.i13.shared.kv;
 
 import java.util.Objects;
 import java.util.function.Function;

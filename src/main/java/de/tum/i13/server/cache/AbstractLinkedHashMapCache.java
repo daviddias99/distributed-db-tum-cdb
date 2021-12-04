@@ -1,8 +1,9 @@
 package de.tum.i13.server.cache;
 
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Preconditions;
+import de.tum.i13.shared.kv.KVMessage;
+import de.tum.i13.shared.kv.KVMessageImpl;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

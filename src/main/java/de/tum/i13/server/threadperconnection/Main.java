@@ -3,13 +3,14 @@ package de.tum.i13.server.threadperconnection;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
-import de.tum.i13.server.kv.KVCommandProcessor;
-import de.tum.i13.server.kv.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.kv.KVCommandProcessor;
+import de.tum.i13.shared.persistentStorage.PersistentStorage;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

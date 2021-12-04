@@ -1,4 +1,4 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.net;
 
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
@@ -33,15 +33,15 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination. Must be between 0 and 65535 inclusive.
-     * @throws ClientException if connection fails
+     * @throws CommunicationClientException if connection fails
      * @see NetworkConnection#connect(String, int)
      */
-    public CommunicationClient(String address, int port) throws ClientException {
+    public CommunicationClient(String address, int port) throws CommunicationClientException {
         this.connect(address, port);
     }
 
     @Override
-    public void connect(String address, int port) throws ClientException {
+    public void connect(String address, int port) throws CommunicationClientException {
         Preconditions.check(port >= 0 && port <= 65535, "Port must be between 0 and 65535 inclusive");
         LOGGER.info("Trying to connect to '{}:{}'", address, port);
 
@@ -58,21 +58,21 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             this.outStream = this.connection.getOutputStream();
         } catch (UnknownHostException e) {
             LOGGER.error("Throwing exception because host '{}' could not be found.", address);
-            throw new ClientException(e, ClientException.Type.UNKNOWN_HOST, "Could not find host");
+            throw new CommunicationClientException(e, CommunicationClientException.Type.UNKNOWN_HOST, "Could not find host");
         } catch (IOException e) {
             LOGGER.error("Throwing exception because socket at '{}:{}' could not be opened.", address, port);
-            throw new ClientException(e, ClientException.Type.CONNECTION_ERROR, "Could not open socket");
+            throw new CommunicationClientException(e, CommunicationClientException.Type.CONNECTION_ERROR, "Could not open socket");
         }
     }
 
     @Override
-    public void disconnect() throws ClientException {
+    public void disconnect() throws CommunicationClientException {
         LOGGER.info("Trying to disconnect from socket at '{}:{}'", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because a disconnection from a un-connected socket was made.");
-            throw new ClientException(ClientException.Type.UNCONNECTED,
+            throw new CommunicationClientException(CommunicationClientException.Type.UNCONNECTED,
                     "Cannot disconnect since a disconnect hasn't been made yet");
         }
 
@@ -84,12 +84,12 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             this.outStream = null;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error while closing connection/streams.");
-            throw new ClientException(e, ClientException.Type.SOCKET_CLOSING_ERROR, "Error while closing client");
+            throw new CommunicationClientException(e, CommunicationClientException.Type.SOCKET_CLOSING_ERROR, "Error while closing client");
         }
     }
 
     @Override
-    public void send(byte[] message) throws ClientException {
+    public void send(byte[] message) throws CommunicationClientException {
         LOGGER.info("Trying to send message: '{}'", () -> new String(message));
 
         LOGGER.info("Sending {} bytes to '{}:{}'. ('{}')",
@@ -99,13 +99,13 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because data can't be send to an unconnected client.");
-            throw new ClientException(ClientException.Type.UNCONNECTED, "No connection established");
+            throw new CommunicationClientException(CommunicationClientException.Type.UNCONNECTED, "No connection established");
         }
 
         // Throw exception if message exceeds size
         if (message.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
             LOGGER.error("Throwing exception because data is to large (max is {} KB).", Constants.MAX_MESSAGE_SIZE_KB);
-            throw new ClientException(ClientException.Type.MESSAGE_TOO_LARGE, "Message too large");
+            throw new CommunicationClientException(CommunicationClientException.Type.MESSAGE_TOO_LARGE, "Message too large");
         }
 
         try {
@@ -114,18 +114,18 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             this.outStream.flush();
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occurred while sending data.");
-            throw new ClientException(e, ClientException.Type.INTERNAL_ERROR, "Could not send message");
+            throw new CommunicationClientException(e, CommunicationClientException.Type.INTERNAL_ERROR, "Could not send message");
         }
     }
 
     @Override
-    public byte[] receive() throws ClientException {
+    public byte[] receive() throws CommunicationClientException {
         LOGGER.info("Trying to receive message from '{}:{}'.", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because data can't be received from an unconnected client.");
-            throw new ClientException(ClientException.Type.UNCONNECTED, "No connection established");
+            throw new CommunicationClientException(CommunicationClientException.Type.UNCONNECTED, "No connection established");
         }
 
         byte[] incomingMessageBuffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
@@ -146,7 +146,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             return result;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occurred while receiving data.");
-            throw new ClientException(e, ClientException.Type.INTERNAL_ERROR, "Could not receive");
+            throw new CommunicationClientException(e, CommunicationClientException.Type.INTERNAL_ERROR, "Could not receive");
         }
     }
 
@@ -166,7 +166,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     }
 
     @Override
-    public void close() throws ClientException {
+    public void close() throws CommunicationClientException {
         disconnect();
     }
 

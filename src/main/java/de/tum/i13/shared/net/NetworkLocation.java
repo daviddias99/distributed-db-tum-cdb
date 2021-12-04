@@ -1,4 +1,4 @@
-package de.tum.i13.shared;
+package de.tum.i13.shared.net;
 
 /**
  * Represents a location somewhere on the network with a host address anda a port.

@@ -1,13 +1,14 @@
 package de.tum.i13.server.cache;
 
-import de.tum.i13.server.kv.GetException;
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessage.StatusType;
-import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
+import de.tum.i13.shared.kv.KVMessage;
+import de.tum.i13.shared.kv.KVMessageImpl;
+import de.tum.i13.shared.kv.KVMessage.StatusType;
+import de.tum.i13.shared.persistentStorage.GetException;
+import de.tum.i13.shared.persistentStorage.PersistentStorage;
+import de.tum.i13.shared.persistentStorage.PutException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

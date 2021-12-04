@@ -2,6 +2,8 @@ package de.tum.i13.server.kv;
 
 import org.junit.jupiter.api.Test;
 
+import de.tum.i13.shared.kv.KVMessage;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.spy;

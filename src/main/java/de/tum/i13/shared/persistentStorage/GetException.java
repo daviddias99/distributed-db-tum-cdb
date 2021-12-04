@@ -1,4 +1,6 @@
-package de.tum.i13.server.kv;
+package de.tum.i13.shared.persistentStorage;
+
+import de.tum.i13.shared.kv.KVException;
 
 /**
  * A checked {@link Exception} thrown when getting a key from a {@link PersistentStorage} fails

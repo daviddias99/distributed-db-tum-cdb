@@ -1,8 +1,9 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.NetworkPersistentStorage;
-import de.tum.i13.server.kv.KVException;
+import de.tum.i13.shared.kv.KVException;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.persistentStorage.NetworkPersistentStorage;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -17,7 +18,7 @@ class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandle
     @Override
     public int handleExecutionException(Exception ex, CommandLine commandLine,
                                         CommandLine.ParseResult parseResult) throws Exception {
-        if (ex instanceof KVException || ex instanceof ClientException) {
+        if (ex instanceof KVException || ex instanceof CommunicationClientException) {
             LOGGER.atError()
                     .withThrowable(ex)
                     .log("Caught {}", ex.getClass().getSimpleName());

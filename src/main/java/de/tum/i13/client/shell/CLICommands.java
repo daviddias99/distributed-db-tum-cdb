@@ -1,9 +1,9 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.CommunicationClient;
-import de.tum.i13.client.net.NetworkMessageServer;
-import de.tum.i13.client.net.NetworkPersistentStorage;
-import de.tum.i13.client.net.WrappingPersistentStorage;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.NetworkMessageServer;
+import de.tum.i13.shared.persistentStorage.NetworkPersistentStorage;
+import de.tum.i13.shared.persistentStorage.WrappingPersistentStorage;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "",

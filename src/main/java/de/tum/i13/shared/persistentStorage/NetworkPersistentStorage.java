@@ -1,6 +1,6 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.persistentStorage;
 
-import de.tum.i13.server.kv.PersistentStorage;
+import de.tum.i13.shared.net.NetworkMessageServer;
 
 /**
  * A {@link PersistentStorage} that is also a {@link NetworkMessageServer}.

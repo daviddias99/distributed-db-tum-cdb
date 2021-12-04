@@ -1,11 +1,11 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.persistentStorage;
 
-import de.tum.i13.server.kv.GetException;
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PersistentStorage;
-import de.tum.i13.server.kv.PutException;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.kv.KVMessage;
+import de.tum.i13.shared.kv.KVMessageImpl;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkMessageServer;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +43,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
             return sendAndReceive(getMessage);
-        } catch (ClientException exception) {
+        } catch (CommunicationClientException exception) {
             LOGGER.error("Caught exception while getting. Wrapping the exception.", exception);
             throw new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
@@ -91,7 +91,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private KVMessage sendPutOrDeleteMessage(KVMessage putOrDeleteMessage) throws PutException {
         try {
             return sendAndReceive(putOrDeleteMessage);
-        } catch (ClientException exception) {
+        } catch (CommunicationClientException exception) {
             LOGGER.atError()
                     .withThrowable(exception)
                     .log("Caught exception while {}. Wrapping the exception.",
@@ -100,14 +100,14 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage sendAndReceive(KVMessage message) throws ClientException {
+    private KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
         LOGGER.debug("Sending message to server: '{}'", message::packMessage);
         final String terminatedMessage = message.packMessage() + Constants.TERMINATING_STR;
         networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
         try {
             return KVMessage.unpackMessage(receiveMessage());
         } catch (IllegalArgumentException ex) {
-            throw new ClientException(ex, "Could not unpack message received by the server");
+            throw new CommunicationClientException(ex, "Could not unpack message received by the server");
         }
     }
 
@@ -116,9 +116,9 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
      * in proper encoding and returns it.
      *
      * @return message received by the server
-     * @throws ClientException if the message cannot be received
+     * @throws CommunicationClientException if the message cannot be received
      */
-    private String receiveMessage() throws ClientException {
+    private String receiveMessage() throws CommunicationClientException {
         LOGGER.debug("Receiving message from server");
         byte[] response = networkMessageServer.receive();
         final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
@@ -127,22 +127,22 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     }
 
     @Override
-    public void send(byte[] message) throws ClientException {
+    public void send(byte[] message) throws CommunicationClientException {
         networkMessageServer.send(message);
     }
 
     @Override
-    public byte[] receive() throws ClientException {
+    public byte[] receive() throws CommunicationClientException {
         return networkMessageServer.receive();
     }
 
     @Override
-    public void connect(String address, int port) throws ClientException {
+    public void connect(String address, int port) throws CommunicationClientException {
         networkMessageServer.connect(address, port);
     }
 
     @Override
-    public void disconnect() throws ClientException {
+    public void disconnect() throws CommunicationClientException {
         networkMessageServer.disconnect();
     }
 
