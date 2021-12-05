@@ -19,21 +19,22 @@ import java.util.Optional;
 public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
     private static final Logger LOGGER = LogManager.getLogger(PrecedingResponsibilityHashRing.class);
+    private final HashingAlgorithm hashingAlgorithm;
+    private final NavigableMap<BigInteger, NetworkLocation> networkLocationMap;
 
-    /**
-     * Returns the {@link NavigableMap} used by this {@link ConsistentHashRing}
-     *
-     * @return the used {@link NavigableMap}
-     */
-    protected abstract NavigableMap<BigInteger, NetworkLocation> getNavigableMap();
+    protected PrecedingResponsibilityHashRing(HashingAlgorithm hashingAlgorithm,
+                                              NavigableMap<BigInteger, NetworkLocation> networkLocationMap) {
+        this.hashingAlgorithm = hashingAlgorithm;
+        this.networkLocationMap = networkLocationMap;
+    }
 
     @Override
     public Optional<NetworkLocation> getResponsibleNetworkLocation(String key) {
         LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
 
-        final BigInteger hash = getHashingAlgorithm().hash(key);
-        return Optional.ofNullable(getNavigableMap().ceilingEntry(hash))
-                .or(() -> Optional.ofNullable(getNavigableMap().firstEntry()))
+        final BigInteger hash = hashingAlgorithm.hash(key);
+        return Optional.ofNullable(networkLocationMap.ceilingEntry(hash))
+                .or(() -> Optional.ofNullable(networkLocationMap.firstEntry()))
                 .map(Map.Entry::getValue);
     }
 
@@ -41,16 +42,34 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     public void addNetworkLocation(NetworkLocation networkLocation) {
         LOGGER.info("Adding {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
 
-        final BigInteger hash = getHashingAlgorithm().hash(networkLocation);
+        final BigInteger hash = hashingAlgorithm.hash(networkLocation);
         addNetworkLocation(hash, networkLocation);
+    }
+
+    @Override
+    public void addNetworkLocation(BigInteger hash, NetworkLocation networkLocation) {
+        LOGGER.info("Adding {} {} at hash {}", NetworkLocation.class.getSimpleName(), networkLocation, hash);
+        Optional.ofNullable(networkLocationMap.put(hash, networkLocation))
+                .ifPresent(previousValue -> {
+                    throw new IllegalStateException(
+                            String.format(
+                                    "Hash collision. Cannot have two network location at the same hash location %s",
+                                    hash
+                            ));
+                });
+    }
+
+    @Override
+    public HashingAlgorithm getHashingAlgorithm() {
+        return hashingAlgorithm;
     }
 
     @Override
     public void removeNetworkLocation(NetworkLocation networkLocation) {
         LOGGER.info("Removing {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
 
-        final BigInteger hash = getHashingAlgorithm().hash(networkLocation);
-        getNavigableMap().remove(hash);
+        final BigInteger hash = hashingAlgorithm.hash(networkLocation);
+        networkLocationMap.remove(hash);
     }
 
     @Override
@@ -60,7 +79,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public String packMessage() {
-        final NavigableMap<BigInteger, NetworkLocation> map = getNavigableMap();
+        final NavigableMap<BigInteger, NetworkLocation> map = networkLocationMap;
         if (!map.isEmpty()) {
             final StringBuilder stringBuilder = new StringBuilder();
 
@@ -93,4 +112,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .append(";");
     }
 
+    @Override
+    public boolean containsNetworkLocation(NetworkLocation networkLocation) {
+        return this.networkLocationMap.values().contains(networkLocation);
+    }
 }
