@@ -7,10 +7,9 @@ import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVConnectionHandler;
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
+import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.ShutdownHandler;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.persistentstorage.PersistentStorage;
@@ -68,24 +67,39 @@ public class Main {
             // bind to localhost only
             serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
-            // set up storage options
+            // Setup storage
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
 
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
             NetworkLocation curLocation = new NetworkLocationImpl(cfg.listenAddress, cfg.port);
-            NetworkLocation ecsLocation = new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(), cfg.bootstrap.getPort());
+            NetworkLocation ecsLocation = new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
+                    cfg.bootstrap.getPort());
+
+            // Create state        
             final ServerState state = new ServerState(curLocation, ecsLocation);
 
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsLocation)));
+            // Setup communications with ECS
+            final ServerCommunicator ecsCommunicator = setupEcsOutgoingCommunications(ecsLocation);
+            final KVEcsCommandProcessor ecsCommandProcessor = new KVEcsCommandProcessor(storage, state, ecsCommunicator, false);
+            
+            // Setup shutdown procedure (handoff)
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor)));
+            
+            // Request metadata from ECS
+            ecsCommandProcessor.process(ecsCommunicator.requestMetadata(), PeerType.ECS);
 
-            // start server
-            startListening(serverSocket, storage, state);
+            final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
+
+            // Listen for messages
+            startListening(serverSocket, storage, state, commandProcessor);
 
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
+        } catch (ClientException ex) {
+            LOGGER.fatal("Caught exception while connecting to the ECS", ex);
         }
     }
 
@@ -110,28 +124,24 @@ public class Main {
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 
+    private static ServerCommunicator setupEcsOutgoingCommunications(NetworkLocation ecsLocation)
+            throws ClientException {
+        NetworkMessageServer messageServer = new CommunicationClient();
+        ServerCommunicator communicator = new ServerCommunicator(messageServer);
+
+        // Connect to ecs
+        communicator.connect(ecsLocation.getAddress(), ecsLocation.getPort());
+        return communicator;
+    }
+
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state) {
+    private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state,
+            CommandProcessor<String> commandProcessor)
+            throws ClientException {
         // Replace with your Key value server logic.
         // If you use multithreading you need locking
 
-        CommandProcessor<String> logic = new KVCommandProcessor(storage, state);
         ConnectionHandler cHandler = new KVConnectionHandler();
-
-        NetworkMessageServer messageServer = new CommunicationClient();
-        ServerCommunicator communicator = new ServerCommunicator(messageServer);
-        try {
-            communicator.connect(state.getEcsLocation().getAddress(), state.getEcsLocation().getPort());
-            KVMessage message = communicator.requestMetadata();
-
-            if(message.getStatus() == StatusType.ECS_SET_KEYRANGE) {
-                logic.process(message.packMessage(), PeerType.ECS);
-            }
-
-        } catch (ClientException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
         // Use ThreadPool
         ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
@@ -142,7 +152,7 @@ public class Main {
                 Socket clientSocket = serverSocket.accept();
 
                 // start a new Thread for this connection
-                executorService.submit(new ConnectionHandleThread(logic, cHandler, state, clientSocket,
+                executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, state, clientSocket,
                         (InetSocketAddress) serverSocket.getLocalSocketAddress()));
             }
         } catch (IOException ex) {

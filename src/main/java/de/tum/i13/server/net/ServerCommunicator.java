@@ -11,6 +11,9 @@ public class ServerCommunicator implements NetworkMessageServer {
 
   private final NetworkMessageServer networkMessageServer;
 
+  private String lastAddress;
+  private int lastPort = -1;
+
   /**
    * Creates a new {@link WrappingPersistentStorage} that wraps around the given
    * {@link NetworkMessageServer}
@@ -69,11 +72,22 @@ public class ServerCommunicator implements NetworkMessageServer {
     }
   }
 
+  public KVMessage sendMessage(KVMessage outgoingMessage) throws ClientException {
+    final String terminatedMessage = outgoingMessage.packMessage() + Constants.TERMINATING_STR;
+    networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
+
+    try {
+      return KVMessage.unpackMessage(receiveMessage());
+    } catch (IllegalArgumentException ex) {
+      throw new ClientException(ex, "Could not unpack message received by the server");
+    }
+  }
+
   private String receiveMessage() throws ClientException {
     byte[] response = networkMessageServer.receive();
     final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
     return responseString;
-}
+  }
 
   @Override
   public void send(byte[] message) throws ClientException {
@@ -87,7 +101,18 @@ public class ServerCommunicator implements NetworkMessageServer {
 
   @Override
   public void connect(String address, int port) throws ClientException {
+    this.lastAddress = address;
+    this.lastPort = port;
     networkMessageServer.connect(address, port);
+  }
+
+  public void reconnect() throws ClientException {
+
+    if (this.lastAddress == null || this.lastPort == -1) {
+      throw new ClientException("Cannot reconnect to a port that has never been connected");
+    }
+
+    this.connect(this.lastAddress, this.lastPort);
   }
 
   @Override

@@ -3,6 +3,7 @@ package de.tum.i13.server.kv.commandprocessing;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
+import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
@@ -13,10 +14,18 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
   private ServerState serverState;
   private PersistentStorage storage;
+  private ServerCommunicator ecsCommunicator;
+  private boolean asyncHandoff;
 
-  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState) {
+  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator, boolean asyncHandoff) {
     this.serverState = serverState;
     this.storage = storage;
+    this.asyncHandoff = asyncHandoff;
+    this.ecsCommunicator = ecsCommunicator;
+  }
+
+  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
+    this(storage, serverState, ecsCommunicator, true);
   }
 
   @Override
@@ -30,7 +39,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       case HEART_BEAT -> new KVMessageImpl(KVMessage.StatusType.HEART_BEAT);
       case ECS_WRITE_LOCK -> this.writeLock();
       case ECS_WRITE_UNLOCK -> this.writeUnlock();
-      case ECS_HANDOFF -> this.handoff(command);
+      case ECS_HANDOFF -> this.handoff(command, asyncHandoff);
       case ECS_SET_KEYRANGE -> this.setKeyRange(command);
       default -> null;
     };
@@ -52,20 +61,22 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
 
-  private KVMessage handoff(KVMessage command) {
+  private KVMessage handoff(KVMessage command, boolean async) {
     String[] bounds = command.getValue().split(" ");
 
     if (bounds.length != 2) {
       return new KVMessageImpl(KVMessage.StatusType.ERROR);
     }
 
-    Runnable handoff = new HandoffHandler(NetworkLocation.extractNetworkLocation(command.getKey()),
-        this.serverState.getEcsLocation(), bounds[0], bounds[1], storage);
+    NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0], bounds[1], storage);
 
-    Thread handoffProcess = new Thread(handoff);
+    if (async) {
+      Thread handoffProcess = new Thread(handoff);
+      handoffProcess.start();
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+    }
 
-    handoffProcess.start();
-
-    return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+    return null;
   }
 }

@@ -3,8 +3,10 @@ package de.tum.i13.server.kv.commandprocessing;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.NetworkMessageServer;
 import de.tum.i13.client.net.CommunicationClient;
 import de.tum.i13.client.net.NetworkPersistentStorage;
 import de.tum.i13.client.net.WrappingPersistentStorage;
@@ -18,13 +20,16 @@ import de.tum.i13.shared.NetworkLocation;
 
 public class HandoffHandler implements Runnable {
 
+  private static final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
+
   private PersistentStorage storage;
-  private NetworkLocation ecs;
+  private ServerCommunicator ecs;
   private NetworkLocation peer;
   private String lowerBound;
   private String upperBound;
 
-  public HandoffHandler(NetworkLocation peer, NetworkLocation ecs, String lowerBound, String upperBound, PersistentStorage storage) {
+  public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
+      PersistentStorage storage) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
@@ -33,43 +38,52 @@ public class HandoffHandler implements Runnable {
   }
 
   public void run() {
-    NetworkMessageServer messageServer = new CommunicationClient();
-    ServerCommunicator communicator = new ServerCommunicator(messageServer);
-    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(messageServer);
-    List<Pair<String>> items;
-    
-    List<String> nodesToDelete = new LinkedList<>();
+    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient());
 
     try {
-      items = this.storage.getRange(lowerBound, upperBound);
       netPeerStorage.connect(peer.getAddress(), peer.getPort());
+    } catch (ClientException e) {
+      LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
+    }
 
-      // Send items to peer
-      for (Pair<String> item : items) {
+    List<Pair<String>> itemsToSend = new LinkedList<>();
+    List<String> nodesToDelete = new LinkedList<>();
+
+    // Fetch items from storage
+    try {
+      itemsToSend = this.storage.getRange(lowerBound, upperBound);
+    } catch (GetException e) {
+      LOGGER.error("Error while getting key range during handoff.", e);
+    }
+
+    // Send items to peer
+    for (Pair<String> item : itemsToSend) {
+      try {
+
         KVMessage response = netPeerStorage.put(item.key, item.value);
 
         if (response.getStatus() == KVMessage.StatusType.PUT_SUCCESS) {
           nodesToDelete.add(item.key);
         }
+      } catch (PutException e) {
+        LOGGER.error("Could not send item with key {} to peer {}.", item.key, peer, e);
       }
-
-      // Delete items after sending (only sucessful ones)
-      for (String key : nodesToDelete) {
-        storage.put(key, null);
-      }
-
-      // Communicate sucess to ECS
-      communicator.connect(ecs.getAddress(), ecs.getPort());
-      communicator.confirmHandoff();
-    } catch (ClientException e) {
-      // TODO Auto-generated catch block
-    } catch (PutException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (GetException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     }
 
+    // Delete items after sending (only sucessful ones)
+    for (String key : nodesToDelete) {
+      try {
+        storage.put(key, null);
+      } catch (PutException e) {
+        LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
+      }
+    }
+
+    // Communicate sucess to ECS
+    try {
+      ecs.confirmHandoff();
+    } catch (ClientException e) {
+      LOGGER.error("Could not confirm handoff to ECS.", e);
+    }
   }
 }
