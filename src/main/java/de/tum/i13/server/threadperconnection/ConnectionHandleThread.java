@@ -46,7 +46,7 @@ public class ConnectionHandleThread implements Runnable {
 
             //read messages from client and process using the CommandProcessor 
             String firstLine;
-            while ((firstLine = activeConnection.receive()) != null && firstLine != "-1") {
+            while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
                 activeConnection.send(response);
             }
