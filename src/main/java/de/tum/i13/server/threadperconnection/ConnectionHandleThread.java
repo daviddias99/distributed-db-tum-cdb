@@ -42,13 +42,13 @@ public class ConnectionHandleThread implements Runnable {
 
             //Send a confirmation message to client upon connection
             String connSuccess = cp.connectionAccepted(this.serverAddress, (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-            activeConnection.write(connSuccess);
+            activeConnection.send(connSuccess);
 
             //read messages from client and process using the CommandProcessor 
             String firstLine;
-            while ((firstLine = activeConnection.readline()) != null && firstLine != "-1") {
+            while ((firstLine = activeConnection.receive()) != null && firstLine != "-1") {
                 String response = cp.process(firstLine);
-                activeConnection.write(response);
+                activeConnection.send(response);
             }
 
             activeConnection.close();

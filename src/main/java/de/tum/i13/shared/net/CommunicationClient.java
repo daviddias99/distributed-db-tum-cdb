@@ -88,13 +88,21 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         }
     }
 
+    /**
+     * {@inheritDoc} The message must be smaller than {@link  Constants#MAX_MESSAGE_SIZE_BYTES}
+     *
+     * @see Constants#MAX_MESSAGE_SIZE_BYTES
+     */
     @Override
-    public void send(byte[] message) throws CommunicationClientException {
-        LOGGER.info("Trying to send message: '{}'", () -> new String(message));
+    public void send(String message) throws CommunicationClientException {
+        LOGGER.info("Trying to send message: '{}'", message);
+        final String terminatedMessage = message + Constants.TERMINATING_STR;
+        final byte[] bytes = message.getBytes(Constants.TELNET_ENCODING);
+        final byte[] terminatedBytes = terminatedMessage.getBytes(Constants.TELNET_ENCODING);
 
         LOGGER.info("Sending {} bytes to '{}:{}'. ('{}')",
-                () -> message.length, this::getAddress, this::getPort,
-                () -> new String(message));
+                () -> terminatedBytes.length, this::getAddress, this::getPort,
+                () -> message);
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -103,14 +111,14 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         }
 
         // Throw exception if message exceeds size
-        if (message.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
+        if (bytes.length > Constants.MAX_MESSAGE_SIZE_BYTES) {
             LOGGER.error("Throwing exception because data is to large (max is {} KB).", Constants.MAX_MESSAGE_SIZE_KB);
             throw new CommunicationClientException(CommunicationClientException.Type.MESSAGE_TOO_LARGE, "Message too large");
         }
 
         try {
             // Write the whole array at once
-            this.outStream.write(message);
+            this.outStream.write(terminatedBytes);
             this.outStream.flush();
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occurred while sending data.");
@@ -119,7 +127,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     }
 
     @Override
-    public byte[] receive() throws CommunicationClientException {
+    public String receive() throws CommunicationClientException {
         LOGGER.info("Trying to receive message from '{}:{}'.", getAddress(), getPort());
 
         // Throw exception if no connection is open
@@ -137,13 +145,14 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             // Return an array with the size of the number of read bytes
             byte[] result = numberOfReceivedBytes == -1 ? new byte[0] : Arrays.copyOf(incomingMessageBuffer,
                     numberOfReceivedBytes);
+            String response = new String(result, 0, result.length - 2, Constants.TELNET_ENCODING);
 
             // Logging aid variables
             LOGGER.info("Receiving {} bytes from '{}:{}'. ('{}')",
                     () -> result.length, this::getAddress, this::getPort,
-                    () -> new String(result));
+                    () -> response);
 
-            return result;
+            return response;
         } catch (IOException e) {
             LOGGER.error("Throwing exception because an error occurred while receiving data.");
             throw new CommunicationClientException(e, CommunicationClientException.Type.INTERNAL_ERROR, "Could not receive");

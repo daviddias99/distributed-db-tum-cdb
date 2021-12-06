@@ -1,5 +1,6 @@
 package de.tum.i13.client;
 
+import de.tum.i13.shared.Constants;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import java.net.ServerSocket;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class TestCommunicationClient {
@@ -102,9 +104,8 @@ class TestCommunicationClient {
         CommunicationClient client = new CommunicationClient();
         assertThat(client.isConnected()).isFalse();
 
-        byte[] receivedData = assertDoesNotThrow(() -> client.connectAndReceive("localhost", serverSocket.getLocalPort()));
+        String receivedData = assertDoesNotThrow(() -> client.connectAndReceive("localhost", serverSocket.getLocalPort()));
         assertThat(receivedData)
-                .asString()
                 .isEqualTo("Welcome!");
     }
 
@@ -115,9 +116,8 @@ class TestCommunicationClient {
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
                 .doesNotThrowAnyException();
-        byte[] receivedData = assertDoesNotThrow(client::receive);
+        String receivedData = assertDoesNotThrow(client::receive);
         assertThat(receivedData)
-                .asString()
                 .isEqualTo("Welcome!");
     }
 
@@ -133,6 +133,16 @@ class TestCommunicationClient {
     }
 
     @Test
+    void connectSendAndReceive() throws CommunicationClientException {
+        CommunicationClient client = new CommunicationClient();
+        client.connectAndReceive("localhost", serverSocket.getLocalPort());
+
+        client.send("Requesting answer");
+        assertThat(client.receive())
+                .isEqualTo("Answer!");
+    }
+
+    @Test
     void connectAndSend() {
         CommunicationClient client = new CommunicationClient();
         assertThat(client.isConnected()).isFalse();
@@ -141,7 +151,7 @@ class TestCommunicationClient {
                 .doesNotThrowAnyException();
         assertThat(client.isConnected()).isTrue();
 
-        assertThatCode(() -> client.send("Hello!".getBytes()))
+        assertThatCode(() -> client.send("Hello!"))
                 .doesNotThrowAnyException();
         assertThat(client.isConnected()).isTrue();
     }
@@ -152,7 +162,7 @@ class TestCommunicationClient {
         assertThat(client.isConnected()).isFalse();
 
         assertThatExceptionOfType(CommunicationClientException.class)
-                .isThrownBy(() -> client.send("test".getBytes()))
+                .isThrownBy(() -> client.send("test"))
                 .extracting(CommunicationClientException::getType)
                 .isEqualTo(CommunicationClientException.Type.UNCONNECTED);
     }
@@ -164,8 +174,14 @@ class TestCommunicationClient {
 
         assertThatCode(() -> client.connect("localhost", serverSocket.getLocalPort()))
                 .doesNotThrowAnyException();
+
+        String veryLongString = " ".repeat(Constants.BYTES_PER_KB * (Constants.MAX_MESSAGE_SIZE_KB + 1));
+        assumeThat(veryLongString.getBytes(Constants.TELNET_ENCODING))
+                .withFailMessage("Message to send did not exceed size limit")
+                .hasSizeGreaterThan(Constants.MAX_MESSAGE_SIZE_BYTES);
+
         assertThatExceptionOfType(CommunicationClientException.class)
-                .isThrownBy(() -> client.send(new byte[1024 * 256]))
+                .isThrownBy(() -> client.send(veryLongString))
                 .extracting(CommunicationClientException::getType)
                 .isEqualTo(CommunicationClientException.Type.MESSAGE_TOO_LARGE);
     }

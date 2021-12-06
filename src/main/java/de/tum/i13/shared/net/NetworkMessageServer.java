@@ -8,18 +8,18 @@ import org.apache.logging.log4j.LogManager;
 public interface NetworkMessageServer extends NetworkConnection, MessageServer {
 
     /**
-     * Connects client to {@code <address>:<port>} and returns the message sent by the host
+     * Connects client to {@code <address>:<port>} and returns the message sent by the server
      * upon connection. This method is equivalent to calling the {@link MessageServer#receive()} method
      * after the {@link NetworkConnection#connect(String, int)} method.
      *
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination.
-     * @return Bytes sent by the host.
+     * @return message received by the server
      * @throws CommunicationClientException if the connecting or receiving fails
      * @see NetworkConnection#connect(String, int)
      * @see MessageServer#receive()
      */
-    default byte[] connectAndReceive(String address, int port) throws CommunicationClientException {
+    default String connectAndReceive(String address, int port) throws CommunicationClientException {
         LogManager.getLogger(NetworkMessageServer.class).info("Connecting and receiving");
         this.connect(address, port);
         return this.receive();

@@ -1,5 +1,7 @@
 package de.tum.i13.shared.net;
 
+import de.tum.i13.shared.Constants;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,7 +10,8 @@ import java.net.Socket;
 /**
  * Created by chris on 19.10.15.
  */
-public class ActiveConnection implements AutoCloseable {
+public class ActiveConnection implements AutoCloseable, MessageServer {
+
     private final Socket socket;
     private final PrintWriter output;
     private final BufferedReader input;
@@ -20,22 +23,30 @@ public class ActiveConnection implements AutoCloseable {
         this.input = input;
     }
 
-    public void write(String command) {
-        output.write(command + "\r\n");
+    @Override
+    public void send(String command) {
+        output.write(command + Constants.TERMINATING_STR);
         output.flush();
     }
 
-    public String readline() throws IOException {
-        return input.readLine();
+    @Override
+    public String receive() throws CommunicationClientException {
+        try {
+            return input.readLine();
+        } catch (IOException exception) {
+            throw new CommunicationClientException(
+                    exception,
+                    CommunicationClientException.Type.INTERNAL_ERROR,
+                    "Could not receive"
+            );
+        }
     }
 
+    @Override
     public void close() throws Exception {
         output.close();
         input.close();
         socket.close();
     }
 
-    public String getInfo() {
-        return "/" + this.socket.getRemoteSocketAddress().toString();
-    }
 }

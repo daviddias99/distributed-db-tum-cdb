@@ -5,7 +5,6 @@ import de.tum.i13.shared.kv.KVMessage;
 import de.tum.i13.shared.kv.KVMessageImpl;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkMessageServer;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -101,38 +100,26 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     }
 
     private KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
-        LOGGER.debug("Sending message to server: '{}'", message::packMessage);
-        final String terminatedMessage = message.packMessage() + Constants.TERMINATING_STR;
-        networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
+        String packedMessage = message.packMessage();
+        LOGGER.debug("Sending message to server: '{}'", packedMessage);
+        networkMessageServer.send(packedMessage);
         try {
-            return KVMessage.unpackMessage(receiveMessage());
+            LOGGER.debug("Receiving message from server");
+            final String response = networkMessageServer.receive();
+            LOGGER.debug("Received message from server: '{}'", response);
+            return KVMessage.unpackMessage(response);
         } catch (IllegalArgumentException ex) {
             throw new CommunicationClientException(ex, "Could not unpack message received by the server");
         }
     }
 
-    /**
-     * Called after sending a message to the server. Receives server's response in bytes, coverts it to String
-     * in proper encoding and returns it.
-     *
-     * @return message received by the server
-     * @throws CommunicationClientException if the message cannot be received
-     */
-    private String receiveMessage() throws CommunicationClientException {
-        LOGGER.debug("Receiving message from server");
-        byte[] response = networkMessageServer.receive();
-        final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-        LOGGER.debug("Received message from server: '{}'", responseString);
-        return responseString;
-    }
-
     @Override
-    public void send(byte[] message) throws CommunicationClientException {
+    public void send(String message) throws CommunicationClientException {
         networkMessageServer.send(message);
     }
 
     @Override
-    public byte[] receive() throws CommunicationClientException {
+    public String receive() throws CommunicationClientException {
         return networkMessageServer.receive();
     }
 
