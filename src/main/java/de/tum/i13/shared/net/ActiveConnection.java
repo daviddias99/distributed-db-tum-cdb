@@ -42,8 +42,11 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
         }
     }
 
+    /**
+     * @throws IOException if this connection cannot be closed
+     */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         output.close();
         input.close();
         socket.close();
