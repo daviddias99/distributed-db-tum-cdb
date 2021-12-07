@@ -1,9 +1,12 @@
 package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.kv.KVMessage;
 import de.tum.i13.shared.kv.KVMessageImpl;
 import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +21,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
+    private ConsistentHashRing hashRing;
 
     /**
      * Creates a new {@link WrappingPersistentStorage} that wraps around the given {@link NetworkMessageServer}
@@ -26,6 +30,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
      */
     public WrappingPersistentStorage(NetworkMessageServer networkMessageServer) {
         this.networkMessageServer = networkMessageServer;
+        this.hashRing = new TreeMapServerMetadata();
     }
 
     @Override
@@ -41,7 +46,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
-            return sendAndReceive(getMessage);
+            return safeSendAndReceive(getMessage);
         } catch (CommunicationClientException exception) {
             LOGGER.error("Caught exception while getting. Wrapping the exception.", exception);
             throw new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
@@ -89,7 +94,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage sendPutOrDeleteMessage(KVMessage putOrDeleteMessage) throws PutException {
         try {
-            return sendAndReceive(putOrDeleteMessage);
+            return safeSendAndReceive(putOrDeleteMessage);
         } catch (CommunicationClientException exception) {
             LOGGER.atError()
                     .withThrowable(exception)
@@ -99,17 +104,75 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
+    private KVMessage safeSendAndReceive(KVMessage message) throws CommunicationClientException {
+        KVMessage responseMessage = unsafeSendAndReceive(message);
+        KVMessage.StatusType responseStatus = responseMessage.getStatus();
+
+        if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+            return handleServerNotResponsible(message);
+        } else if (responseStatus == KVMessage.StatusType.SERVER_STOPPED) {
+            // TODO Retry with backoff
+            return null;
+        } else if (responseStatus == KVMessage.StatusType.SERVER_WRITE_LOCK) {
+            // TODO Retry with backoff
+            return null;
+        } else {
+            return responseMessage;
+        }
+    }
+
+    private KVMessage unsafeSendAndReceive(KVMessage message) throws CommunicationClientException {
         String packedMessage = message.packMessage();
+
         LOGGER.debug("Sending message to server: '{}'", packedMessage);
         networkMessageServer.send(packedMessage);
+
+        LOGGER.debug("Receiving message from server");
+        final String response = networkMessageServer.receive();
+        LOGGER.debug("Received message from server: '{}'", response);
+
         try {
-            LOGGER.debug("Receiving message from server");
-            final String response = networkMessageServer.receive();
-            LOGGER.debug("Received message from server: '{}'", response);
             return KVMessage.unpackMessage(response);
         } catch (IllegalArgumentException ex) {
-            throw new CommunicationClientException(ex, "Could not unpack message received by the server");
+            var exception = new CommunicationClientException(ex, "Could not unpack message received by the server");
+            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+    }
+
+    private KVMessage handleServerNotResponsible(KVMessage message) throws CommunicationClientException {
+        LOGGER.debug("Server indicated it is not responsible");
+
+        processKeyRange(unsafeSendAndReceive(new KVMessageImpl(KVMessage.StatusType.KEYRANGE)));
+
+        NetworkLocation responsibleNetLocation = hashRing.getResponsibleNetworkLocation(message.getKey())
+                .orElseThrow(() -> {
+                    var exception = new CommunicationClientException("Could not find server responsible for data");
+                    LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+                    return exception;
+                });
+        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
+        networkMessageServer.connectAndReceive(
+                responsibleNetLocation.getAddress(),
+                responsibleNetLocation.getPort()
+        );
+
+        return unsafeSendAndReceive(message);
+    }
+
+    private void processKeyRange(KVMessage keyRangeMessage) throws CommunicationClientException {
+        if (keyRangeMessage.getStatus() != KVMessage.StatusType.KEYRANGE_SUCCESS) {
+            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+
+        try {
+            hashRing = ConsistentHashRing.unpackMetadata(keyRangeMessage.getKey());
+        } catch (IllegalArgumentException ex) {
+            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
         }
     }
 

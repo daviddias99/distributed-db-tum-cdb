@@ -72,6 +72,10 @@ public interface KVMessage {
          */
         SERVER_WRITE_LOCK(false, false),
         /**
+         * Keyrange request to the server
+         */
+        KEYRANGE(false, false),
+        /**
          * Indicates the return of the key ranges and which KVStores are responsible for the ranges
          */
         KEYRANGE_SUCCESS(true, false);
