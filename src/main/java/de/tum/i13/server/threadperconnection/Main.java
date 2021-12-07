@@ -138,9 +138,6 @@ public class Main {
     private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state,
             CommandProcessor<String> commandProcessor)
             throws ClientException {
-        // Replace with your Key value server logic.
-        // If you use multithreading you need locking
-
         ConnectionHandler cHandler = new KVConnectionHandler();
 
         // Use ThreadPool

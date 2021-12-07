@@ -30,7 +30,6 @@ public class ServerState {
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata, State startState) {
     this.setState(startState);
     this.setRingMetadata(ringMetadata);
-    this.setEcsLocation(ecsLocation);
     this.curNetworkLocation = curNetworkLocation;
   }
 
@@ -38,8 +37,10 @@ public class ServerState {
     return currentState;
   }
 
-  public void setState(State currentState) {
-    this.currentState = currentState;
+  private void setState(State currentState) {
+    synchronized(this.currentState) {
+      this.setState(currentState);
+    }
   }
 
   public boolean isStopped() {
@@ -59,19 +60,19 @@ public class ServerState {
   }
 
   public void stop() {
-    this.currentState = State.STOPPED;
+    this.setState(State.STOPPED);
   }
 
   public void writeLock() {
-    this.currentState = State.WRITE_LOCK;
+    this.setState(State.WRITE_LOCK);
   }
 
   public void shutdown() {
-    this.currentState = State.SHUTDOWN;
+    this.setState(State.SHUTDOWN);
   }
 
   public void start() {
-    this.currentState = State.ACTIVE;
+    this.setState(State.ACTIVE);
   }
 
   public ConsistentHashRing getRingMetadata() {
@@ -80,10 +81,6 @@ public class ServerState {
 
   public NetworkLocation getEcsLocation() {
     return ecsLocation;
-  }
-
-  public void setEcsLocation(NetworkLocation ecsLocation) {
-    this.ecsLocation = ecsLocation;
   }
 
   public void setRingMetadata(ConsistentHashRing ringMetadata) {

@@ -90,12 +90,12 @@ public class ServerCommunicator implements NetworkMessageServer {
   }
 
   @Override
-  public void send(byte[] message) throws ClientException {
+  public synchronized void send(byte[] message) throws ClientException {
     networkMessageServer.send(message);
   }
 
   @Override
-  public byte[] receive() throws ClientException {
+  public synchronized byte[] receive() throws ClientException {
     return networkMessageServer.receive();
   }
 
