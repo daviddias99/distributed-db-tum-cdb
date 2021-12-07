@@ -1,7 +1,7 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.kv.KVStore;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
 
