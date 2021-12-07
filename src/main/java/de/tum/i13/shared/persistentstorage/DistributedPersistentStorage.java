@@ -8,6 +8,7 @@ import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;
+import io.github.resilience4j.retry.MaxRetriesExceededException;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
@@ -35,6 +36,7 @@ public class DistributedPersistentStorage extends WrappingPersistentStorage {
                 return status == KVMessage.StatusType.SERVER_WRITE_LOCK
                         || status == KVMessage.StatusType.SERVER_STOPPED;
             })
+            .failAfterMaxAttempts(true)
             .retryOnException(ex -> false)
             .build();
     private static final RetryRegistry retryRegistry = RetryRegistry.of(retryConfig);
@@ -74,10 +76,17 @@ public class DistributedPersistentStorage extends WrappingPersistentStorage {
         LOGGER.debug("Retrying using backoff with jitter");
         Retry retry = retryRegistry.retry("messageSending");
         try {
-            return retry.executeCallable(() -> super.sendAndReceive(message));
-        } catch (Exception ex) {
+            return retry.executeCallable(() -> {
+                LOGGER.debug("Retrying to send message to server: {}", message);
+                return super.sendAndReceive(message);
+            });
+        } catch (MaxRetriesExceededException ex) {
             var exception = new CommunicationClientException(ex, "Reached maximum number of retries while " +
                     "communicating with server");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        } catch (Exception ex) {
+            var exception = new CommunicationClientException(ex, "The storage encountered an unexpected error");
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
             throw exception;
         }
