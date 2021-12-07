@@ -1,4 +1,6 @@
-package de.tum.i13.shared;
+package de.tum.i13.shared.net;
+
+import de.tum.i13.shared.Preconditions;
 
 /**
  * Basic data class implementation of {@link NetworkLocation}

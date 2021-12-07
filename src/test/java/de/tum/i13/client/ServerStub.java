@@ -32,8 +32,8 @@ public class ServerStub implements Runnable {
     @Override
     public void run() {
 
-        byte[] serverGreet = "Welcome!".getBytes();
-        byte[] serverAnswer = "Answer!".getBytes();
+        byte[] serverGreet = "Welcome!\r\n".getBytes();
+        byte[] serverAnswer = "Answer!\r\n".getBytes();
 
         byte[] buffer = new byte[MAX_MESSAGE_SIZE_BYTES];
 

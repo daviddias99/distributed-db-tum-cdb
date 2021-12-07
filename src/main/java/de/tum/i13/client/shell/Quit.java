@@ -1,8 +1,9 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.NetworkConnection;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkConnection;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -29,10 +30,10 @@ class Quit implements Callable<Integer> {
      * Quits the shell.
      * Close any existing connection before quitting the program
      *
-     * @throws ClientException in case the quitting process is unsuccessful
+     * @throws CommunicationClientException in case the quitting process is unsuccessful
      */
     @Override
-    public Integer call() throws ClientException {
+    public Integer call() throws CommunicationClientException {
         final NetworkConnection networkConnection = parent.remoteStorage;
         if (networkConnection.isConnected()) {
             LOGGER.info("Disconnecting from '{}:{}'", networkConnection.getAddress(), networkConnection.getPort());

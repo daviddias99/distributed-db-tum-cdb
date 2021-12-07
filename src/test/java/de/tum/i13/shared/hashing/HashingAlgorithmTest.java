@@ -1,10 +1,11 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.shared.NetworkLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 

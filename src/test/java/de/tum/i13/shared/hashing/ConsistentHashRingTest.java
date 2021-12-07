@@ -1,7 +1,8 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.shared.NetworkLocation;
 import org.junit.jupiter.api.Test;
+
+import de.tum.i13.shared.net.NetworkLocation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
