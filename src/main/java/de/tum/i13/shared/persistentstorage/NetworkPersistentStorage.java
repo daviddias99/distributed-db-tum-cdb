@@ -1,4 +1,4 @@
-package de.tum.i13.shared.persistentStorage;
+package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.shared.net.NetworkMessageServer;
 

@@ -2,7 +2,7 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.kv.KVMessage;
-import de.tum.i13.shared.persistentStorage.GetException;
+import de.tum.i13.shared.persistentstorage.GetException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

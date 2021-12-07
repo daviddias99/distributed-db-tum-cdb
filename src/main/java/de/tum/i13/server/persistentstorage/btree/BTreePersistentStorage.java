@@ -9,9 +9,9 @@ import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.kv.KVMessage;
 import de.tum.i13.shared.kv.KVMessageImpl;
-import de.tum.i13.shared.persistentStorage.GetException;
-import de.tum.i13.shared.persistentStorage.PersistentStorage;
-import de.tum.i13.shared.persistentStorage.PutException;
+import de.tum.i13.shared.persistentstorage.GetException;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented

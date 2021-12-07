@@ -2,7 +2,7 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.shared.kv.KVException;
 import de.tum.i13.shared.net.CommunicationClientException;
-import de.tum.i13.shared.persistentStorage.NetworkPersistentStorage;
+import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

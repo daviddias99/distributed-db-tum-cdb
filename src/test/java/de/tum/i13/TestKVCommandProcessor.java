@@ -3,8 +3,8 @@ package de.tum.i13;
 import de.tum.i13.shared.kv.KVCommandProcessor;
 import de.tum.i13.shared.kv.KVMessage;
 import de.tum.i13.shared.kv.KVMessageImpl;
-import de.tum.i13.shared.persistentStorage.PersistentStorage;
-import de.tum.i13.shared.persistentStorage.PutException;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 import org.junit.jupiter.api.Test;
 
