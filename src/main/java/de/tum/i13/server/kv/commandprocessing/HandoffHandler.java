@@ -6,17 +6,17 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.CommunicationClient;
-import de.tum.i13.client.net.NetworkPersistentStorage;
-import de.tum.i13.client.net.WrappingPersistentStorage;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.persistentstorage.GetException;
-import de.tum.i13.server.persistentstorage.PersistentStorage;
-import de.tum.i13.server.persistentstorage.PutException;
+import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.persistentstorage.GetException;
+import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 public class HandoffHandler implements Runnable {
 
@@ -42,7 +42,7 @@ public class HandoffHandler implements Runnable {
 
     try {
       netPeerStorage.connect(peer.getAddress(), peer.getPort());
-    } catch (ClientException e) {
+    } catch (CommunicationClientException e) {
       LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
     }
 
@@ -82,7 +82,7 @@ public class HandoffHandler implements Runnable {
     // Communicate sucess to ECS
     try {
       ecs.confirmHandoff();
-    } catch (ClientException e) {
+    } catch (CommunicationClientException e) {
       LOGGER.error("Could not confirm handoff to ECS.", e);
     }
   }

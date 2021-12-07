@@ -1,51 +1,51 @@
-package de.tum.i13.server.persistentstorage;
+package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVException;
 
 /**
- * A checked {@link Exception} thrown when getting a key from a {@link PersistentStorage} fails
+ * A checked {@link Exception} thrown when putting a key with a value in a {@link PersistentStorage} fails
  */
-public class GetException extends KVException {
+public class PutException extends KVException {
 
     /**
-     * Creates a new {@link GetException} with the supplied message
+     * Creates a new {@link PutException} with the supplied message
      *
      * @param message the message of the exception
      */
-    public GetException(String message) {
+    public PutException(String message) {
         super(message);
     }
 
     /**
-     * Creates a new {@link GetException} with the supplied message and cause
+     * Creates a new {@link PutException} with the supplied message and cause
      *
      * @param message the message of the exception
      * @param cause   the cause of the exception
      */
-    public GetException(String message, Throwable cause) {
+    public PutException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * Creates a new {@link GetException} with the supplied format string and objects
+     * Creates a new {@link PutException} with the supplied format string and objects
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
-    public GetException(String format, Object... args) {
+    public PutException(String format, Object... args) {
         super(format, args);
     }
 
     /**
-     * Creates a new {@link GetException} with the supplied format string and objects, and a cause
+     * Creates a new {@link PutException} with the supplied format string and objects, and a cause
      *
      * @param cause  the cause of the exception
      * @param format the string to format
      * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
-    public GetException(Throwable cause, String format, Object... args) {
+    public PutException(Throwable cause, String format, Object... args) {
         super(cause, format, args);
     }
 

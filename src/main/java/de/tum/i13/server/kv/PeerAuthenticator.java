@@ -1,7 +1,7 @@
 package de.tum.i13.server.kv;
 
 import de.tum.i13.server.state.ServerState;
-import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocation;
 
 public class PeerAuthenticator {
 

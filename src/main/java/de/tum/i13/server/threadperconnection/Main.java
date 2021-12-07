@@ -1,8 +1,10 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.CommunicationClient;
-import de.tum.i13.client.net.NetworkMessageServer;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocationImpl;
+import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
@@ -12,7 +14,6 @@ import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.ShutdownHandler;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
@@ -21,8 +22,7 @@ import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.NetworkLocation;
-import de.tum.i13.shared.NetworkLocationImpl;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -98,7 +98,7 @@ public class Main {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
-        } catch (ClientException ex) {
+        } catch (CommunicationClientException ex) {
             LOGGER.fatal("Caught exception while connecting to the ECS", ex);
         }
     }
@@ -125,7 +125,7 @@ public class Main {
     }
 
     private static ServerCommunicator setupEcsOutgoingCommunications(NetworkLocation ecsLocation)
-            throws ClientException {
+            throws CommunicationClientException {
         NetworkMessageServer messageServer = new CommunicationClient();
         ServerCommunicator communicator = new ServerCommunicator(messageServer);
 
@@ -137,7 +137,7 @@ public class Main {
     @SuppressWarnings("java:S2189")
     private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state,
             CommandProcessor<String> commandProcessor)
-            throws ClientException {
+            throws CommunicationClientException {
         ConnectionHandler cHandler = new KVConnectionHandler();
 
         // Use ThreadPool

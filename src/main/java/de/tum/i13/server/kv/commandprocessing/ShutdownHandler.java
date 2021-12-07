@@ -3,10 +3,10 @@ package de.tum.i13.server.kv.commandprocessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.client.net.ClientException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
+import de.tum.i13.shared.net.CommunicationClientException;
 
 public class ShutdownHandler implements Runnable {
 
@@ -28,7 +28,7 @@ public class ShutdownHandler implements Runnable {
 
       try {
         ecsComms.reconnect();
-      } catch (ClientException ex) {
+      } catch (CommunicationClientException ex) {
         LOGGER.fatal("Could not connect to ECS for shutdown", ex);
         return;
       }
@@ -58,7 +58,7 @@ public class ShutdownHandler implements Runnable {
       } while (true);
 
       LOGGER.info("Finished shutdown handler");
-    } catch (ClientException e) {
+    } catch (CommunicationClientException e) {
       LOGGER.fatal("Error while communicating with ECS for shutdown", e);
     }
   }

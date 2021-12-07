@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.server.state.ServerState.State;
-import de.tum.i13.shared.NetworkLocation;
-import de.tum.i13.shared.NetworkLocationImpl;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocationImpl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

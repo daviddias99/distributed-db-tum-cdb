@@ -1,12 +1,11 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.persistentstorage.GetException;
-import de.tum.i13.server.persistentstorage.PersistentStorage;
-import de.tum.i13.server.persistentstorage.PutException;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkMessageServer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +47,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
             return sendAndReceive(getMessage);
-        } catch (ClientException exception) {
+        } catch (CommunicationClientException exception) {
             LOGGER.error("Caught exception while getting. Wrapping the exception.", exception);
             throw new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
@@ -96,7 +95,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private KVMessage sendPutOrDeleteMessage(KVMessage putOrDeleteMessage) throws PutException {
         try {
             return sendAndReceive(putOrDeleteMessage);
-        } catch (ClientException exception) {
+        } catch (CommunicationClientException exception) {
             LOGGER.atError()
                     .withThrowable(exception)
                     .log("Caught exception while {}. Wrapping the exception.",
@@ -105,49 +104,37 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage sendAndReceive(KVMessage message) throws ClientException {
-        LOGGER.debug("Sending message to server: '{}'", message::packMessage);
-        final String terminatedMessage = message.packMessage() + Constants.TERMINATING_STR;
-        networkMessageServer.send(terminatedMessage.getBytes(Constants.TELNET_ENCODING));
+    private KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
+        String packedMessage = message.packMessage();
+        LOGGER.debug("Sending message to server: '{}'", packedMessage);
+        networkMessageServer.send(packedMessage);
         try {
-            return KVMessage.unpackMessage(receiveMessage());
+            LOGGER.debug("Receiving message from server");
+            final String response = networkMessageServer.receive();
+            LOGGER.debug("Received message from server: '{}'", response);
+            return KVMessage.unpackMessage(response);
         } catch (IllegalArgumentException ex) {
-            throw new ClientException(ex, "Could not unpack message received by the server");
+            throw new CommunicationClientException(ex, "Could not unpack message received by the server");
         }
     }
 
-    /**
-     * Called after sending a message to the server. Receives server's response in bytes, coverts it to String
-     * in proper encoding and returns it.
-     *
-     * @return message received by the server
-     * @throws ClientException if the message cannot be received
-     */
-    private String receiveMessage() throws ClientException {
-        LOGGER.debug("Receiving message from server");
-        byte[] response = networkMessageServer.receive();
-        final String responseString = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
-        LOGGER.debug("Received message from server: '{}'", responseString);
-        return responseString;
-    }
-
     @Override
-    public void send(byte[] message) throws ClientException {
+    public void send(String message) throws CommunicationClientException {
         networkMessageServer.send(message);
     }
 
     @Override
-    public byte[] receive() throws ClientException {
+    public String receive() throws CommunicationClientException {
         return networkMessageServer.receive();
     }
 
     @Override
-    public void connect(String address, int port) throws ClientException {
+    public void connect(String address, int port) throws CommunicationClientException {
         networkMessageServer.connect(address, port);
     }
 
     @Override
-    public void disconnect() throws ClientException {
+    public void disconnect() throws CommunicationClientException {
         networkMessageServer.disconnect();
     }
 

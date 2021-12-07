@@ -1,4 +1,4 @@
-package de.tum.i13.server.persistentstorage;
+package de.tum.i13.shared.persistentstorage;
 
 import java.util.List;
 

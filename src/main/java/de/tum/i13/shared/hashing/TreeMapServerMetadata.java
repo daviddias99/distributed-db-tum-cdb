@@ -1,8 +1,8 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.shared.NetworkLocation;
-
 import java.util.TreeMap;
+
+import de.tum.i13.shared.net.NetworkLocation;
 
 /**
  * A {@link ConsistentHashRing} that wraps around a {@link TreeMap}

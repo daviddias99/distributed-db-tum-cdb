@@ -4,11 +4,11 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
 public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 

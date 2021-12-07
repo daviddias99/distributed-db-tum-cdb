@@ -3,10 +3,11 @@ package de.tum.i13.server.threadperconnection;
 import de.tum.i13.server.kv.PeerAuthenticator;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
-import de.tum.i13.shared.ActiveConnection;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.ActiveConnection;
+import de.tum.i13.shared.net.CommunicationClientException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,23 +54,30 @@ public class ConnectionHandleThread implements Runnable {
             if (peerType.needsGreet()) {
                 String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                         (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-                activeConnection.write(connSuccess);
+                activeConnection.send(connSuccess);
             }
 
             // read messages from client and process using the CommandProcessor
             String firstLine;
-            while ((firstLine = activeConnection.readline()) != null && !firstLine.equals("-1")) {
+            while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine, peerType);
-                activeConnection.write(response);
+                activeConnection.send(response);
             }
 
             activeConnection.close();
             connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
         } catch (IOException ex) {
-            LOGGER.fatal("Caught exception while trying to read from {}.", clientSocket.getInetAddress());
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while trying to read from {}.", clientSocket.getInetAddress());
+        } catch (CommunicationClientException ex) {
+            LOGGER.fatal("Caught exception in communication component", ex);
         } catch (Exception ex) {
-            LOGGER.fatal("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
         }
     }
+
 }

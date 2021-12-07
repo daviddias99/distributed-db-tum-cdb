@@ -1,7 +1,7 @@
 package de.tum.i13.server.state;
 
-import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.shared.net.NetworkLocation;
 
 import java.util.Optional;
 
@@ -28,18 +28,19 @@ public class ServerState {
   }
 
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata, State startState) {
-    this.setState(startState);
+    this.currentState = startState;
     this.setRingMetadata(ringMetadata);
     this.curNetworkLocation = curNetworkLocation;
+    this.ecsLocation = ecsLocation;
   }
 
   public State getState() {
     return currentState;
   }
 
-  private void setState(State currentState) {
+  private void setState(State state) {
     synchronized(this.currentState) {
-      this.setState(currentState);
+      this.currentState = state;
     }
   }
 

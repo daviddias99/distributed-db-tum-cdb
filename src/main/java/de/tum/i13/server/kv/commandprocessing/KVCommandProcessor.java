@@ -5,9 +5,9 @@ import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,7 +1,8 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.ClientException;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.CommunicationClientException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -55,15 +56,14 @@ class Connect implements Callable<Integer> {
      * Initiates connection of client to server using the EchoClient instance if the provided
      * arguments are in the correct format.
      *
-     * @throws ClientException if the connection is unsuccessful
+     * @throws CommunicationClientException if the connection is unsuccessful
      */
     @Override
-    public Integer call() throws ClientException {
+    public Integer call() throws CommunicationClientException {
         //create new connection and receive confirmation from server
         LOGGER.info("Initiating connection to '{}:{}'", address, port);
 
-        byte[] response = parent.remoteStorage.connectAndReceive(address, port);
-        String confirmation = new String(response, 0, response.length - 2, Constants.TELNET_ENCODING);
+        String confirmation = parent.remoteStorage.connectAndReceive(address, port);
         commandSpec.commandLine().getOut().println(confirmation);
         LOGGER.info("Connection to '{}:{}' successful.", address, port);
         return ExitCode.SUCCESS.getValue();
