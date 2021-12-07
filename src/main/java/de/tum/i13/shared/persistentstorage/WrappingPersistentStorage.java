@@ -8,8 +8,12 @@ import de.tum.i13.shared.kv.KVMessageImpl;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBackoff;
 
 /**
  * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer} and wraps
@@ -22,6 +26,19 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
     private ConsistentHashRing hashRing;
+    private static final RetryConfig retryConfig = RetryConfig.<KVMessage>custom()
+            .maxAttempts(Constants.MAX_REQUEST_RETRIES)
+            .intervalFunction(ofExponentialRandomBackoff(
+                    Constants.EXP_BACKOFF_INIT_INTERVAL,
+                    Constants.EXP_BACKOFF_MULTIPLIER,
+                    Constants.EXP_BACKOFF_RAND_FACTOR
+            ))
+            .retryOnResult(message -> {
+                var status = message.getStatus();
+                return status == KVMessage.StatusType.SERVER_WRITE_LOCK
+                        || status == KVMessage.StatusType.SERVER_STOPPED;
+            })
+            .build();
 
     /**
      * Creates a new {@link WrappingPersistentStorage} that wraps around the given {@link NetworkMessageServer}
@@ -111,13 +128,23 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
             return handleServerNotResponsible(message);
         } else if (responseStatus == KVMessage.StatusType.SERVER_STOPPED) {
-            // TODO Retry with backoff
-            return null;
+            return retryWithBackOff(message);
         } else if (responseStatus == KVMessage.StatusType.SERVER_WRITE_LOCK) {
-            // TODO Retry with backoff
-            return null;
+            return retryWithBackOff(message);
         } else {
             return responseMessage;
+        }
+    }
+
+    private KVMessage retryWithBackOff(KVMessage message) throws CommunicationClientException {
+        Retry retry = Retry.of("Message sending", retryConfig);
+        try {
+            return retry.executeCallable(() -> unsafeSendAndReceive(message));
+        } catch (Exception ex) {
+            var exception = new CommunicationClientException(ex, "Reached maximum number of retries while " +
+                    "communicating with server");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
         }
     }
 

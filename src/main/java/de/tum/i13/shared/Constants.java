@@ -12,6 +12,11 @@ public class Constants {
     public static final int MAX_KEY_SIZE_BYTES = 20;
     public static final int MAX_VALUE_SIZE_KB = 120;
     public static final int MAX_VALUE_SIZE_BYTES = MAX_VALUE_SIZE_KB * BYTES_PER_KB;
+    // TODO Change to default values
+    public static final int MAX_REQUEST_RETRIES = 5;
+    public static final int EXP_BACKOFF_INIT_INTERVAL = 5;
+    public static final int EXP_BACKOFF_MULTIPLIER = 2;
+    public static final int EXP_BACKOFF_RAND_FACTOR = 5;
     public static final String LOGS_DIR = "logs";
     public static final String PROMPT = "EchoClient> ";
     public static final String CONNECT_COMMAND = "connect";
