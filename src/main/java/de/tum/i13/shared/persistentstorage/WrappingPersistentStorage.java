@@ -3,13 +3,8 @@ package de.tum.i13.shared.persistentstorage;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.hashing.ConsistentHashRing;
-import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.net.CommunicationClientException;
-import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,20 +20,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
-    private ConsistentHashRing hashRing;
-    private static final RetryConfig retryConfig = RetryConfig.<KVMessage>custom()
-            .maxAttempts(Constants.MAX_REQUEST_RETRIES)
-            .intervalFunction(ofExponentialRandomBackoff(
-                    Constants.EXP_BACKOFF_INIT_INTERVAL,
-                    Constants.EXP_BACKOFF_MULTIPLIER,
-                    Constants.EXP_BACKOFF_RAND_FACTOR
-            ))
-            .retryOnResult(message -> {
-                var status = message.getStatus();
-                return status == KVMessage.StatusType.SERVER_WRITE_LOCK
-                        || status == KVMessage.StatusType.SERVER_STOPPED;
-            })
-            .build();
 
     /**
      * Creates a new {@link WrappingPersistentStorage} that wraps around the given {@link NetworkMessageServer}
@@ -47,7 +28,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
      */
     public WrappingPersistentStorage(NetworkMessageServer networkMessageServer) {
         this.networkMessageServer = networkMessageServer;
-        this.hashRing = new TreeMapServerMetadata();
     }
 
     @Override
@@ -63,7 +43,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
         try {
-            return safeSendAndReceive(getMessage);
+            return sendAndReceive(getMessage);
         } catch (CommunicationClientException exception) {
             LOGGER.error("Caught exception while getting. Wrapping the exception.", exception);
             throw new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
@@ -111,7 +91,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage sendPutOrDeleteMessage(KVMessage putOrDeleteMessage) throws PutException {
         try {
-            return safeSendAndReceive(putOrDeleteMessage);
+            return sendAndReceive(putOrDeleteMessage);
         } catch (CommunicationClientException exception) {
             LOGGER.atError()
                     .withThrowable(exception)
@@ -121,34 +101,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage safeSendAndReceive(KVMessage message) throws CommunicationClientException {
-        KVMessage responseMessage = unsafeSendAndReceive(message);
-        KVMessage.StatusType responseStatus = responseMessage.getStatus();
-
-        if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
-            return handleServerNotResponsible(message);
-        } else if (responseStatus == KVMessage.StatusType.SERVER_STOPPED) {
-            return retryWithBackOff(message);
-        } else if (responseStatus == KVMessage.StatusType.SERVER_WRITE_LOCK) {
-            return retryWithBackOff(message);
-        } else {
-            return responseMessage;
-        }
-    }
-
-    private KVMessage retryWithBackOff(KVMessage message) throws CommunicationClientException {
-        Retry retry = Retry.of("Message sending", retryConfig);
-        try {
-            return retry.executeCallable(() -> unsafeSendAndReceive(message));
-        } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex, "Reached maximum number of retries while " +
-                    "communicating with server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-    }
-
-    private KVMessage unsafeSendAndReceive(KVMessage message) throws CommunicationClientException {
+    protected KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
         String packedMessage = message.packMessage();
 
         LOGGER.debug("Sending message to server: '{}'", packedMessage);
@@ -163,42 +116,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         } catch (IllegalArgumentException ex) {
             var exception = new CommunicationClientException(ex, "Could not unpack message received by the server");
             LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-    }
-
-    private KVMessage handleServerNotResponsible(KVMessage message) throws CommunicationClientException {
-        LOGGER.debug("Server indicated it is not responsible");
-
-        processKeyRange(unsafeSendAndReceive(new KVMessageImpl(KVMessage.StatusType.KEYRANGE)));
-
-        NetworkLocation responsibleNetLocation = hashRing.getResponsibleNetworkLocation(message.getKey())
-                .orElseThrow(() -> {
-                    var exception = new CommunicationClientException("Could not find server responsible for data");
-                    LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-                    return exception;
-                });
-        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
-        networkMessageServer.connectAndReceive(
-                responsibleNetLocation.getAddress(),
-                responsibleNetLocation.getPort()
-        );
-
-        return unsafeSendAndReceive(message);
-    }
-
-    private void processKeyRange(KVMessage keyRangeMessage) throws CommunicationClientException {
-        if (keyRangeMessage.getStatus() != KVMessage.StatusType.KEYRANGE_SUCCESS) {
-            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-
-        try {
-            hashRing = ConsistentHashRing.unpackMetadata(keyRangeMessage.getKey());
-        } catch (IllegalArgumentException ex) {
-            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
             throw exception;
         }
     }
