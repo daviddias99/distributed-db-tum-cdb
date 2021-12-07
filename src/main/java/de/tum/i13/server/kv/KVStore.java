@@ -1,4 +1,4 @@
-package de.tum.i13.shared.kv;
+package de.tum.i13.server.kv;
 
 public interface KVStore {
 

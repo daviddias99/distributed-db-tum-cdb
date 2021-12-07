@@ -1,7 +1,7 @@
-package de.tum.i13.shared.kv;
+package de.tum.i13.server.kv;
 
+import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.shared.kv.KVMessage.StatusType;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;

@@ -1,10 +1,10 @@
 package de.tum.i13.shared.persistentstorage;
 
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
-import de.tum.i13.shared.kv.KVMessage;
-import de.tum.i13.shared.kv.KVMessageImpl;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;

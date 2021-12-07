@@ -1,7 +1,7 @@
 package de.tum.i13.shared.persistentstorage;
 
-import de.tum.i13.shared.kv.KVMessage;
-import de.tum.i13.shared.kv.KVStore;
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVStore;
 
 /**
  * An interface for a persistent storage with altered exceptions compared to {@link KVStore}
