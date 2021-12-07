@@ -8,8 +8,6 @@ import de.tum.i13.shared.net.NetworkMessageServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBackoff;
-
 /**
  * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer} and wraps
  * around it. This storage hides the network communication from the user.

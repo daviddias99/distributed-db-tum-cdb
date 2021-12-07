@@ -4,7 +4,6 @@ import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.shared.persistentstorage.DistributedPersistentStorage;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
-import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "",
