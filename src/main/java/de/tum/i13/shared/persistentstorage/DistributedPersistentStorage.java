@@ -10,6 +10,7 @@ import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkMessageServer;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,7 +35,9 @@ public class DistributedPersistentStorage extends WrappingPersistentStorage {
                 return status == KVMessage.StatusType.SERVER_WRITE_LOCK
                         || status == KVMessage.StatusType.SERVER_STOPPED;
             })
+            .retryOnException(ex -> false)
             .build();
+    private static final RetryRegistry retryRegistry = RetryRegistry.of(retryConfig);
 
     private ConsistentHashRing hashRing;
 
@@ -69,7 +72,7 @@ public class DistributedPersistentStorage extends WrappingPersistentStorage {
 
     private KVMessage retryWithBackOff(KVMessage message) throws CommunicationClientException {
         LOGGER.debug("Retrying using backoff with jitter");
-        Retry retry = Retry.of("Message sending", retryConfig);
+        Retry retry = retryRegistry.retry("messageSending");
         try {
             return retry.executeCallable(() -> super.sendAndReceive(message));
         } catch (Exception ex) {
