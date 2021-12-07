@@ -1,7 +1,8 @@
 package de.tum.i13.server.cache;
 
-import de.tum.i13.server.kv.KVMessage;
 import org.junit.jupiter.api.Test;
+
+import de.tum.i13.server.kv.KVMessage;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

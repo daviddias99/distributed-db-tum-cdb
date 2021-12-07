@@ -1,8 +1,9 @@
 package de.tum.i13.client.shell;
 
-import de.tum.i13.client.net.ClientException;
-import de.tum.i13.client.net.NetworkConnection;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkConnection;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -28,10 +29,10 @@ class Disconnect implements Callable<Integer> {
      * Disconnects from the server.
      * Provides status report upon successful disconnection
      *
-     * @throws ClientException in case the disconnect is unsuccessful
+     * @throws CommunicationClientException in case the disconnect is unsuccessful
      */
     @Override
-    public Integer call() throws ClientException {
+    public Integer call() throws CommunicationClientException {
         final NetworkConnection networkConnection = parent.remoteStorage;
         LOGGER.info("Disconnecting from '{}:{}'", networkConnection.getAddress(), networkConnection.getPort());
         networkConnection.disconnect();

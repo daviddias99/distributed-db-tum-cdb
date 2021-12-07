@@ -1,8 +1,9 @@
 package de.tum.i13.shared.hashing;
 
-import de.tum.i13.shared.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 import java.util.Map;
