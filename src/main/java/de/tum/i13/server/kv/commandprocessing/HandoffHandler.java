@@ -41,6 +41,7 @@ public class HandoffHandler implements Runnable {
     NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient());
 
     try {
+      LOGGER.info("Trying to connect to peer {} for handhoff", peer);
       netPeerStorage.connect(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
@@ -51,6 +52,7 @@ public class HandoffHandler implements Runnable {
 
     // Fetch items from storage
     try {
+      LOGGER.info("Fetching range from database");
       itemsToSend = this.storage.getRange(lowerBound, upperBound);
     } catch (GetException e) {
       LOGGER.error("Error while getting key range during handoff.", e);
@@ -59,11 +61,14 @@ public class HandoffHandler implements Runnable {
     // Send items to peer
     for (Pair<String> item : itemsToSend) {
       try {
-
+        LOGGER.info("Sending item with key {} to peer {}.", item.key, peer);
         KVMessage response = netPeerStorage.put(item.key, item.value);
 
         if (response.getStatus() == KVMessage.StatusType.PUT_SUCCESS) {
+          LOGGER.info("Sent item with key {} to peer {}.", item.key, peer);
           nodesToDelete.add(item.key);
+        } else {
+          LOGGER.error("Failed to send item with key {} to peer {}.", item.key, peer);
         }
       } catch (PutException e) {
         LOGGER.error("Could not send item with key {} to peer {}.", item.key, peer, e);
@@ -73,6 +78,7 @@ public class HandoffHandler implements Runnable {
     // Delete items after sending (only sucessful ones)
     for (String key : nodesToDelete) {
       try {
+        LOGGER.info("Trying to delete item with key {}.", key);
         storage.put(key, null);
       } catch (PutException e) {
         LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
@@ -81,6 +87,7 @@ public class HandoffHandler implements Runnable {
 
     // Communicate sucess to ECS
     try {
+      LOGGER.info("Communicating handhoff to ECS.");
       ecs.confirmHandoff();
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not confirm handoff to ECS.", e);

@@ -76,17 +76,21 @@ public class Main {
             NetworkLocation ecsLocation = new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
                     cfg.bootstrap.getPort());
 
-            // Create state        
+            // Create state
+            LOGGER.info("Creating server state");
             final ServerState state = new ServerState(curLocation, ecsLocation);
 
             // Setup communications with ECS
             final ServerCommunicator ecsCommunicator = setupEcsOutgoingCommunications(ecsLocation);
-            final KVEcsCommandProcessor ecsCommandProcessor = new KVEcsCommandProcessor(storage, state, ecsCommunicator, false);
-            
+            final KVEcsCommandProcessor ecsCommandProcessor = new KVEcsCommandProcessor(storage, state, ecsCommunicator,
+                    false);
+
             // Setup shutdown procedure (handoff)
+            LOGGER.info("Adding shutdown handler for handoff");
             Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor)));
-            
+
             // Request metadata from ECS
+            LOGGER.info("Requesting metadata do ECS");
             ecsCommandProcessor.process(ecsCommunicator.requestMetadata(), PeerType.ECS);
 
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
@@ -114,6 +118,7 @@ public class Main {
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
+        LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
                 dataDir.toString(),
                 false);
@@ -126,6 +131,8 @@ public class Main {
 
     private static ServerCommunicator setupEcsOutgoingCommunications(NetworkLocation ecsLocation)
             throws CommunicationClientException {
+        LOGGER.info("Setting up outgoing communications to ECS");
+
         NetworkMessageServer messageServer = new CommunicationClient();
         ServerCommunicator communicator = new ServerCommunicator(messageServer);
 
@@ -136,8 +143,10 @@ public class Main {
 
     @SuppressWarnings("java:S2189")
     private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state,
-            CommandProcessor<String> commandProcessor)
-            throws CommunicationClientException {
+            CommandProcessor<String> commandProcessor) {
+
+        LOGGER.info("Listening for requests at {}", serverSocket);
+
         ConnectionHandler cHandler = new KVConnectionHandler();
 
         // Use ThreadPool
@@ -147,6 +156,7 @@ public class Main {
             while (true) {
                 // accept a connection
                 Socket clientSocket = serverSocket.accept();
+                LOGGER.info("New connection at {}", clientSocket);
 
                 // start a new Thread for this connection
                 executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, state, clientSocket,

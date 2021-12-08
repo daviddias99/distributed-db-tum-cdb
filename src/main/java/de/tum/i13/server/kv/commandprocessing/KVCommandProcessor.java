@@ -12,7 +12,11 @@ import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class KVCommandProcessor implements CommandProcessor<String> {
+    private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
     private ServerState serverState;
     private List<CommandProcessor<KVMessage>> processors;
@@ -29,6 +33,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     @Override
     public String process(String command, PeerType peerType) {
         if (this.serverState.isStopped() && !peerType.canBypassStop()) {
+            LOGGER.info("Can't process command '{}' because server is stopped", command);
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 
@@ -44,7 +49,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         }
 
         response = response == null ? new KVMessageImpl(KVMessage.StatusType.ERROR) : response;
-
+        LOGGER.info("Response processing '{}' -> '{}'", command, response);
         return response.toString();
     }
 }

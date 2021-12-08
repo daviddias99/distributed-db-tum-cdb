@@ -23,10 +23,9 @@ public class ShutdownHandler implements Runnable {
     LOGGER.info("Starting server shutdown procedure");
 
     // Check if comms are connected
-    if(!ecsComms.isConnected()) {
-      LOGGER.info("ECS not connected, trying to reconnect");
-
+    if(!ecsComms.isConnected()) {      
       try {
+        LOGGER.info("ECS not connected, trying to reconnect");
         ecsComms.reconnect();
       } catch (CommunicationClientException ex) {
         LOGGER.fatal("Could not connect to ECS for shutdown", ex);
@@ -54,10 +53,10 @@ public class ShutdownHandler implements Runnable {
           break;
         }
 
-        ecsResponse =  ecsComms.sendMessage(message);
+        ecsResponse =  ecsComms.sendAndReceive(message);
       } while (true);
 
-      LOGGER.info("Finished shutdown handler");
+      LOGGER.info("Finished shutdown procedure");
     } catch (CommunicationClientException e) {
       LOGGER.fatal("Error while communicating with ECS for shutdown", e);
     }

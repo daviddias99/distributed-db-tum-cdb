@@ -52,6 +52,8 @@ public class ConnectionHandleThread implements Runnable {
 
             // Send a confirmation message to peer upon connection if he needs the greet
             if (peerType.needsGreet()) {
+                LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
+
                 String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                         (InetSocketAddress) clientSocket.getRemoteSocketAddress());
                 activeConnection.send(connSuccess);
@@ -61,9 +63,11 @@ public class ConnectionHandleThread implements Runnable {
             String firstLine;
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine, peerType);
+                LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
                 activeConnection.send(response);
             }
 
+            LOGGER.info("({}) Closing connection", Thread.currentThread().getName());
             activeConnection.close();
             connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
