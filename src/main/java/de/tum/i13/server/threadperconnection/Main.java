@@ -67,7 +67,7 @@ public class Main {
             serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
             // Setup storage
-            final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.cachingStrategy, cfg.cacheSize);
+            final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy, cfg.cacheSize);
 
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
@@ -115,7 +115,7 @@ public class Main {
      * @param cacheSize
      * @return
      */
-    private static CachedPersistentStorage setUpStorage(Path dataDir, CachingStrategy cachingStrategy, int cacheSize)
+    private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree, CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
@@ -124,7 +124,7 @@ public class Main {
 
         // TODO: is using MD5 by default, should somehow be configured with the one used
         // in the Ring
-        BTreePersistentStorage storage = new BTreePersistentStorage(3, handler);
+        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 

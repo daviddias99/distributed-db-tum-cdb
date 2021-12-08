@@ -76,6 +76,14 @@ public class Config {
     )
     public boolean usageHelp;
 
+    @CommandLine.Option(
+            names = {"-t", "-bTreeMinDegree" },
+            description = "Minimum degree used by the BTree Persistent storage. Each BTree node stores 2*minimumDegree - 1 values.",
+            defaultValue = "5"
+
+    )
+    public int minimumDegree ;
+
     public static Config parseCommandlineArgs(String[] args) {
         Config cfg = new Config();
         final CommandLine cmd = new CommandLine(cfg)
@@ -126,6 +134,7 @@ public class Config {
                 ", bootstrap=" + bootstrap +
                 ", dataDir=" + dataDir +
                 ", logfile=" + logfile +
+                ", btreeMinDegree=" + minimumDegree +
                 ", usageHelp=" + usageHelp +
                 '}';
     }

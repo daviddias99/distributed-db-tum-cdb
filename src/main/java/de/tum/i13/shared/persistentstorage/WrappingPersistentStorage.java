@@ -153,9 +153,9 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         return networkMessageServer.getPort();
     }
 
+    // TODO: It should maybe be a different interface
     @Override
     public List<Pair<String>> getRange(String lowerBound, String upperBound) {
-        // TODO Auto-generated method stub
         return new LinkedList<>();
     }
 }
