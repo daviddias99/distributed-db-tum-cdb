@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.kv.commandprocessing.handlers.HandoffHandler;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;

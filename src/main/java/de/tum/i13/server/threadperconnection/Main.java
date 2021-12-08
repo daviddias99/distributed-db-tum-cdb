@@ -11,7 +11,7 @@ import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVConnectionHandler;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
-import de.tum.i13.server.kv.commandprocessing.ShutdownHandler;
+import de.tum.i13.server.kv.commandprocessing.handlers.ShutdownHandler;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;

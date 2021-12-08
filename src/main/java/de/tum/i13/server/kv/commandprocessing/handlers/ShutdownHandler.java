@@ -1,9 +1,10 @@
-package de.tum.i13.server.kv.commandprocessing;
+package de.tum.i13.server.kv.commandprocessing.handlers;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.net.CommunicationClientException;
 
