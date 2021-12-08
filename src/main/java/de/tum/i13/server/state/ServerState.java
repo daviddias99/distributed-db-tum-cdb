@@ -5,7 +5,6 @@ import de.tum.i13.shared.net.NetworkLocation;
 
 import java.util.Optional;
 
-// TODO: think about syncronization
 public class ServerState {
   public enum State {
     ACTIVE,
