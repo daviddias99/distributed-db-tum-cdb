@@ -27,36 +27,35 @@ public class ServerState {
     this(curNetworkLocation, ecsLocation, null, startState);
   }
 
-  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata, State startState) {
+  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata,
+      State startState) {
     this.currentState = startState;
     this.setRingMetadata(ringMetadata);
     this.curNetworkLocation = curNetworkLocation;
     this.ecsLocation = ecsLocation;
   }
 
-  public State getState() {
+  public synchronized State getState() {
     return currentState;
   }
 
-  private void setState(State state) {
-    synchronized(this.currentState) {
-      this.currentState = state;
-    }
+  private synchronized void setState(State state) {
+    this.currentState = state;
   }
 
-  public boolean isStopped() {
+  public synchronized boolean isStopped() {
     return this.currentState == State.STOPPED;
   }
 
-  public boolean isShutdown() {
+  public synchronized boolean isShutdown() {
     return this.currentState == State.SHUTDOWN;
   }
 
-  public boolean isActive() {
+  public synchronized boolean isActive() {
     return this.currentState == State.ACTIVE;
   }
 
-  public boolean canWrite() {
+  public synchronized boolean canWrite() {
     return this.currentState != State.WRITE_LOCK;
   }
 
@@ -76,19 +75,19 @@ public class ServerState {
     this.setState(State.ACTIVE);
   }
 
-  public ConsistentHashRing getRingMetadata() {
-    return ringMetadata;
-  }
-
   public NetworkLocation getEcsLocation() {
     return ecsLocation;
   }
 
-  public void setRingMetadata(ConsistentHashRing ringMetadata) {
+  public synchronized ConsistentHashRing getRingMetadata() {
+    return ringMetadata;
+  }
+
+  public synchronized void setRingMetadata(ConsistentHashRing ringMetadata) {
     this.ringMetadata = ringMetadata;
   }
 
-  public boolean responsibleForKey(String key) {
+  public synchronized boolean responsibleForKey(String key) {
     Optional<NetworkLocation> opt = this.ringMetadata.getResponsibleNetworkLocation(key);
     return opt
         .map(curNetworkLocation::equals)
