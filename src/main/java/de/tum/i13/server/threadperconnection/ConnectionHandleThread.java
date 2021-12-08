@@ -1,8 +1,5 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.server.kv.PeerAuthenticator;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
-import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
@@ -27,15 +24,13 @@ public class ConnectionHandleThread implements Runnable {
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
     private ConnectionHandler connectionHandler;
-    private ServerState serverState;
 
-    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, ServerState serverState, Socket clientSocket,
+    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
             InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;
         this.serverAddress = serverAddress;
         this.connectionHandler = connectionHandler;
-        this.serverState = serverState;
     }
 
     @Override
@@ -47,22 +42,18 @@ public class ConnectionHandleThread implements Runnable {
                     new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING));
 
             ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
-            PeerAuthenticator auth = new PeerAuthenticator(serverState);
-            PeerType peerType = auth.authenticate(activeConnection.getNetworkLocation());
-
             // Send a confirmation message to peer upon connection if he needs the greet
-            if (peerType.needsGreet()) {
+
                 LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
 
                 String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                         (InetSocketAddress) clientSocket.getRemoteSocketAddress());
                 activeConnection.send(connSuccess);
-            }
 
             // read messages from client and process using the CommandProcessor
             String firstLine;
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
-                String response = cp.process(firstLine, peerType);
+                String response = cp.process(firstLine);
                 LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
                 activeConnection.send(response);
             }

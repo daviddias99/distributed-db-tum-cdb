@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
@@ -21,14 +20,9 @@ public class KVServerCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   @Override
-  public KVMessage process(KVMessage command, PeerType peerType) {
-    if (peerType != PeerType.SERVER) {
-      return null;
-    }
-
+  public KVMessage process(KVMessage command) {
     return switch (command.getStatus()) {
-      case PUT -> this.put(command.getKey(), command.getValue());
-      case DELETE -> this.delete(command.getKey());
+      case PUT_SERVER -> this.put(command.getKey(), command.getValue());
       default -> null;
     };
   }
@@ -49,15 +43,4 @@ public class KVServerCommandProcessor implements CommandProcessor<KVMessage> {
       return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
     }
   }
-
-  private KVMessage delete(String key) {
-    try {
-      LOGGER.info("Trying to delete key: {}", key);
-      return kvStore.put(key, null);
-    } catch (PutException e) {
-      LOGGER.error(e);
-      return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
-    }
-  }
-
 }

@@ -1,6 +1,5 @@
 package de.tum.i13.server.echo;
 
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 
@@ -13,7 +12,7 @@ import java.net.InetSocketAddress;
 public class EchoLogic implements CommandProcessor<String>, ConnectionHandler {
     private static final Logger LOGGER = LogManager.getLogger(EchoLogic.class);
 
-    public String process(String command, PeerType peerType) {
+    public String process(String command) {
         LOGGER.info("received command: {}", command::trim);
 
         //Let the magic happen here

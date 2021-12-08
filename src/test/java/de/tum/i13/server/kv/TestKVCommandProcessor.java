@@ -1,6 +1,5 @@
 package de.tum.i13.server.kv;
 
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
@@ -53,7 +52,7 @@ class TestKVCommandProcessor {
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         state.start();
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        kvcp.process("put key hello", PeerType.CLIENT);
+        kvcp.process("put key hello");
 
         verify(kv).put("key", "hello");
     }
@@ -64,7 +63,7 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        String response = kvcp.process("put key hello", PeerType.CLIENT);
+        String response = kvcp.process("put key hello");
         assertThat(KVMessage
                 .unpackMessage(response))
                         .extracting(
@@ -84,7 +83,7 @@ class TestKVCommandProcessor {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        String response = kvcp.process("heart_beat", PeerType.ECS);
+        String response = kvcp.process("ecs_heart_beat");
 
         assertThat(KVMessage
                 .unpackMessage(response))
@@ -95,7 +94,7 @@ class TestKVCommandProcessor {
                         .containsExactly(
                                 null,
                                 null,
-                                KVMessage.StatusType.HEART_BEAT);
+                                KVMessage.StatusType.SERVER_HEART_BEAT);
     }
 
     @Test
@@ -104,7 +103,7 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        kvcp.process("put key hello", PeerType.SERVER);
+        kvcp.process("put_server key hello");
         verify(kv).put("key", "hello");
     }
 
@@ -113,7 +112,7 @@ class TestKVCommandProcessor {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        String response = kvcp.process("ecs_write_lock", PeerType.ECS);
+        String response = kvcp.process("ecs_write_lock");
         assertThat(KVMessage
                 .unpackMessage(response))
                         .extracting(
@@ -129,34 +128,13 @@ class TestKVCommandProcessor {
     }
 
     @Test
-    void clientCantWriteLock() throws PutException {
-
-        PersistentStorage kv = mock(PersistentStorage.class);
-        state.start();
-        KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        String response = kvcp.process("ecs_write_lock", PeerType.CLIENT);
-        assertThat(KVMessage
-                .unpackMessage(response))
-                        .extracting(
-                                KVMessage::getKey,
-                                KVMessage::getValue,
-                                KVMessage::getStatus)
-                        .containsExactly(
-                                null,
-                                null,
-                                KVMessage.StatusType.ERROR);
-
-        assertThat(state.canWrite()).isTrue();
-    }
-
-    @Test
     void clientReceivesWriteLockOnPut() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         state.start();
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        kvcp.process("ecs_write_lock", PeerType.ECS);
-        String response = kvcp.process("put key value", PeerType.CLIENT);
+        kvcp.process("ecs_write_lock");
+        String response = kvcp.process("put key value");
         assertThat(KVMessage
                 .unpackMessage(response))
                         .extracting(
@@ -177,8 +155,8 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         state.start();
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        kvcp.process("ecs_write_lock", PeerType.ECS);
-        String response = kvcp.process("delete key", PeerType.CLIENT);
+        kvcp.process("ecs_write_lock");
+        String response = kvcp.process("delete key");
         assertThat(KVMessage
                 .unpackMessage(response))
                         .extracting(
@@ -200,8 +178,8 @@ class TestKVCommandProcessor {
         when(kv.get("key")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         state.start();
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        kvcp.process("ecs_write_lock", PeerType.ECS);
-        kvcp.process("get key", PeerType.CLIENT);
+        kvcp.process("ecs_write_lock");
+        kvcp.process("get key");
         assertThat(state.canWrite()).isFalse();
         verify(kv).get("key");
     }
@@ -212,7 +190,7 @@ class TestKVCommandProcessor {
         PersistentStorage kv = mock(PersistentStorage.class);
         state.start();
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
-        String response = kvcp.process("keyrange", PeerType.CLIENT);
+        String response = kvcp.process("keyrange");
         assertThat(KVMessage
         .unpackMessage(response))
                 .extracting(

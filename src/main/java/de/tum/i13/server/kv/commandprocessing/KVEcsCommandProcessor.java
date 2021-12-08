@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
@@ -33,14 +32,9 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   @Override
-  public KVMessage process(KVMessage command, PeerType peerType) {
-
-    if (peerType != PeerType.ECS) {
-      return null;
-    }
-
+  public KVMessage process(KVMessage command) {
     return switch (command.getStatus()) {
-      case HEART_BEAT -> this.heartBeat();
+      case ECS_HEART_BEAT -> this.heartBeat();
       case ECS_WRITE_LOCK -> this.writeLock();
       case ECS_WRITE_UNLOCK -> this.writeUnlock();
       case ECS_HANDOFF -> this.handoff(command);
@@ -51,7 +45,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
   private KVMessage heartBeat() {
     LOGGER.info("Acknowleging heartbeat");
-    return new KVMessageImpl(KVMessage.StatusType.HEART_BEAT);
+    return new KVMessageImpl(KVMessage.StatusType.SERVER_HEART_BEAT);
   }
 
   private KVMessage writeLock() {

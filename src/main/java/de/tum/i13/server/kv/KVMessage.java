@@ -33,6 +33,10 @@ public interface KVMessage {
          */
         PUT(true, true),
         /**
+         * Put - request from server
+         */
+        PUT_SERVER(true, true),
+        /**
          * Put - request successful, tuple inserted
          */
         PUT_SUCCESS(true, true),
@@ -56,6 +60,8 @@ public interface KVMessage {
          * Delete - request successful
          */
         DELETE_ERROR(true, false),
+
+        SERVER_SHUTDOWN(false, false),
         /**
          * Indicates that currently no requests are processed by the server since the
          * whole storage service is under initialization.
@@ -67,6 +73,29 @@ public interface KVMessage {
          * server
          */
         SERVER_NOT_RESPONSIBLE(true, false),
+
+        // TODO: comment
+        SERVER_HANDOFF_SUCCESS(false, false),
+
+        // TODO: comment
+        SERVER_GET_METADATA(false, false),
+
+        // TODO: comment
+        SERVER_ACK(false, false),
+
+        /**
+         * Indicates that the storage server is currently blocked for write requests due
+         * to reallocation of data in case of joining or leaving storage nodes
+         */
+        SERVER_WRITE_LOCK(false, false),
+
+        /**
+         * Used to indicate that the server is still alive. Usually an HEART_BEAT
+         * message is sent in response to another HEART_BEAT
+         */
+        SERVER_HEART_BEAT(false, false),
+
+        ECS_HEART_BEAT(false, false),
 
         /**
          * Signal a server to enter a write lock state
@@ -80,38 +109,16 @@ public interface KVMessage {
         ECS_HANDOFF(true, true),
 
         // TODO: comment
-        SERVER_HANDOFF_SUCCESS(false, false),
-
-        // TODO: comment
-        SERVER_GET_METADATA(false, false),
+        ECS_SET_KEYRANGE(true, false),
 
         // TODO: comment
         KEYRANGE(false, false),
 
-        // TODO: comment
-        ECS_SET_KEYRANGE(true, false),
-
-        /**
-         * Indicates that the storage server is currently blocked for write requests due
-         * to reallocation of data in case of joining or leaving storage nodes
-         */
-        SERVER_WRITE_LOCK(false, false),
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for
          * the ranges
          */
-        KEYRANGE_SUCCESS(true, false),
-
-        // TODO: comment
-        SERVER_ACK(false, false),
-
-        /**
-         * Used to indicate that the server is still alive. Usually an HEART_BEAT
-         * message is sent in response to another HEART_BEAT
-         */
-        HEART_BEAT(false, false),
-        
-        SERVER_SHUTDOWN(false, false);
+        KEYRANGE_SUCCESS(true, false);
 
         private final boolean needsKey;
         private final boolean needsValue;

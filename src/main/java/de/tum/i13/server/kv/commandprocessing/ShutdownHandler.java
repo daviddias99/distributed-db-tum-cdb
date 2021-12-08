@@ -4,7 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.net.CommunicationClientException;
 
@@ -46,7 +45,7 @@ public class ShutdownHandler implements Runnable {
        * < SERVER_HANDOFF_SUCCESS (sent by process created by EcsCommandProcessor)
        */
       do {
-        message = processor.process(ecsResponse, PeerType.ECS);
+        message = processor.process(ecsResponse);
 
         // null message means that there is no response to be sent
         if(message == null) {

@@ -2,6 +2,7 @@ package de.tum.i13.server.kv.commandprocessing;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.kv.PeerAuthenticator;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
@@ -31,17 +32,19 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     }
 
     @Override
-    public String process(String command, PeerType peerType) {
+    public String process(String command) {
+        KVMessage incomingMessage = KVMessage.unpackMessage(command);
+        PeerType peerType = PeerAuthenticator.authenticate(incomingMessage.getStatus());
+
         if (this.serverState.isStopped() && !peerType.canBypassStop()) {
             LOGGER.info("Can't process command '{}' because server is stopped", command);
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 
-        KVMessage incomingMessage = KVMessage.unpackMessage(command);
         KVMessage response = null;
 
         for (CommandProcessor<KVMessage> processor : processors) {
-            response = processor.process(incomingMessage, peerType);
+            response = processor.process(incomingMessage);
 
             if(response != null) {
                 break;

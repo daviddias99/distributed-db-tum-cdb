@@ -9,7 +9,6 @@ import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.KVConnectionHandler;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.ShutdownHandler;
@@ -91,12 +90,12 @@ public class Main {
 
             // Request metadata from ECS
             LOGGER.info("Requesting metadata do ECS");
-            ecsCommandProcessor.process(ecsCommunicator.requestMetadata(), PeerType.ECS);
+            ecsCommandProcessor.process(ecsCommunicator.requestMetadata());
 
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
 
             // Listen for messages
-            startListening(serverSocket, storage, state, commandProcessor);
+            startListening(serverSocket, storage, commandProcessor);
 
         } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
@@ -142,7 +141,7 @@ public class Main {
     }
 
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, PersistentStorage storage, ServerState state,
+    private static void startListening(ServerSocket serverSocket, PersistentStorage storage,
             CommandProcessor<String> commandProcessor) {
 
         LOGGER.info("Listening for requests at {}", serverSocket);
@@ -159,7 +158,7 @@ public class Main {
                 LOGGER.info("New connection at {}", clientSocket);
 
                 // start a new Thread for this connection
-                executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, state, clientSocket,
+                executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, clientSocket,
                         (InetSocketAddress) serverSocket.getLocalSocketAddress()));
             }
         } catch (IOException ex) {

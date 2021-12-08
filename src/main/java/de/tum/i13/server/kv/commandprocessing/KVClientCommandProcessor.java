@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.GetException;
@@ -25,11 +24,7 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   @Override
-  public KVMessage process(KVMessage command, PeerType peerType) {
-    if (peerType != PeerType.CLIENT) {
-      return null;
-    }
-
+  public KVMessage process(KVMessage command) {
     return switch (command.getStatus()) {
       case PUT -> this.put(command.getKey(), command.getValue());
       case DELETE -> this.delete(command.getKey());
