@@ -20,7 +20,11 @@ public interface NetworkLocation {
      */
     int getPort();
 
-    // TODO: comment
+    /**
+     * Create a new {@link NetworkLocation} from a string
+     * @param networkLocationString string containing a network location
+     * @return a {@link NetworkLocation} object
+     */
     static NetworkLocation extractNetworkLocation(String networkLocationString) {
         final String[] networkLocationData = networkLocationString.split(":");
         if (networkLocationData.length != 2) {

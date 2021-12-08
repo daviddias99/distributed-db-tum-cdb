@@ -16,19 +16,28 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Command processor for KVMessages. Uses {@link KVClientCommandProcessor},
+ * {@link KVServerCommandProcessor} and {@link KVEcsCommandProcessor} to parse these messages.
+ */
 public class KVCommandProcessor implements CommandProcessor<String> {
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
     private ServerState serverState;
     private List<CommandProcessor<KVMessage>> processors;
 
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator){
+    /**
+     * Create a new KVMessage command processor
+     * @param storage server storage
+     * @param serverState server state
+     * @param ecsCommunicator ECS communication interface
+     */
+    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
-            new KVServerCommandProcessor(storage),
-            new KVEcsCommandProcessor(storage, serverState, ecsCommunicator),
-            new KVClientCommandProcessor(storage, serverState)
-        );
+                new KVServerCommandProcessor(storage),
+                new KVEcsCommandProcessor(storage, serverState, ecsCommunicator),
+                new KVClientCommandProcessor(storage, serverState));
     }
 
     @Override
@@ -46,7 +55,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         for (CommandProcessor<KVMessage> processor : processors) {
             response = processor.process(incomingMessage);
 
-            if(response != null) {
+            if (response != null) {
                 break;
             }
         }

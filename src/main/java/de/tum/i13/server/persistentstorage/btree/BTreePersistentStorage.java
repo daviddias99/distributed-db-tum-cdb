@@ -30,12 +30,14 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     private HashingAlgorithm hashAlg;
 
     /**
-     * Create a new B-Tree with a given minum degree (see {@link PersistentBTree}).
+     * Create a new B-Tree with a given minimum degree (see
+     * {@link PersistentBTree}).
      * Storage handler is also configurable. First there is an attempt to load the
      * tree, if it fails, a new tree is created.
      * 
-     * @param minimumDegree  B-Tree minimum degree
-     * @param storageHandler Handler used by the BTree to persist
+     * @param minimumDegree    B-Tree minimum degree
+     * @param storageHandler   Handler used by the BTree to persist
+     * @param hashingAlgorithm algorithm to be use to hash data uses as key in BTree
      * 
      * @throws StorageException An exception is thrown when an error occures while
      *                          saving tree to persistent storage
@@ -56,6 +58,18 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         this.hashAlg = hashingAlgorithm;
     }
 
+    /**
+     * Create a new B-Tree with a given minimum degree (see
+     * {@link PersistentBTree}).
+     * Storage handler is also configurable. First there is an attempt to load the
+     * tree, if it fails, a new tree is created.
+     * 
+     * @param minimumDegree  B-Tree minimum degree
+     * @param storageHandler Handler used by the BTree to persist
+     *
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
+     */
     public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler)
             throws StorageException {
         this(minimumDegree, storageHandler, new MD5HashAlgorithm());
@@ -137,7 +151,8 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
             return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound, upperBound);
+            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+                    upperBound);
         }
     }
 }

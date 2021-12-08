@@ -11,10 +11,12 @@ import java.util.NavigableMap;
 import java.util.Optional;
 
 /**
- * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
+ * A partial implementation of {@link ConsistentHashRing} using a
+ * {@link NavigableMap} that provides helper methods
  * to minimize the effort to implement the {@link ConsistentHashRing} interface.
  * <p>
- * In this implementation a {@link NetworkLocation} is responsible for all keys between its position (inclusive) and
+ * In this implementation a {@link NetworkLocation} is responsible for all keys
+ * between its position (inclusive) and
  * the position of its predecessor (exclusive) in the ring.
  */
 public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
@@ -23,8 +25,15 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     private final HashingAlgorithm hashingAlgorithm;
     private final NavigableMap<BigInteger, NetworkLocation> networkLocationMap;
 
+    /**
+     * Create a new {@link PrecedingResponsibilityHashRing} with a given hashing
+     * algorithm and network location map
+     * 
+     * @param hashingAlgorithm hashing algorithm used by system
+     * @param networkLocationMap navigable map used to store network locations
+     */
     protected PrecedingResponsibilityHashRing(HashingAlgorithm hashingAlgorithm,
-                                              NavigableMap<BigInteger, NetworkLocation> networkLocationMap) {
+            NavigableMap<BigInteger, NetworkLocation> networkLocationMap) {
         this.hashingAlgorithm = hashingAlgorithm;
         this.networkLocationMap = networkLocationMap;
     }
@@ -55,8 +64,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                     throw new IllegalStateException(
                             String.format(
                                     "Hash collision. Cannot have two network location at the same hash location %s",
-                                    hash
-                            ));
+                                    hash));
                 });
     }
 
@@ -99,11 +107,12 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
             return appendNetworkLocation(stringBuilder, lastHash, lastNetworkLocation)
                     .toString();
-        } else return "";
+        } else
+            return "";
     }
 
     private StringBuilder appendNetworkLocation(StringBuilder stringBuilder, BigInteger hash,
-                                                NetworkLocation networkLocation) {
+            NetworkLocation networkLocation) {
         return stringBuilder.append(",")
                 .append(HashingAlgorithm.convertHashToHex(hash))
                 .append(",")

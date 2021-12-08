@@ -13,6 +13,9 @@ import java.math.BigInteger;
  */
 public interface HashingAlgorithm {
 
+    /**
+     * Prefix of hexadecimal strings
+     */
     String HEX_PREFIX = "0x";
 
     /**

@@ -69,6 +69,7 @@ public class PersistentBTreeDiskStorageHandler<V>
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @param reset         True if the target folder should be cleared if it
      *                      already exists.
+     * @param cListener     Change listener used for transactions
      * @throws StorageException An exception is thrown when an error with the
      *                          {@code storageFolder} occurs
      */

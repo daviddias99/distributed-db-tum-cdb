@@ -12,7 +12,14 @@ public class Pair<V> implements Serializable {
 
     private static final long serialVersionUID = 6529685098267755681L;
 
+    /**
+     * Pair key
+     */
     public final String key;
+
+    /**
+     * Pair value
+     */
     public final V value;
 
     /**

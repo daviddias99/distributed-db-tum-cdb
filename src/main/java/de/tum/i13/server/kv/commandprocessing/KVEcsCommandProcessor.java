@@ -13,6 +13,9 @@ import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
+/**
+ * Command processor for ECS KVMessages
+ */
 public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private static final Logger LOGGER = LogManager.getLogger(KVEcsCommandProcessor.class);
 
@@ -21,13 +24,30 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private ServerCommunicator ecsCommunicator;
   private boolean asyncHandoff;
 
-  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator, boolean asyncHandoff) {
+  /**
+   * Create a new ECS KVMessage processor
+   * 
+   * @param storage         server storage
+   * @param serverState     server state
+   * @param ecsCommunicator ECS communication interface
+   * @param asyncHandoff    true if handoff is to be processed asynchronously,
+   *                        false otherwise
+   */
+  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator,
+      boolean asyncHandoff) {
     this.serverState = serverState;
     this.storage = storage;
     this.asyncHandoff = asyncHandoff;
     this.ecsCommunicator = ecsCommunicator;
   }
 
+    /**
+   * Create a new ECS KVMessage processor. This handler uses asynchronous handoffs.
+   * 
+   * @param storage         server storage
+   * @param serverState     server state
+   * @param ecsCommunicator ECS communication interface
+   */
   public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
     this(storage, serverState, ecsCommunicator, true);
   }
@@ -70,9 +90,9 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   private KVMessage handoff(KVMessage command) {
-    
+
     String[] bounds = command.getValue().split(" ");
-    
+
     if (bounds.length != 2) {
       LOGGER.error("More than two values given as bounds");
       return new KVMessageImpl(KVMessage.StatusType.ERROR);

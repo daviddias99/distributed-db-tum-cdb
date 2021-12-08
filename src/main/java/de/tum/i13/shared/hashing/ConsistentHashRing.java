@@ -117,9 +117,9 @@ public interface ConsistentHashRing {
     void removeNetworkLocation(NetworkLocation networkLocation);
 
     /**
-     * TODO: comment
-     * @param networkLocation
-     * @return
+     * Checks if given network location is in the ring
+     * @param networkLocation location to search
+     * @return true if location is in ring false otherwise
      */
     boolean containsNetworkLocation(NetworkLocation networkLocation);
 

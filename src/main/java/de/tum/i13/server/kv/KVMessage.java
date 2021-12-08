@@ -61,7 +61,11 @@ public interface KVMessage {
          */
         DELETE_ERROR(true, false),
 
+        /**
+         * Used by server to indicate start of shutdown
+         */
         SERVER_SHUTDOWN(false, false),
+
         /**
          * Indicates that currently no requests are processed by the server since the
          * whole storage service is under initialization.
@@ -74,13 +78,19 @@ public interface KVMessage {
          */
         SERVER_NOT_RESPONSIBLE(true, false),
 
-        // TODO: comment
+        /**
+         * Used by server to indicate successful handoff
+         */
         SERVER_HANDOFF_SUCCESS(false, false),
 
-        // TODO: comment
+        /**
+         * Used by server to ask broker for metadata
+         */
         SERVER_GET_METADATA(false, false),
 
-        // TODO: comment
+        /**
+         * Generic acknowlegement from server
+         */
         SERVER_ACK(false, false),
 
         /**
@@ -90,11 +100,14 @@ public interface KVMessage {
         SERVER_WRITE_LOCK(false, false),
 
         /**
-         * Used to indicate that the server is still alive. Usually an HEART_BEAT
-         * message is sent in response to another HEART_BEAT
+         * Used to signal that server is alive
          */
         SERVER_HEART_BEAT(false, false),
 
+        /**
+         * Used to indicate that the server is still alive. Usually an SERVER_HEART_BEAT
+         * message is sent in response to ECS_HEART_BEAT
+         */
         ECS_HEART_BEAT(false, false),
 
         /**
@@ -102,16 +115,24 @@ public interface KVMessage {
          */
         ECS_WRITE_LOCK(false, false),
 
-        // TODO: comment
+        /**
+         * Set server to allow writes
+         */
         ECS_WRITE_UNLOCK(false, false),
 
-        // TODO: comment
+        /**
+         * ECS signals that handoff to peer (key) of elements (value) should start
+         */
         ECS_HANDOFF(true, true),
 
-        // TODO: comment
+        /**
+         * Set server metadata
+         */
         ECS_SET_KEYRANGE(true, false),
 
-        // TODO: comment
+        /**
+         * Message sent by client to request keyrange metadata
+         */
         KEYRANGE(false, false),
 
         /**
@@ -123,6 +144,11 @@ public interface KVMessage {
         private final boolean needsKey;
         private final boolean needsValue;
 
+        /**
+         * Create a new status type
+         * @param needsKey  true if status is associated with a key
+         * @param needsValue true if the status is associated with a value
+         */
         StatusType(boolean needsKey, boolean needsValue) {
             this.needsKey = needsKey;
             this.needsValue = needsValue;

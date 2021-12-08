@@ -8,17 +8,26 @@ import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.net.CommunicationClientException;
 
+/**
+ * Handler that manages server shutdown (handoff).
+ */
 public class ShutdownHandler implements Runnable {
 
   private static final Logger LOGGER = LogManager.getLogger(ShutdownHandler.class);
   private ServerCommunicator ecsComms;
   private KVEcsCommandProcessor processor;
 
+  /**
+   * Create a new shutdown handler
+   * @param ecsComms ECS communications interface
+   * @param processor processor of commands from the ECS 
+   */
   public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor) {
     this.ecsComms = ecsComms;
     this.processor = processor;
   }
 
+  @Override
   public void run() {
     LOGGER.info("Starting server shutdown procedure");
 

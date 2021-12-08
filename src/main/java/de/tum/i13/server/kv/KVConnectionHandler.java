@@ -8,6 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.shared.ConnectionHandler;
 
+/**
+ * An implementation of {@link ConnectionHandler}
+ */
 public class KVConnectionHandler implements ConnectionHandler {
 
   private static final Logger LOGGER = LogManager.getLogger(KVConnectionHandler.class);

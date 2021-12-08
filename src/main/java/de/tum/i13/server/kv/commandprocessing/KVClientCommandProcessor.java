@@ -11,6 +11,9 @@ import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
 
+/**
+ * Command processor for client KVMessages
+ */
 public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
 
   private static final Logger LOGGER = LogManager.getLogger(KVClientCommandProcessor.class);
@@ -18,6 +21,11 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
   private ServerState serverState;
   private PersistentStorage kvStore;
 
+  /**
+   * Create a new client KVMessage processor
+   * @param storage server storage
+   * @param serverState server state
+   */
   public KVClientCommandProcessor(PersistentStorage storage, ServerState serverState) {
     this.kvStore = storage;
     this.serverState = serverState;

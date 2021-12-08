@@ -18,6 +18,9 @@ import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
 
+/**
+ * Handler that manages chunk handoff to other servers
+ */
 public class HandoffHandler implements Runnable {
 
   private static final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
@@ -28,6 +31,14 @@ public class HandoffHandler implements Runnable {
   private String lowerBound;
   private String upperBound;
 
+  /**
+   * Create a new handoff handler
+   * @param peer target server
+   * @param ecs ECS communications interface
+   * @param lowerBound lower bound for the keys of the transfered elements
+   * @param upperBound upper bound for the keys of the transfered elements
+   * @param storage current server storage
+   */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
       PersistentStorage storage) {
     this.storage = storage;
@@ -37,6 +48,7 @@ public class HandoffHandler implements Runnable {
     this.upperBound = upperBound;
   }
 
+  @Override
   public void run() {
     NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient());
 

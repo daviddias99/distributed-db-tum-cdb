@@ -16,6 +16,9 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+/**
+ * Runnable that handles a new connection to the server
+ */
 public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
@@ -25,6 +28,13 @@ public class ConnectionHandleThread implements Runnable {
     private InetSocketAddress serverAddress;
     private ConnectionHandler connectionHandler;
 
+    /**
+     * Create new connection handler
+     * @param commandProcessor  command processor for incoming messages
+     * @param connectionHandler handler for accepted and closing messages
+     * @param clientSocket socket of incoming communication
+     * @param serverAddress address of server socket
+     */
     public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
             InetSocketAddress serverAddress) {
         this.cp = commandProcessor;

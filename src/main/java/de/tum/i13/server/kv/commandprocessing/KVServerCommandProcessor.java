@@ -9,12 +9,19 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
 
+/**
+ * Command processor for server KVMessages
+ */
 public class KVServerCommandProcessor implements CommandProcessor<KVMessage> {
 
   private static final Logger LOGGER = LogManager.getLogger(KVServerCommandProcessor.class);
 
   private PersistentStorage kvStore;
 
+  /**
+   * Create a new server KVMessage processor
+   * @param storage current server storage
+   */
   public KVServerCommandProcessor(PersistentStorage storage) {
       this.kvStore = storage;
   }
