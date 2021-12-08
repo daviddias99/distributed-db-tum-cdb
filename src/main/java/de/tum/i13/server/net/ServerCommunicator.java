@@ -18,8 +18,7 @@ public class ServerCommunicator implements NetworkMessageServer {
   private int lastPort = -1;
 
   /**
-   * Creates a new {@link WrappingPersistentStorage} that wraps around the given
-   * {@link NetworkMessageServer}
+   * Communicator used for server-ecs communications
    *
    * @param networkMessageServer the server to use for network communication
    */
