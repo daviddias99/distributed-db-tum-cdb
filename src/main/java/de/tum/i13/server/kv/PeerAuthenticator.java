@@ -102,7 +102,7 @@ public class PeerAuthenticator {
         return PeerType.SERVER;
       case SERVER_NOT_RESPONSIBLE:
         return PeerType.SERVER;
-      case SERVER_GET_METADATA:
+      case SERVER_START:
         return PeerType.SERVER;
       case SERVER_ACK:
         return PeerType.SERVER;

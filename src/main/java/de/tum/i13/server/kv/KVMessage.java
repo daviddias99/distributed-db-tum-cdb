@@ -86,7 +86,7 @@ public interface KVMessage {
         /**
          * Used by server to ask broker for metadata
          */
-        SERVER_GET_METADATA(false, false),
+        SERVER_START(true, true),
 
         /**
          * Generic acknowlegement from server

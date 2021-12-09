@@ -67,7 +67,8 @@ public class Main {
             serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
             // Setup storage
-            final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy, cfg.cacheSize);
+            final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy,
+                    cfg.cacheSize);
 
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
@@ -90,7 +91,7 @@ public class Main {
 
             // Request metadata from ECS
             LOGGER.info("Requesting metadata do ECS");
-            ecsCommandProcessor.process(ecsCommunicator.requestMetadata());
+            ecsCommandProcessor.process(ecsCommunicator.signalStart(cfg.listenAddress, Integer.toString(cfg.port)));
 
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
 
@@ -115,7 +116,8 @@ public class Main {
      * @param cacheSize
      * @return
      */
-    private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree, CachingStrategy cachingStrategy, int cacheSize)
+    private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree,
+            CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(

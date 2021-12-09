@@ -43,15 +43,15 @@ public class ServerCommunicator implements NetworkMessageServer {
   }
 
   /**
-   * Send metadata request to the ECS
+   * Signal the start of the server to the ECS
    * 
    * @return ECS response
    * @throws CommunicationClientException An exception is thrown when a
    *                                      communication error occurs
    */
-  public KVMessage requestMetadata() throws CommunicationClientException {
-    LOGGER.info("Requesting metadata");
-    KVMessage message = new KVMessageImpl(StatusType.SERVER_GET_METADATA);
+  public KVMessage signalStart(String address, String port) throws CommunicationClientException {
+    LOGGER.info("Signal start to ECS");
+    KVMessage message = new KVMessageImpl(address, port, StatusType.SERVER_START);
     return this.sendAndReceive(message);
   }
 
