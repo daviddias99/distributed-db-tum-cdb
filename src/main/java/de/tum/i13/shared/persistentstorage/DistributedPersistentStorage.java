@@ -152,7 +152,8 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         try {
             return serverCallable.call();
         } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex, "The storage encountered an error. " + ex.getMessage());
+            var exception = new CommunicationClientException(ex,
+                    "The storage encountered an error. " + ex.getMessage());
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
             throw exception;
         }
@@ -207,6 +208,16 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
     @Override
     public int getPort() {
         return persistentStorage.getPort();
+    }
+
+    @Override
+    public KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
+        return persistentStorage.sendAndReceive(message);
+    }
+
+    @Override
+    public String connectAndReceive(String address, int port) throws CommunicationClientException {
+        return persistentStorage.connectAndReceive(address, port);
     }
 
 }
