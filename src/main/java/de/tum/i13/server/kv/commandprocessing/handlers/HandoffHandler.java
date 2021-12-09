@@ -65,7 +65,7 @@ public class HandoffHandler implements Runnable {
     // Fetch items from storage
     try {
       LOGGER.info("Fetching range from database");
-      itemsToSend = this.storage.getRange(lowerBound, upperBound);
+      itemsToSend = this.getRange(lowerBound, upperBound, netPeerStorage);
     } catch (GetException e) {
       LOGGER.error("Error while getting key range during handoff.", e);
     }
@@ -104,5 +104,18 @@ public class HandoffHandler implements Runnable {
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not confirm handoff to ECS.", e);
     }
+  }
+  
+  private List<Pair<String>> getRange(String lowerBound, String upperBound, NetworkPersistentStorage netStorage) throws GetException {
+    if(lowerBound.compareTo(upperBound) > 0) {
+      return netStorage.getRange(lowerBound, upperBound);
+    }
+
+    List<Pair<String>> result = new LinkedList<>();
+                                       
+    result.addAll(netStorage.getRange("00000000000000000000000000000000", upperBound));
+    result.addAll(netStorage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+
+    return result;
   }
 }
