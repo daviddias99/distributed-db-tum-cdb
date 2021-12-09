@@ -4,7 +4,8 @@ import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.spi.StandardLevel;
 import picocli.CommandLine;
 
@@ -35,10 +36,15 @@ class ChangeLogLevel implements Callable<Integer> {
     @Override
     public Integer call() {
         final Level level = Level.valueOf(logLevel.toString());
-        String oldLevelName = LogManager.getRootLogger().getLevel().name();
         final String newLevelName = level.name();
 
-        Configurator.setRootLevel(level);
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        final LoggerContext ctx = (LoggerContext) LogManager.getContext(classLoader, false);
+        final LoggerConfig rootLoggerConfig = ctx.getConfiguration().getRootLogger();
+        final String oldLevelName = ctx.getRootLogger().getLevel().name();
+
+        rootLoggerConfig.setLevel(level);
+        ctx.updateLoggers();
 
         LOGGER.info("Log level set from {} to {}.", oldLevelName, newLevelName);
         commandSpec.commandLine().getOut().printf("Log level set from %s to %s.%n", oldLevelName, newLevelName);
