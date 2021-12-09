@@ -64,3 +64,5 @@ database/
 src/site/markdown/index.md
 
 .vscode
+
+maildir

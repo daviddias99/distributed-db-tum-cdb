@@ -12,11 +12,11 @@ import picocli.CommandLine;
         subcommands = {CommandLine.HelpCommand.class, Connect.class, Disconnect.class, Quit.class,
                 Get.class, Put.class, ChangeLogLevel.class
         })
-class CLICommands {
+public class CLICommands {
 
     final NetworkPersistentStorage remoteStorage;
 
-    CLICommands() {
+    public CLICommands() {
         final NetworkMessageServer client = new CommunicationClient();
         remoteStorage = new WrappingPersistentStorage(client);
     }
