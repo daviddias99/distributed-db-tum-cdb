@@ -112,7 +112,6 @@ public class HandoffHandler implements Runnable {
     }
 
     List<Pair<String>> result = new LinkedList<>();
-                                       
     result.addAll(netStorage.getRange("00000000000000000000000000000000", upperBound));
     result.addAll(netStorage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
 

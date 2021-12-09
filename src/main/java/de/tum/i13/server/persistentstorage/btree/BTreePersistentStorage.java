@@ -75,13 +75,18 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         this(minimumDegree, storageHandler, new MD5HashAlgorithm());
     }
 
+    private String normalizeKey(String key) {
+        String intermediate = this.hashAlg.hash(key).toString(16);
+        return "00000000000000000000000000000000".substring(intermediate.length()) + intermediate;
+    }
+
     @Override
     public KVMessage get(String key) throws GetException {
         Preconditions.notNull(key, "Key cannot be null");
         LOGGER.info("Trying to get value of key {}", key);
 
         try {
-            Pair<String> keyValue = this.tree.search(this.hashAlg.hash(key).toString(16));
+            Pair<String> keyValue = this.tree.search(this.normalizeKey(key));
 
             if (keyValue == null) {
                 LOGGER.info("No value with key {}", key);
@@ -101,7 +106,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         try {
             if (value == null) {
                 LOGGER.info("Trying to delete key {}", key);
-                boolean deleted = this.tree.remove(this.hashAlg.hash(key).toString(16));
+                boolean deleted = this.tree.remove(this.normalizeKey(key));
                 LOGGER.info("Deleted key {}", key);
 
                 return deleted ? new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS)
@@ -110,7 +115,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
 
             LOGGER.info("Trying to put key {} with value {}", key, value);
 
-            Pair<String> previousValue = this.tree.insert(this.hashAlg.hash(key).toString(16), new Pair<>(key, value));
+            Pair<String> previousValue = this.tree.insert(this.normalizeKey(key), new Pair<>(key, value));
 
             // Note: this returns a PUT_SUCCESS if the value already exists but is updated
             // with the same value.

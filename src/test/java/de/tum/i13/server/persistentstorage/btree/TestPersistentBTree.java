@@ -2,7 +2,6 @@ package de.tum.i13.server.persistentstorage.btree;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -39,7 +38,7 @@ class TestPersistentBTree {
         assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
-    @RepeatedTest(5)
+    @Test
     void insertMultipleValues() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -142,7 +141,7 @@ class TestPersistentBTree {
         assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
-    @RepeatedTest(5)
+    @Test
     void deleteMultipleValues() throws StorageException, PersistentBTreeException {
 
         String alphabet = "abcdefghijklmnopqrstuvwxyz";

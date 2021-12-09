@@ -115,6 +115,11 @@ public class PersistentBTreeDiskStorageHandler<V>
 
     @Override
     public PersistentBTreeNode<V> load() throws StorageException {
+
+        if(!Paths.get(storageFolder, "root").toFile().exists()) {
+            return null;
+        }
+
         return StorageUtils.readObject(Paths.get(storageFolder, "root"));
     }
 
