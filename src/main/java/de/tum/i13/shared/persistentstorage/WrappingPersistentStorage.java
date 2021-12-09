@@ -2,6 +2,7 @@ package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
@@ -14,7 +15,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * A {@link PersistentStorage} that is connected remotely to a server via a {@link NetworkMessageServer} and wraps
+ * A {@link PersistentStorage} that is connected remotely to a server via a
+ * {@link NetworkMessageServer} and wraps
  * around it. This storage hides the network communication from the user.
  */
 public class WrappingPersistentStorage implements NetworkPersistentStorage {
@@ -23,14 +25,27 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
+    private final boolean useServerMessaging;
 
     /**
-     * Creates a new {@link WrappingPersistentStorage} that wraps around the given {@link NetworkMessageServer}
+     * Creates a new {@link WrappingPersistentStorage} that wraps around the given
+     * {@link NetworkMessageServer}
      *
      * @param networkMessageServer the server to use for network communication
      */
     public WrappingPersistentStorage(NetworkMessageServer networkMessageServer) {
+        this(networkMessageServer, false);
+    }
+
+    /**
+     * Creates a new {@link WrappingPersistentStorage} that wraps around the given
+     * {@link NetworkMessageServer}
+     *
+     * @param networkMessageServer the server to use for network communication
+     */
+    public WrappingPersistentStorage(NetworkMessageServer networkMessageServer, boolean useServerMessaging) {
         this.networkMessageServer = networkMessageServer;
+        this.useServerMessaging = useServerMessaging;
     }
 
     @Override
@@ -57,7 +72,8 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     public KVMessage put(String key, String value) throws PutException {
         LOGGER.info("Trying to put key '{}' to value '{}'", key, value);
 
-        // This code is duplicated from the get function due to different thrown exception that cannot be handled
+        // This code is duplicated from the get function due to different thrown
+        // exception that cannot be handled
         // in a common method
         if (getByteLength(key) >= Constants.MAX_KEY_SIZE_BYTES) {
             final PutException putException = new PutException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
@@ -88,7 +104,8 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage putKey(String key, String value) throws PutException {
         LOGGER.debug("Trying to put key '{}' to supplied value '{}'", key, value);
-        final KVMessage putMessage = new KVMessageImpl(key, value, KVMessage.StatusType.PUT);
+        KVMessage.StatusType status = this.useServerMessaging ? StatusType.PUT_SERVER : KVMessage.StatusType.PUT;
+        final KVMessage putMessage = new KVMessageImpl(key, value, status);
         return sendPutOrDeleteMessage(putMessage);
     }
 
@@ -96,10 +113,11 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         try {
             return sendAndReceive(putOrDeleteMessage);
         } catch (CommunicationClientException exception) {
+            boolean isPut = putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT
+                    || putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT_SERVER;
             LOGGER.atError()
                     .withThrowable(exception)
-                    .log("Caught exception while {}. Wrapping the exception.",
-                            putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT ? "putting" : "deleting");
+                    .log("Caught exception while {}. Wrapping the exception.", isPut ? "putting" : "deleting");
             throw new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
     }
