@@ -209,4 +209,22 @@ class TestCommunicationClient {
                 .extracting(CommunicationClientException::getType)
                 .isEqualTo(CommunicationClientException.Type.UNCONNECTED);
     }
+
+    @Test
+    void doesNotDisconnectOnInvalidServer() throws CommunicationClientException {
+        final CommunicationClient client = new CommunicationClient();
+
+        client.connect("localhost", serverSocket.getLocalPort());
+
+        assumeThat(client.isConnected())
+                .withFailMessage("Client could not connect to local address")
+                .isTrue();
+
+        assertThatExceptionOfType(CommunicationClientException.class)
+                .isThrownBy(() -> client.connect("totallyWrongAddress", 123));
+
+        assertThat(client.isConnected())
+                .isTrue();
+    }
+
 }

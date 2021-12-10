@@ -40,20 +40,22 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         this.connect(address, port);
     }
 
+
     @Override
     public void connect(String address, int port) throws CommunicationClientException {
         Preconditions.check(port >= 0 && port <= 65535, "Port must be between 0 and 65535 inclusive");
         LOGGER.info("Trying to connect to '{}:{}'", address, port);
 
-        if (this.isConnected()) {
-            this.disconnect();
-        }
-
-        LOGGER.info("Creating socket to '{}:{}'", address, port);
-
         try {
             // Open socket and get streams
-            this.connection = new Socket(address, port);
+            LOGGER.info("Creating socket to '{}:{}'", address, port);
+            // Ignore the SonarLint warning because it is not aware that we close the socket elsewhere
+            @SuppressWarnings("java:S2095")
+            final Socket newConnection = new Socket(address, port);
+
+            if (this.isConnected()) this.disconnect();
+            
+            this.connection = newConnection;
             this.inStream = this.connection.getInputStream();
             this.outStream = this.connection.getOutputStream();
         } catch (UnknownHostException e) {
