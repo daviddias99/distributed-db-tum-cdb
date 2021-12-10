@@ -4,7 +4,6 @@ import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
-
 import org.apache.logging.log4j.LogManager;
 
 import java.math.BigInteger;
@@ -132,5 +131,46 @@ public interface ConsistentHashRing {
      * @return a {@link String} representation of this {@link ConsistentHashRing}
      */
     String packMessage();
+
+    /**
+     * Returns the {@link NetworkLocation} that succeeds the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link Optional} is returned.
+     * If the supplied {@link NetworkLocation} is already contained in the {@link ConsistentHashRing} and the only
+     * element in
+     * that {@link ConsistentHashRing} also an empty {@link Optional} is returned.
+     *
+     * @param location the {@link NetworkLocation} whose successor is to be determined
+     * @return the successor of the supplied {@link NetworkLocation} or an empty {@link Optional}, if the
+     * {@link ConsistentHashRing} is empty or the supplied {@link NetworkLocation} is the only element
+     * @see #getPrecedingNetworkLocation(NetworkLocation)
+     */
+    Optional<NetworkLocation> getSucceedingNetworkLocation(NetworkLocation location);
+
+    /**
+     * Returns the {@link NetworkLocation} that precedes the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link Optional} is returned.
+     * If the supplied {@link NetworkLocation} is already in the {@link ConsistentHashRing} and the only element in
+     * that {@link ConsistentHashRing} also an empty {@link Optional} is returned.
+     *
+     * @param location the {@link NetworkLocation} whose predecessor is to be determined
+     * @return the predecessor of the supplied {@link NetworkLocation} or an empty {@link Optional}, if the
+     * {@link ConsistentHashRing} is empty or the supplied {@link NetworkLocation} is the only element
+     * @see #getSucceedingNetworkLocation(NetworkLocation)
+     */
+    Optional<NetworkLocation> getPrecedingNetworkLocation(NetworkLocation location);
+
+    /**
+     * Returns whether the supplied {@link NetworkLocation} is contained in the given {@link ConsistentHashRing}.
+     *
+     * @param location the {@link NetworkLocation} to check for in the {@link ConsistentHashRing}
+     * @return whether the supplied {@link NetworkLocation} is contained in the {@link ConsistentHashRing}
+     */
+    boolean contains(NetworkLocation location);
 
 }

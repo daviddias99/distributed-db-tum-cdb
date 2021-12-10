@@ -1,9 +1,8 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 import java.util.Map;
@@ -111,6 +110,35 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .append(":")
                 .append(networkLocation.getPort())
                 .append(";");
+    }
+
+    @Override
+    public boolean contains(NetworkLocation location) {
+        return networkLocationMap.containsKey(hashingAlgorithm.hash(location));
+    }
+
+    @Override
+    public Optional<NetworkLocation> getSucceedingNetworkLocation(NetworkLocation location) {
+        LOGGER.info("Getting succeeding {} for {} '{}'", NetworkLocation.class.getSimpleName(),
+                NetworkLocation.class.getSimpleName(), location);
+
+        final BigInteger hash = hashingAlgorithm.hash(location);
+        return Optional.ofNullable(networkLocationMap.higherEntry(hash))
+                .or(() -> Optional.ofNullable(networkLocationMap.firstEntry()))
+                .map(Map.Entry::getValue)
+                .filter(foundLocation -> !foundLocation.equals(location));
+    }
+
+    @Override
+    public Optional<NetworkLocation> getPrecedingNetworkLocation(NetworkLocation location) {
+        LOGGER.info("Getting preceding {} for {} '{}'", NetworkLocation.class.getSimpleName(),
+                NetworkLocation.class.getSimpleName(), location);
+
+        final BigInteger hash = hashingAlgorithm.hash(location);
+        return Optional.ofNullable(networkLocationMap.lowerEntry(hash))
+                .or(() -> Optional.ofNullable(networkLocationMap.lastEntry()))
+                .map(Map.Entry::getValue)
+                .filter(foundLocation -> !foundLocation.equals(location));
     }
 
 }
