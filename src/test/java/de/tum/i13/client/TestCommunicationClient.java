@@ -18,16 +18,16 @@ import static org.assertj.core.api.Assumptions.assumeThat;
 
 class TestCommunicationClient {
 
-    static Thread serverThread;
-    static ServerSocket serverSocket;
-    static ServerStub server;
+    Thread serverThread;
+    ServerSocket serverSocket;
+    ServerStub server;
 
     @BeforeEach
     void createServer() throws IOException {
-        TestCommunicationClient.serverSocket = new ServerSocket(0);
-        TestCommunicationClient.server = new ServerStub(serverSocket);
-        TestCommunicationClient.serverThread = new Thread(server);
-        TestCommunicationClient.serverThread.start();
+        serverSocket = new ServerSocket(0);
+        server = new ServerStub(serverSocket);
+        serverThread = new Thread(server);
+        serverThread.start();
     }
 
     @AfterEach
