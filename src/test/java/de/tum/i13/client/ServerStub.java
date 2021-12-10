@@ -1,27 +1,23 @@
 package de.tum.i13.client;
 
+import de.tum.i13.shared.Constants;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class ServerStub implements Runnable {
+class ServerStub implements Runnable {
 
-    private ServerSocket localServer;
-    public int connectionsMade = 0;
+    final ServerSocket localServer;
 
-    public static final int BYTES_PER_KB = 1024;
-    public static final int MAX_MESSAGE_SIZE_KB = 128;
-    public static final int MAX_MESSAGE_SIZE_BYTES = MAX_MESSAGE_SIZE_KB * BYTES_PER_KB;
-
-    public ServerStub(ServerSocket serverSocket) {
+    ServerStub(ServerSocket serverSocket) {
         this.localServer = serverSocket;
     }
 
-    public synchronized Socket accept() {
+    synchronized Socket accept() {
         Socket clientSocket = null;
         try {
-            connectionsMade++;
             clientSocket = this.localServer.accept();
         } catch (IOException e) {
             // e.printStackTrace();
@@ -35,7 +31,7 @@ public class ServerStub implements Runnable {
         byte[] serverGreet = "Welcome!\r\n".getBytes();
         byte[] serverAnswer = "Answer!\r\n".getBytes();
 
-        byte[] buffer = new byte[MAX_MESSAGE_SIZE_BYTES];
+        byte[] buffer = new byte[Constants.MAX_MESSAGE_SIZE_BYTES];
 
         while (true) {
             try {
