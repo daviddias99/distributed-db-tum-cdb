@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,6 +18,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,14 +27,14 @@ import static org.mockito.Mockito.when;
 class DistributedPersistentStorageTest {
 
     @Mock(name = "Persistent storage")
-    private NetworkPersistentStorage persistentStorage;
+    NetworkPersistentStorage persistentStorage;
 
     @Mock(name = "Mock message")
-    private KVMessage serverMessage;
+    KVMessage serverMessage;
 
     @InjectMocks
     @Spy
-    private DistributedPersistentStorage distributedStorage;
+    DistributedPersistentStorage distributedStorage;
 
     @SuppressWarnings("java:S5790")
     abstract class RetryTest {
@@ -96,7 +96,7 @@ class DistributedPersistentStorageTest {
     class WhenServerNotResponsibleTest {
 
         @Mock(name = "Key Range Message")
-        private KVMessage keyRangeMessage;
+        KVMessage keyRangeMessage;
 
         @BeforeEach
         void configureMessageResponses() throws CommunicationClientException {
@@ -112,53 +112,94 @@ class DistributedPersistentStorageTest {
                     .thenReturn("1,3,location1:42;4,8,location2:31;");
         }
 
-        @Test
-        void retriesWithNewMetadataOnGet() throws GetException, CommunicationClientException {
-            when(persistentStorage.get(anyString()))
-                    .thenReturn(serverMessage);
+        @Nested
+        class GetTest {
 
-            final KVMessage message = distributedStorage.get("key");
-            assertThat(message.getStatus())
-                    .isEqualTo(KVMessage.StatusType.ERROR);
+            @BeforeEach
+            void setupUnderlyingStorage() throws GetException {
+                when(persistentStorage.get(anyString()))
+                        .thenReturn(serverMessage);
+            }
 
-            final InOrder inOrder = Mockito.inOrder(persistentStorage);
+            @Test
+            void retriesWithNewMetadata() throws GetException, CommunicationClientException {
+                final KVMessage message = distributedStorage.get("key");
+                assertThat(message.getStatus())
+                        .isEqualTo(KVMessage.StatusType.ERROR);
 
-            inOrder.verify(persistentStorage)
-                    .get("key");
-            inOrder.verify(persistentStorage)
-                    .sendAndReceive(argThat(
-                            argMessage -> argMessage.getStatus() == KVMessage.StatusType.KEYRANGE)
-                    );
-            inOrder.verify(persistentStorage)
-                    .connectAndReceive("location1", 42);
-            inOrder.verify(persistentStorage)
-                    .get("key");
+                final InOrder inOrderUnderlyingStorage = inOrder(persistentStorage);
+
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .get("key");
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .sendAndReceive(argThat(
+                                argMessage -> argMessage.getStatus() == KVMessage.StatusType.KEYRANGE)
+                        );
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .connectAndReceive("location1", 42);
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .get("key");
+            }
+
+            @Test
+            void doesNotRetrySecondTime() throws GetException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+
+                assertThatExceptionOfType(GetException.class)
+                        .isThrownBy(() -> distributedStorage.get("key"))
+                        .withMessageContainingAll("Could not find", "responsible");
+
+                verify(persistentStorage, times(2))
+                        .get("key");
+            }
+
         }
 
-        @Test
-        void retriesWithNewMetadataOnPut() throws CommunicationClientException, PutException {
-            when(persistentStorage.put(anyString(), anyString()))
-                    .thenReturn(serverMessage);
+        @Nested
+        class PutTest {
 
-            final KVMessage message = distributedStorage.put("key", "value");
-            assertThat(message.getStatus())
-                    .isEqualTo(KVMessage.StatusType.ERROR);
+            @BeforeEach
+            void setupUnderlyingStorage() throws PutException {
+                when(persistentStorage.put(anyString(), anyString()))
+                        .thenReturn(serverMessage);
+            }
 
-            final InOrder inOrder = Mockito.inOrder(persistentStorage);
+            @Test
+            void retriesWithNewMetadata() throws CommunicationClientException, PutException {
+                final KVMessage message = distributedStorage.put("key", "value");
+                assertThat(message.getStatus())
+                        .isEqualTo(KVMessage.StatusType.ERROR);
 
-            inOrder.verify(persistentStorage)
-                    .put("key", "value");
-            inOrder.verify(persistentStorage)
-                    .sendAndReceive(argThat(
-                            argMessage -> argMessage.getStatus() == KVMessage.StatusType.KEYRANGE)
-                    );
-            inOrder.verify(persistentStorage)
-                    .connectAndReceive("location1", 42);
-            inOrder.verify(persistentStorage)
-                    .put("key", "value");
+                final InOrder inOrderUnderlyingStorage = inOrder(persistentStorage);
+
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .put("key", "value");
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .sendAndReceive(argThat(
+                                argMessage -> argMessage.getStatus() == KVMessage.StatusType.KEYRANGE)
+                        );
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .connectAndReceive("location1", 42);
+                inOrderUnderlyingStorage.verify(persistentStorage)
+                        .put("key", "value");
+            }
+
+            @Test
+            void doesNotRetrySecondTime() throws PutException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+
+                assertThatExceptionOfType(PutException.class)
+                        .isThrownBy(() -> distributedStorage.put("key", "value"))
+                        .withMessageContainingAll("Could not find", "responsible");
+
+                verify(persistentStorage, times(2))
+                        .put("key", "value");
+            }
+
         }
 
     }
-
 
 }
