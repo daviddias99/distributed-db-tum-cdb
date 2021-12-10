@@ -74,7 +74,44 @@ public interface KVMessage {
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for the ranges
          */
-        KEYRANGE_SUCCESS(true, false);
+        KEYRANGE_SUCCESS(true, false),
+        /**
+         * Heartbeat messages between ECS and Server.
+         */
+        ECS_HEART_BEAT(false, false),
+        SERVER_HEART_BEAT(false, false),
+        /**
+         * Handoff message from ECS to server. message.key is the address of the peer Server, and message.value is 
+         * of the format "lowerKeyBound + " " + upperKeyBound" where lowerKeyBound and upperKeyBound are 
+         * hexadecimal strings with a "0x" prefix
+         */
+        ECS_HANDOFF(true, true),
+        
+        SERVER_HANDOFF_ACK(false, false),
+
+        SERVER_HANDOFF_SUCCESS(false, false),
+
+        ECS_WRITE_LOCK(false, false),
+
+        ECS_WRITE_UNLOCK(false, false),
+        
+        SERVER_WRITE_UNLOCK(false, false),
+        /**
+         * message.getKey() contains the listening address of the server for the heartbeat connection,
+         * message.getValue() contains the port.
+         */
+        SERVER_START(true, true),
+        /**
+         * message.getKey() contains the address of the server to be shut down,
+         * message.getValue() contains the port.
+         */
+        SERVER_SHUTDOWN(true, true),
+        /**
+         * General ack message for the ECS.
+         */
+        ECS_ACK(false, false),
+        
+        SERVER_START_ERROR(false, false);
 
 
         private final boolean needsKey;

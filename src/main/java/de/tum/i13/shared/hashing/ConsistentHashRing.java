@@ -132,4 +132,8 @@ public interface ConsistentHashRing {
      */
     String packMessage();
 
+    NetworkLocation getPreviousNetworkLocation(NetworkLocation location);
+    NetworkLocation getNextNetworkLocation(NetworkLocation location);
+    boolean contains(NetworkLocation location);
+
 }

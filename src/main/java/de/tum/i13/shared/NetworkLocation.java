@@ -19,4 +19,13 @@ public interface NetworkLocation {
      */
     int getPort();
 
+    /**
+     * Create a String from a {@link NetworkLocation} object.
+     * @param location the {@link NetworkLocation} object to be converted to String.
+     * @return a String representation of the network location.
+     */
+    static String packNetworkLocation(NetworkLocation location){
+        return location.getAddress() + ":" + location.getPort();
+    }
+
 }

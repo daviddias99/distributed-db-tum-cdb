@@ -54,5 +54,23 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
         return hashingAlgorithm;
     }
 
+    @Override
+    public NetworkLocation getPreviousNetworkLocation(NetworkLocation location) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public NetworkLocation getNextNetworkLocation(NetworkLocation location) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public boolean contains(NetworkLocation location) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 
 }
