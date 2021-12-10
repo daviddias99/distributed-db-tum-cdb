@@ -142,7 +142,7 @@ class DistributedPersistentStorageTest {
             }
 
             @Test
-            void doesNotRetrySecondTime() throws GetException {
+            void doesNotRetryOnSecondServerNotResponsible() throws GetException {
                 when(serverMessage.getStatus())
                         .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
 
@@ -152,6 +152,32 @@ class DistributedPersistentStorageTest {
 
                 verify(persistentStorage, times(2))
                         .get("key");
+            }
+
+            @Test
+            void retriesOnSecondServerStopped() throws GetException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
+                        .thenReturn(KVMessage.StatusType.SERVER_STOPPED);
+
+                assertThatExceptionOfType(GetException.class)
+                        .isThrownBy(() -> distributedStorage.get("myKey"))
+                        .withMessageContaining("maximum number of retries");
+
+                verify(persistentStorage, times(Constants.MAX_REQUEST_RETRIES + 2)).get("myKey");
+            }
+
+            @Test
+            void retriesOnSecondServerWriteLocked() throws GetException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
+                        .thenReturn(KVMessage.StatusType.SERVER_WRITE_LOCK);
+
+                assertThatExceptionOfType(GetException.class)
+                        .isThrownBy(() -> distributedStorage.get("myKey"))
+                        .withMessageContaining("maximum number of retries");
+
+                verify(persistentStorage, times(Constants.MAX_REQUEST_RETRIES + 2)).get("myKey");
             }
 
         }
@@ -186,7 +212,7 @@ class DistributedPersistentStorageTest {
             }
 
             @Test
-            void doesNotRetrySecondTime() throws PutException {
+            void doesNotRetryOnSecondServerNotResponsible() throws PutException {
                 when(serverMessage.getStatus())
                         .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
 
@@ -195,6 +221,34 @@ class DistributedPersistentStorageTest {
                         .withMessageContainingAll("Could not find", "responsible");
 
                 verify(persistentStorage, times(2))
+                        .put("key", "value");
+            }
+
+            @Test
+            void retriesOnSecondServerStopped() throws PutException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
+                        .thenReturn(KVMessage.StatusType.SERVER_STOPPED);
+
+                assertThatExceptionOfType(PutException.class)
+                        .isThrownBy(() -> distributedStorage.put("key", "value"))
+                        .withMessageContaining("maximum number of retries");
+
+                verify(persistentStorage, times(Constants.MAX_REQUEST_RETRIES + 2))
+                        .put("key", "value");
+            }
+
+            @Test
+            void retriesOnSecondServerWriteLocked() throws PutException {
+                when(serverMessage.getStatus())
+                        .thenReturn(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
+                        .thenReturn(KVMessage.StatusType.SERVER_WRITE_LOCK);
+
+                assertThatExceptionOfType(PutException.class)
+                        .isThrownBy(() -> distributedStorage.put("key", "value"))
+                        .withMessageContaining("maximum number of retries");
+
+                verify(persistentStorage, times(Constants.MAX_REQUEST_RETRIES + 2))
                         .put("key", "value");
             }
 
