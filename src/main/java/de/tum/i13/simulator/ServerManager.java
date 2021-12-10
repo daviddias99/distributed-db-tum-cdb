@@ -20,6 +20,7 @@ public class ServerManager {
     }
 
     Thread turnoffServersHook = new Thread(() -> {
+      System.out.println("Turning off services");
       for (Process process : servers) {
         process.destroy();
       }
@@ -29,7 +30,7 @@ public class ServerManager {
 
   private String getServerCommand() {
     String dataDir = Paths.get("data", Integer.toString(port)).toString();
-    return String.format("java -jar target/kv-server.jar -p %d -d %s", this.port, dataDir);
+    return String.format("java -jar target/kv-server.jar -p %d -d %s -l logs/server_%d.txt", this.port, dataDir, this.port);
   }
 
   public void addServer() {

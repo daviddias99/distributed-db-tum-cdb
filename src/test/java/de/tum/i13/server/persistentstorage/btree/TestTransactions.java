@@ -88,7 +88,7 @@ public class TestTransactions {
         this.doManualInsTransRolTransCycle("F", "A");
     }
 
-    @RepeatedTest(5)
+    @Test
     void rollbackOnInsertStressTest() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -138,7 +138,7 @@ public class TestTransactions {
         this.doManualDelTransRolTransCycle("N");
     }
 
-    @RepeatedTest(5)
+    @Test
     void rollbackOnDeleteComplex() throws StorageException, PersistentBTreeException {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
 

@@ -38,7 +38,7 @@ class TestPersistentBTree {
         assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
-    @RepeatedTest(5)
+    @Test
     void insertMultipleValues() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -141,7 +141,7 @@ class TestPersistentBTree {
         assertThat(TreeValidator.validTree(tree)).isTrue();
     }
 
-    @RepeatedTest(5)
+    @Test
     void deleteMultipleValues() throws StorageException, PersistentBTreeException {
 
         String alphabet = "abcdefghijklmnopqrstuvwxyz";

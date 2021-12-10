@@ -14,7 +14,7 @@ public class EmailParser {
 
   public static Pair<String> parseEmail(Path emailPath) {
     try {
-      String content = Files.readString(emailPath, StandardCharsets.US_ASCII);
+      String content = Files.readString(emailPath, StandardCharsets.US_ASCII).replaceAll("[\\t\\n\\r]+"," ");
       return new Pair<>(getIdFromEmail(content), content);
     } catch (IOException e) {
       e.printStackTrace();
@@ -24,6 +24,6 @@ public class EmailParser {
   }
 
   private static String getIdFromEmail(String email) {
-    return email.substring("Message-ID: ".length(), email.indexOf("\n"));
+    return email.substring("Message-ID: <13668446.".length(), email.indexOf(".JavaMail"));
   }
 }
