@@ -81,6 +81,8 @@ public interface ConsistentHashRing {
 
     /**
      * Returns the {@link NetworkLocation} responsible for this key in this {@link ConsistentHashRing}.
+     * Which {@link NetworkLocation} is responsible for a given key can be determined in an implementing class.
+     * Examples include the preceding or the succeeding {@link NetworkLocation}.
      *
      * @param key the key of a key value pair
      * @return an {@link Optional} containing the {@link NetworkLocation} responsible for that key.
