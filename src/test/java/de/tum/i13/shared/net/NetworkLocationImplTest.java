@@ -70,7 +70,7 @@ class NetworkLocationImplTest {
 
             @Test
             void testHashCode() {
-                assumeThat(location)
+                assertThat(location)
                         .hasSameHashCodeAs(otherLocation);
             }
 
