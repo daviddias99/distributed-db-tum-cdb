@@ -70,7 +70,7 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         final Callable<KVMessage> serverCallable = () -> persistentStorage.get(key);
 
         try {
-            return callServer(key, serverCallable, responseMessage);
+            return callServerResiliently(key, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
             final GetException getException = new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
             LOGGER.error("Caught exception while getting. Wrapping the exception.", getException);
@@ -89,7 +89,7 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         final Callable<KVMessage> serverCallable = () -> persistentStorage.put(key, value);
 
         try {
-            return callServer(key, serverCallable, responseMessage);
+            return callServerResiliently(key, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
             final PutException putException = new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
             LOGGER.error("Caught exception while getting. Wrapping the exception.", putException);
@@ -97,7 +97,8 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage callServer(String key, Callable<KVMessage> serverCallable, KVMessage responseMessage) throws CommunicationClientException {
+    private KVMessage callServerResiliently(String key, Callable<KVMessage> serverCallable,
+                                            KVMessage responseMessage) throws CommunicationClientException {
         KVMessage.StatusType responseStatus = responseMessage.getStatus();
         LOGGER.debug("Server indicated status '{}'", responseStatus);
         if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
@@ -150,13 +151,26 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
 
         LOGGER.debug("Retrying with new server");
         try {
-            return serverCallable.call();
+            final KVMessage newResponse = serverCallable.call();
+            return handleSecondServerResponse(serverCallable, key, newResponse);
         } catch (Exception ex) {
             var exception = new CommunicationClientException(ex,
                     "The storage encountered an error. " + ex.getMessage());
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
             throw exception;
         }
+    }
+
+    private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
+                                                 KVMessage newResponse) throws CommunicationClientException {
+        final KVMessage.StatusType newStatus = newResponse.getStatus();
+        LOGGER.debug("Second server indicated status {}", newStatus);
+
+        if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+            final var exception = new CommunicationClientException("Could not find responsible server");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        } else return callServerResiliently(key, serverCallable, newResponse);
     }
 
     private void processKeyRangeResponse(KVMessage keyRangeMessage) throws CommunicationClientException {
