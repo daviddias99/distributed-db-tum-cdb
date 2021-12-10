@@ -1,15 +1,13 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.net.NetworkLocation;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -27,7 +25,6 @@ import static org.mockito.Mockito.withSettings;
 @ExtendWith(MockitoExtension.class)
 class PrecedingResponsibilityHashRingTest {
 
-    public static final String NEEDS_LOCATION_STUBBING = "needs_location_stubbing";
     private static final String IGNORED_STRING = "ignoredString";
     private static final String STRING_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
     @Mock
@@ -41,15 +38,7 @@ class PrecedingResponsibilityHashRingTest {
     private NetworkLocation location3;
 
     @BeforeEach
-    void setupHashRing(TestInfo testInfo) {
-        if (testInfo.getTags().contains(NEEDS_LOCATION_STUBBING)) {
-            Map.of(location1, 1, location2, 2, location3, 3)
-                    .forEach((location, number) -> {
-                        when(location.getAddress()).thenReturn("location" + number);
-                        when(location.getPort()).thenReturn(number);
-                    });
-        }
-
+    void setupHashRing() {
         // Add three network locations with hashes 2, 4, and 7
         final NavigableMap<BigInteger, NetworkLocation> networkLocationMap = new TreeMap<>();
         hashRing = mock(PrecedingResponsibilityHashRing.class,
@@ -97,18 +86,30 @@ class PrecedingResponsibilityHashRingTest {
                 .hasValue(location1);
     }
 
-    @Test
-    @Tag(NEEDS_LOCATION_STUBBING)
-    void packsMetadata() {
-        assertThat(hashRing.packMessage())
-                .isEqualTo(STRING_REPRESENTATION);
-    }
+    @Nested
+    class ToStringTest {
 
-    @Test
-    @Tag(NEEDS_LOCATION_STUBBING)
-    void packsOnToString() {
-        assertThat(hashRing)
-                .hasToString(STRING_REPRESENTATION);
+        @BeforeEach
+        void stubLocation() {
+            Map.of(location1, 1, location2, 2, location3, 3)
+                    .forEach((location, number) -> {
+                        when(location.getAddress()).thenReturn("location" + number);
+                        when(location.getPort()).thenReturn(number);
+                    });
+        }
+
+        @Test
+        void packsMetadata() {
+            assertThat(hashRing.packMessage())
+                    .isEqualTo(STRING_REPRESENTATION);
+        }
+
+        @Test
+        void packsOnToString() {
+            assertThat(hashRing)
+                    .hasToString(STRING_REPRESENTATION);
+        }
+
     }
 
     @Test
