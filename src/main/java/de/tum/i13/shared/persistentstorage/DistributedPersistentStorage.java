@@ -135,7 +135,7 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage handleServerNotResponsible(Callable<KVMessage> serverCallable, String key) throws CommunicationClientException {
         LOGGER.debug("Requesting new metadata from server");
-        processKeyRangeResponse(sendAndReceive(new KVMessageImpl(KVMessage.StatusType.KEYRANGE)));
+        updateHashRing();
 
         NetworkLocation responsibleNetLocation = hashRing.getResponsibleNetworkLocation(key)
                 .orElseThrow(() -> {
@@ -161,6 +161,30 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
+    private void updateHashRing() throws CommunicationClientException {
+        final KVMessage keyRangeRequest = new KVMessageImpl(KVMessage.StatusType.KEYRANGE);
+        final CommunicationCallable getKeyRangeFunction = () -> sendAndReceive(keyRangeRequest);
+
+        KVMessage keyRangeResponse = getKeyRangeFunction.call();
+        final KVMessage.StatusType keyRangeStatus = keyRangeResponse.getStatus();
+
+        if (keyRangeStatus == KVMessage.StatusType.SERVER_STOPPED) {
+            retryWithBackOff(getKeyRangeFunction);
+        } else if (keyRangeStatus != KVMessage.StatusType.KEYRANGE_SUCCESS) {
+            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+
+        try {
+            hashRing = ConsistentHashRing.unpackMetadata(keyRangeResponse.getKey());
+        } catch (IllegalArgumentException ex) {
+            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+    }
+
     private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
                                                  KVMessage newResponse) throws CommunicationClientException {
         final KVMessage.StatusType newStatus = newResponse.getStatus();
@@ -171,22 +195,6 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
             throw exception;
         } else return callServerResiliently(key, serverCallable, newResponse);
-    }
-
-    private void processKeyRangeResponse(KVMessage keyRangeMessage) throws CommunicationClientException {
-        if (keyRangeMessage.getStatus() != KVMessage.StatusType.KEYRANGE_SUCCESS) {
-            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-
-        try {
-            hashRing = ConsistentHashRing.unpackMetadata(keyRangeMessage.getKey());
-        } catch (IllegalArgumentException ex) {
-            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
     }
 
     @Override
@@ -232,6 +240,13 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
     @Override
     public String connectAndReceive(String address, int port) throws CommunicationClientException {
         return persistentStorage.connectAndReceive(address, port);
+    }
+
+    private interface CommunicationCallable extends Callable<KVMessage> {
+
+        @Override
+        KVMessage call() throws CommunicationClientException;
+
     }
 
 }
