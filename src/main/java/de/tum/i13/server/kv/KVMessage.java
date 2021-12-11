@@ -100,7 +100,7 @@ public interface KVMessage {
         SERVER_WRITE_LOCK(false, false),
 
         /**
-         * Keyrange request to the server
+         * Message sent by client to request keyrange metadata
          */
         KEYRANGE(false, false),
         /**
@@ -133,11 +133,6 @@ public interface KVMessage {
          * Set server metadata
          */
         ECS_SET_KEYRANGE(true, false),
-
-        /**
-         * Message sent by client to request keyrange metadata
-         */
-        KEYRANGE(false, false),
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for

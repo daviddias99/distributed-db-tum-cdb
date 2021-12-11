@@ -2,6 +2,7 @@ package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
@@ -15,6 +16,7 @@ import io.github.resilience4j.retry.RetryRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBackoff;
@@ -95,6 +97,11 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
             LOGGER.error("Caught exception while getting. Wrapping the exception.", putException);
             throw putException;
         }
+    }
+
+    @Override
+    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+        return persistentStorage.getRange(lowerBound, upperBound);
     }
 
     private KVMessage callServerResiliently(String key, Callable<KVMessage> serverCallable,
