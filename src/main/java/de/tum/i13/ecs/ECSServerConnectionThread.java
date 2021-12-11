@@ -8,31 +8,38 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ECSServerConnectionThread extends ECSThread{
+class ECSServerConnectionThread extends ECSThread{
 
     private static final Logger LOGGER = LogManager.getLogger(ECSServerConnectionThread.class);
 
-    private CommandProcessor<String> cp;
+    private final CommandProcessor<String> cp;
 
-    public ECSServerConnectionThread(CommandProcessor<String> commandProcessor, Socket server) throws IOException{
+    ECSServerConnectionThread(CommandProcessor<String> commandProcessor, Socket server) throws IOException{
         super(server);
         this.cp = commandProcessor;
     }
     
     @Override
     public void run() {
+        LOGGER.info("Starting server connection thread");
         try {
-            //read messages from client and process using the CommandProcessor 
-            String firstLine;
-            while ((firstLine = getActiveConnection().receive()) != null && !firstLine.equals("-1")) {
-                String response = cp.process(firstLine);
+            //read messages from client and process using the CommandProcessor
+            LOGGER.trace("Entering infinite loop to receive messages");
+            String readLine;
+            while ((readLine = getActiveConnection().receive()) != null && !readLine.equals("-1")) {
+                LOGGER.trace("Delegating processing of read line '{}'", readLine);
+                String response = cp.process(readLine);
+                LOGGER.trace("Sending response after processing '{}'", response);
                 getActiveConnection().send(response);
             }
-
         } catch(CommunicationClientException ex) {
-            LOGGER.atFatal().withThrowable(ex).log("Caught exception while trying to read from {}.", getSocket().getInetAddress());
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while trying to read from {}.", getSocket());
         } catch(Exception ex){
-            LOGGER.atFatal().withThrowable(ex).log("Caught exception while trying to close connection with {}.", getSocket().getInetAddress());
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while trying to close connection with {}.", getSocket());
         }
     }
     

@@ -16,56 +16,57 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Class responsible for establishing a connection with a server and continuosly sending a HEARTBEAT
- * message of {@link KVMessage} type. It waits ro receive a response within a constant amount of time, 
+ * message of {@link KVMessage} type. It waits ro receive a response within a constant amount of time,
  * otherwise considers the server to be down. The key value pairs are considered lost.
  */
-public class ECSHeartbeatThread extends ECSThread{
+class ECSHeartbeatThread extends ECSThread {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSHeartbeatThread.class);
 
-    private final ExternalConfigurationService service;
-    private ScheduledExecutorService scheduledExecutor;
-
-    public ECSHeartbeatThread(ExternalConfigurationService service, Socket server) throws IOException{
+    ECSHeartbeatThread(Socket server) throws IOException {
         super(server);
-        this.service = service;
     }
 
     @Override
     public void run() {
+        LOGGER.info("Starting heartbeat thread");
         try {
             //set up the executor service to send the heartbeat message every second
-            scheduledExecutor = Executors.newScheduledThreadPool(0);
-
-            Runnable heartbeatTask = () -> {
-                try{
-                   sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_HEART_BEAT), StatusType.SERVER_HEART_BEAT);
-
-                } catch( SocketTimeoutException ex){
-                    LOGGER.atFatal()
-                            .withThrowable(ex)
-                            .log("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket().getInetAddress());
-                } catch( IOException ex){
-                    LOGGER.atFatal()
-                            .withThrowable(ex)
-                            .log("Caught exception while reading from {}.", getSocket().getInetAddress());
-                } catch( ECSException ex){
-                    LOGGER.fatal("Caught ECSException of type " + ex.getType() + " when requesting heartbeat from " + getSocket().getInetAddress());
-                }
-            };
+            LOGGER.trace("Creating executor service");
+            ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                LOGGER.info("Closing heartbeat executor service");
+                scheduledExecutor.shutdown();
+            }));
 
             //set up waiting time for the response
-            //TODO check if this works or needs to be set for every task 
-            getSocket().setSoTimeout(Constants.HEARTBEAT_TIMEOUT_MILLISECONDS); 
-            scheduledExecutor.scheduleAtFixedRate(heartbeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
-
-        } catch(IOException ex) {
-            LOGGER.atFatal().withThrowable(ex).log("Caught exception while establishing connection to {}.", getSocket().getInetAddress());
+            //TODO check if this works or needs to be set for every task
+            LOGGER.trace("Setting heartbeat timeout and scheduling task");
+            getSocket().setSoTimeout(Constants.HEARTBEAT_TIMEOUT_MILLISECONDS);
+            scheduledExecutor.scheduleAtFixedRate(this::heartBeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
+        } catch (IOException ex) {
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while establishing connection to {}.", getSocket());
         }
-//        finally{
-//            //Remove server from the ExternalConfigurationService and update metadata
-//            service.removeServer(getSocket().getInetAddress().getHostAddress(), getSocket().getPort());
-//            scheduledExecutor.shutdownNow();
-//        }
     }
+
+    private void heartBeatTask() {
+        try {
+            LOGGER.trace("Sending heartbeat to {}", socket.getInetAddress());
+            sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_HEART_BEAT), StatusType.SERVER_HEART_BEAT);
+        } catch (SocketTimeoutException ex) {
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket());
+        } catch (IOException ex) {
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while reading from {}.", getSocket());
+        } catch (ECSException ex) {
+            LOGGER.fatal("Caught ECSException of type {} when requesting heartbeat from {}", ex.getType(),
+                    getSocket());
+        }
+    }
+
 }

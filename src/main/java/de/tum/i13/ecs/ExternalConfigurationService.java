@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 /**
  * Class responsible to maintain and update metadata of the servers.
  */
-public class ExternalConfigurationService {
+class ExternalConfigurationService {
 
     private static final Logger LOGGER = LogManager.getLogger(ExternalConfigurationService.class);
 
@@ -24,7 +24,7 @@ public class ExternalConfigurationService {
     private final int port;
     private final TreeMapServerMetadata serverMap;
 
-    public ExternalConfigurationService(String address, int port) {
+    ExternalConfigurationService(String address, int port) {
         this.address = address;
         this.port = port;
         this.serverMap = new TreeMapServerMetadata();
@@ -35,7 +35,7 @@ public class ExternalConfigurationService {
      *
      * @return
      */
-    public String getAddress() {
+    String getAddress() {
         return this.address;
     }
 
@@ -44,7 +44,7 @@ public class ExternalConfigurationService {
      *
      * @return
      */
-    public int getPort() {
+    int getPort() {
         return this.port;
     }
 
@@ -53,7 +53,7 @@ public class ExternalConfigurationService {
      *
      * @return
      */
-    public ConsistentHashRing getMetadata() {
+    ConsistentHashRing getMetadata() {
         return this.serverMap;
     }
 
@@ -65,32 +65,35 @@ public class ExternalConfigurationService {
      * @param listenAddress the address of the server to be added to the {@link ConsistentHashRing} parameter.
      * @param port          the port of the server to be added to the {@link ConsistentHashRing} parameter.
      */
-    public synchronized void addServer(String listenAddress, int port) throws ECSException {
+    synchronized void addServer(String listenAddress, int port) throws ECSException {
+        LOGGER.info("Trying to add  new server with address '{}:{}' to the {}", listenAddress, port,
+                ConsistentHashRing.class.getSimpleName());
         try {
-            LOGGER.info("Trying to add a new server with address {} to the HashRing.", listenAddress);
             final int numberOfServers = serverMap.getAllNetworkLocations().size();
             NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
+            // TODO Also do the handoff, if there is only one server in the hash ring
             if (numberOfServers >= 2) {
+                LOGGER.trace("There were at least 2 server in the {}. Determining predecessor and successor",
+                        ConsistentHashRing.class.getSimpleName());
                 NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
-                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
-                                "preceding server on ring"));
+                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
+                                "find preceding server on ring"));
                 NetworkLocation nextInRing = serverMap.getSucceedingNetworkLocation(newServer)
-                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
-                                "succeeding server on ring"));
+                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
+                                "find succeeding server on ring"));
 
                 BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
                 BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
 
-                LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
+                LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
                 new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
             }
             //What happens if HANDOFF fails?
-
             serverMap.addNetworkLocation(newServer);
-            LOGGER.info("Added new server with address {} to the HashRing.", listenAddress);
+            LOGGER.debug("Added new server '{}' to the {}", newServer, ConsistentHashRing.class.getSimpleName());
             updateMetadata();
         } catch (IOException ex) {
-            LOGGER.fatal("Unable to connect to " + listenAddress + " and create Handoff Thread.");
+            LOGGER.fatal("Unable to connect to '{}:{}' and create Handoff Thread.", listenAddress, port);
         }
 
     }
@@ -102,7 +105,8 @@ public class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the {@link ConsistentHashRing},
      * @param port          the port of the server to be deleted from the {@link ConsistentHashRing}.
      */
-    public synchronized void removeServer(String listenAddress, int port) {
+    synchronized void removeServer(String listenAddress, int port) {
+        // TODO Call this removal somewhere
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
 
         NetworkLocationImpl serverLocation = new NetworkLocationImpl(listenAddress, port);
@@ -121,12 +125,12 @@ public class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the serverMap
      * @param port          the port of the server to be deleted from the serverMap
      */
-    public synchronized void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
-
+    synchronized void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
         try {
             //Initiate handoff from old server to successor
             NetworkLocation oldServer = new NetworkLocationImpl(listenAddress, port);
+            LOGGER.trace("Determining the predecessor and successor of {}", oldServer);
             NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(oldServer)
                     .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
                             "preceding server on ring"));
@@ -137,35 +141,33 @@ public class ExternalConfigurationService {
             BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
             BigInteger upperBound = serverMap.getHashingAlgorithm().hash(oldServer);
 
-            LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
+            LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
             new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
 
             serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
-            LOGGER.info("Removed server with address {} from the ring.", listenAddress);
+            LOGGER.debug("Removed server '{}' from the ring", oldServer);
             updateMetadata();
         } catch (IOException ex) {
-            LOGGER.fatal("Unable to connect to " + listenAddress + " and create Handoff Thread.");
-        } catch (ECSException ex){
-            LOGGER.fatal("Handoff initiated by {} failed.", listenAddress);
+            LOGGER.fatal("Unable to connect to '{}:{}' and create handoff thread", listenAddress, port);
+        } catch (ECSException ex) {
+            LOGGER.fatal("Handoff initiated by '{}:{}' failed.", listenAddress, port);
         }
     }
 
     private void updateMetadata() {
+        LOGGER.info("Trying to update the metadata of all servers in the ring.");
         try {
-
-            LOGGER.info("Trying to update the metadata of all servers in the ring.");
             ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
 
             //prepare the metadata information in String format
             String metadata = serverMap.packMessage();
 
-            for (NetworkLocation location : serverMap.getAllNetworkLocations()) {
+            for (NetworkLocation location : serverMap.getAllNetworkLocations())
                 executor.submit(new ECSUpdateMetadataThread(location, metadata));
-            }
 
             executor.shutdown();
         } catch (IOException ex) {
-            LOGGER.fatal("Unable to create Update Metadata Thread.");
+            LOGGER.fatal("Unable to create update metadata thread", ex);
         }
     }
 

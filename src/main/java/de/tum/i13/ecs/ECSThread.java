@@ -15,56 +15,20 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class ECSThread implements Runnable {
+abstract class ECSThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSThread.class);
 
-    private Socket socket;
+    Socket socket;
     private ActiveConnection activeConnection;
     private BufferedReader in;
     private PrintWriter out;
 
-    public ECSThread(Socket socket) throws IOException {
+    protected ECSThread(Socket socket) throws IOException {
+        LOGGER.info("Creating new thread to communicate with server {}", socket);
         this.socket = socket;
-        setUpCommunication(socket);
-    }
-
-    public ECSThread(NetworkLocation location) throws IOException {
-        setUpCommunication(location);
-    }
-
-    @Override
-    public void run() {
-    }
-
-    /**
-     * Sets up the input and output streams to connect to a server at the goven
-     * socket.
-     * 
-     * @param ecsSocket {@link Socket} socket for the communication.
-     * @throws ECSException if communication cannot be established.
-     */
-    private void setUpCommunication(Socket ecsSocket) throws IOException {
-        LOGGER.info("Trying to set up communication with server {}", ecsSocket.getInetAddress());
-        in = new BufferedReader(new InputStreamReader(ecsSocket.getInputStream(), Constants.TELNET_ENCODING));
-        out = new PrintWriter(new OutputStreamWriter(ecsSocket.getOutputStream(), Constants.TELNET_ENCODING));
-        activeConnection = new ActiveConnection(ecsSocket, out, in);
-    }
-
-    /**
-     * Creates a socket to communicate with the server at the given
-     * {@link NetworkLocation}.
-     * Sets up the input and output streams.
-     * 
-     * @param ecsSocket {@link Socket} socket for the communication.
-     * @throws ECSException if communication cannot be established.
-     */
-    private void setUpCommunication(NetworkLocation serverLocation) throws IOException {
-        LOGGER.info("Trying to set up communication with server {}", serverLocation.getAddress());
-
-        Socket socket = new Socket(serverLocation.getAddress(), serverLocation.getPort());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("Closing ECS connection to {}.", serverLocation.getAddress());
+            LOGGER.info("Closing ECS connection to {}.", activeConnection);
             try {
                 activeConnection.close();
             } catch (Exception ex) {
@@ -72,34 +36,46 @@ public class ECSThread implements Runnable {
             }
         }));
 
-        this.socket = socket;
         in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
         activeConnection = new ActiveConnection(socket, out, in);
+//        try {
+//            LOGGER.trace("Trying to receive welcome message");
+//            activeConnection.receive();
+//        } catch (CommunicationClientException exception) {
+//            final IOException newException = new IOException("Could not receive welcome message", exception);
+//            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
+//            throw newException;
+//        }
+    }
+
+    protected ECSThread(NetworkLocation location) throws IOException {
+        this(new Socket(location.getAddress(), location.getPort()));
     }
 
     /**
      * Sends a {@link KVMessage} message to the connected server and waits for a
      * response.
-     * Checks the {@link StatusType} of the response against a provided expected
+     * Checks the {@link KVMessage.StatusType} of the response against a provided expected
      * type.
-     * 
+     *
      * @param message      a {@link KVMessage} object containing the message to be
      *                     sent to server.
-     * @param expectedType the {@link StatusType} object with the expecetd type of
+     * @param expectedType the {@link KVMessage.StatusType} object with the expecetd type of
      *                     the response {@link KVMessage}.
      * @throws IOException  if unable to read a response from the server.
      * @throws ECSException if communication is not as expected.
      */
     protected void sendAndReceiveMessage(KVMessage message, KVMessage.StatusType expectedType)
             throws IOException, ECSException {
+        LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, message, expectedType);
         activeConnection.send(message.packMessage()); // send a message
         waitForResponse(expectedType);
     }
 
     /**
      * Method to wait for a response and determine if the response is as expected.
-     * 
+     *
      * @param expectedType The {@link KVMessage.StatusType} type that the
      *                     {@link KVMessage} response must have.
      * @return the {@link KVMessage} response received from the server.
@@ -108,25 +84,42 @@ public class ECSThread implements Runnable {
      *                      received.
      */
     protected KVMessage waitForResponse(KVMessage.StatusType expectedType) throws IOException, ECSException {
-        String response = null;
+        LOGGER.trace("Waiting for a message response");
+        String response;
         try {
             response = activeConnection.receive();
         } catch (CommunicationClientException exception) {
             throw new IOException("Could not receive", exception);
         }
 
-        if (response == null || response == "-1") {
-            throw new ECSException(ECSException.Type.NO_ACK_RECEIVED, "No response received from server");
-        } else if (KVMessage.unpackMessage(response).getStatus() != expectedType) {
-            throw ECSException.determineECSException(expectedType);
+        final KVMessage unpackedResponse;
+        try {
+            unpackedResponse = KVMessage.unpackMessage(response);
+        } catch (IllegalArgumentException exception) {
+            final IOException newException = new IOException("Could not unpack received message", exception);
+            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
+            throw newException;
         }
 
-        return KVMessage.unpackMessage(response);
+        if (response == null || "-1".equals(response)) {
+            final ECSException exception = new ECSException(ECSException.Type.NO_ACK_RECEIVED,
+                    "No response received from server");
+            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        } else if (unpackedResponse.getStatus() != expectedType) {
+            final ECSException exception = ECSException.determineException(expectedType);
+            LOGGER.atError()
+                    .withThrowable(exception)
+                    .log("Message '{}' did not have expected status '{}'", unpackedResponse, expectedType);
+            throw exception;
+        }
+
+        return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, unpackedResponse);
     }
 
     /**
      * Getter for the socket param
-     * 
+     *
      * @return the server connection socket
      */
     protected Socket getSocket() {
@@ -135,10 +128,11 @@ public class ECSThread implements Runnable {
 
     /**
      * Getter for {@link ActiveConnection} param
-     * 
+     *
      * @return
      */
     protected ActiveConnection getActiveConnection() {
         return this.activeConnection;
     }
+
 }

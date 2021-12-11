@@ -1,17 +1,5 @@
 package de.tum.i13.server.threadperconnection;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.jmx.Server;
-
-import de.tum.i13.ecs.ECSCommandProcessor;
 import de.tum.i13.server.kv.KVConnectionHandler;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
@@ -19,6 +7,15 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RequestListener implements Runnable {
   private static final Logger LOGGER = LogManager.getLogger(RequestListener.class);

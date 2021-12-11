@@ -4,6 +4,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,25 +14,29 @@ import java.net.Socket;
 /**
  * Class responsible to process commands sent by servers to the ECS.
  */
-public class ECSCommandProcessor implements CommandProcessor<String> {
+class ECSCommandProcessor implements CommandProcessor<String> {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
     private final ExternalConfigurationService service;
 
-    public ECSCommandProcessor(ExternalConfigurationService service) {
+    ECSCommandProcessor(ExternalConfigurationService service) {
         this.service = service;
     }
 
     @Override
     public String process(String command) {
+        LOGGER.info("Processing command '{}'", command);
         KVMessage message = KVMessage.unpackMessage(command);
         KVMessage response = switch (message.getStatus()) {
-            case SERVER_START -> start(message.getKey(), message.getValue());
-            case SERVER_SHUTDOWN -> serverShutdown(message.getKey(), message.getValue());
-            default -> new KVMessageImpl(StatusType.ERROR);
+            case SERVER_START -> processServerStart(message.getKey(), message.getValue());
+            case SERVER_SHUTDOWN -> processServerShutdown(message.getKey(), message.getValue());
+            default -> {
+                LOGGER.error("Could not process command '{}'", command);
+                yield new KVMessageImpl(StatusType.ERROR);
+            }
         };
 
-        return response.toString();
+        return LOGGER.traceExit("Returning process result", response.toString());
     }
 
     /**
@@ -42,31 +47,34 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
      * @param portString Port of the new server in String format.
      * @return A {@link KVMessage} indicating the status of the new server request.
      */
-    private KVMessage start(String address, String portString) {
+    private KVMessage processServerStart(String address, String portString) {
+        LOGGER.debug("Processing server start at location '{}:{}'", address, portString);
         try {
             int port = Integer.parseInt(portString);
 
-            //start HEARTBEAT thread
-            Socket connection = new Socket(address, port);
-            new ECSHeartbeatThread(service, connection).run();
+            LOGGER.trace("Starting new heartbeat thread for '{}:{}'", address, port);
+            new ECSHeartbeatThread(new Socket(address, port))
+                    .run();
+            LOGGER.trace("Adding server '{}:{}' to {}",
+                    address, port, ExternalConfigurationService.class.getSimpleName());
             service.addServer(address, port);
 
             //TODO Send back metadata? It will be sent anyway by the update message
-            return new KVMessageImpl(StatusType.ECS_ACK);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
 
         } catch (IOException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Caught exception while trying to connect to {}:{}", address, portString);
-            return new KVMessageImpl(StatusType.ERROR);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         } catch (NumberFormatException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Port number not valid while trying to connect to {}:{}", address, portString);
-            return new KVMessageImpl(StatusType.ERROR);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         } catch (ECSException e) {
             LOGGER.fatal("Could not add new server");
-            return new KVMessageImpl(StatusType.ERROR);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         }
     }
 
@@ -78,18 +86,21 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
      * @param portString Port of the server that will shut down, in String format.
      * @return A {@link KVMessage} with the status of the shutdown request.
      */
-    private KVMessage serverShutdown(String address, String portString) {
+    private KVMessage processServerShutdown(String address, String portString) {
+        LOGGER.debug("Processing server shutdown at '{}:{}'", address, portString);
         try {
             int port = Integer.parseInt(portString);
+            LOGGER.trace("Removing server '{}:{}' and initiating handoff at {}",
+                    address, port, ExternalConfigurationService.class.getSimpleName());
             service.removeServerAndHandoffData(address, port);
-            return new KVMessageImpl(StatusType.ECS_ACK);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
 
         } catch (NumberFormatException ex) {
-            LOGGER.fatal("Port number not valid while trying to shut down" + address + ":" + portString);
-            return new KVMessageImpl(StatusType.ERROR);
+            LOGGER.fatal("Port number not valid while trying to shut down '{}:{}'", address, portString);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         } catch (ECSException e) {
-            LOGGER.fatal("An error occurred during handoff while trying to shut down" + address + ":" + portString);
-            return new KVMessageImpl(StatusType.ERROR);
+            LOGGER.fatal("An error occurred during handoff while trying to shut down '{}:{}'", address, portString);
+            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         }
     }
 
