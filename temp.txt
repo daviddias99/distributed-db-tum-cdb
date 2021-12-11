@@ -1,0 +1,2 @@
+Log level set from ALL to ERROR.
+Connection to KVServer established: /127.0.0.1:25565

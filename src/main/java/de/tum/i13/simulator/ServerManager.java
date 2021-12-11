@@ -22,6 +22,12 @@ public class ServerManager {
     Thread turnoffServersHook = new Thread(() -> {
       System.out.println("Turning off services");
       for (Process process : servers) {
+        try {
+					Runtime.getRuntime().exec("kill -SIGINT " + process.pid());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
         process.destroy();
       }
     });
@@ -35,7 +41,7 @@ public class ServerManager {
 
   public void addServer() {
     try {
-      servers.addLast(Runtime.getRuntime().exec(this.getServerCommand()));
+      servers.add(Runtime.getRuntime().exec(this.getServerCommand()));
       this.addresses.push(String.format("127.0.0.1 %d", port));
       port++;
     } catch (IOException e) {

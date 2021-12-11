@@ -11,9 +11,11 @@ public class ClientManager {
   LinkedList<ClientSimulator> clients;
   File[] emailDirs;
   int counter = 0;
+  ServerManager servers;
 
   public ClientManager(int count) {
 
+    // this.servers = servers;
     emailDirs = Paths.get("maildir").toFile().listFiles();
 
 
@@ -26,7 +28,7 @@ public class ClientManager {
 
       do {
         path = Paths.get(emailDirs[counter++].getAbsolutePath(), "all_documents");
-      }while(!path.toFile().exists());
+      }while(!path.toFile().exists() || path.toFile().listFiles().length < 15);
 
 
       this.addClient(path);
@@ -34,7 +36,8 @@ public class ClientManager {
   }
 
   public void addClient(Path emailsPath) {
-    ClientSimulator newClient = new ClientSimulator(emailsPath, "127.0.0.1", 25565);
+    // ClientSimulator newClient = new ClientSimulator(emailsPath, "127.0.0.1", Integer.parseInt(servers.addresses.get(0).split(" ")[1]) );
+    ClientSimulator newClient = new ClientSimulator(emailsPath, "127.0.0.1",25565);
     this.clients.add(newClient);
     this.clientThreads.add(new Thread(newClient));
     this.clientThreads.getFirst().start();

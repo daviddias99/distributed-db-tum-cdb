@@ -4,8 +4,8 @@ public class Main {
 
   public static void main(String[] args) {
 
-    final ServerManager manager = new ServerManager(3);
-    manager.addServer();
-    final ClientManager clientManager = new ClientManager(3);
+    // final ServerManager manager = new ServerManager(1);
+    final ClientManager clientManager = new ClientManager(1);
+    // final ClientManager clientManager = new ClientManager(1, manager);
   }
 }
