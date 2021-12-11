@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Contains the metadata of a ring based data structure that maps {@link String} keys of a key-value store to a set of
@@ -174,5 +175,12 @@ public interface ConsistentHashRing {
      * @return whether the supplied {@link NetworkLocation} is contained in the {@link ConsistentHashRing}
      */
     boolean contains(NetworkLocation location);
+
+    /**
+     * Returns a {@link Set} of all the {@link NetworkLocation}s in the {@link ConsistentHashRing}.
+     *
+     * @return all the contained {@link NetworkLocation}s
+     */
+    Set<NetworkLocation> getAllNetworkLocations();
 
 }

@@ -83,6 +83,8 @@ public interface KVMessage {
          */
         SERVER_HANDOFF_SUCCESS(false, false),
 
+        SERVER_HANDOFF_ACK(false, false),
+
         /**
          * Used by server to ask broker for metadata
          */
@@ -99,10 +101,14 @@ public interface KVMessage {
          */
         SERVER_WRITE_LOCK(false, false),
 
+
+        SERVER_WRITE_UNLOCK(false, false),
+
         /**
          * Message sent by client to request keyrange metadata
          */
         KEYRANGE(false, false),
+
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for the ranges
          */
@@ -133,6 +139,8 @@ public interface KVMessage {
          * Set server metadata
          */
         ECS_SET_KEYRANGE(true, false),
+
+        ECS_ACK(false, false),
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for

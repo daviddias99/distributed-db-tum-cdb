@@ -31,6 +31,9 @@ public class Constants {
     public static final String TERMINATING_STR = "\r\n";
     public static final String THROWING_EXCEPTION_LOG_MESSAGE = "Throwing exception";
     public static final int CORE_POOL_SIZE = 3;
+    public static final int SERVER_POOL_SIZE = 3;
+    public static final int HEARTBEAT_TIMEOUT_MILLISECONDS = 700;
+    public static final int SECONDS_PER_PING = 1;
     private Constants() {
     }
 
