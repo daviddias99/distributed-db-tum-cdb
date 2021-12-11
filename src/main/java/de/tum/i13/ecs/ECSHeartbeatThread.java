@@ -1,18 +1,18 @@
 package de.tum.i13.ecs;
 
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.KVMessage.StatusType;
-import de.tum.i13.shared.Constants;
 
 /**
  * Class responsible for establishing a connection with a server and continuosly sending a HEARTBEAT
@@ -42,9 +42,13 @@ public class ECSHeartbeatThread extends ECSThread{
                    sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_HEART_BEAT), StatusType.SERVER_HEART_BEAT);
 
                 } catch( SocketTimeoutException ex){
-                    LOGGER.fatal("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket().getInetAddress());
+                    LOGGER.atFatal()
+                            .withThrowable(ex)
+                            .log("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket().getInetAddress());
                 } catch( IOException ex){
-                    LOGGER.fatal("Caught exception while reading from {}.", getSocket().getInetAddress());
+                    LOGGER.atFatal()
+                            .withThrowable(ex)
+                            .log("Caught exception while reading from {}.", getSocket().getInetAddress());
                 } catch( ECSException ex){
                     LOGGER.fatal("Caught ECSException of type " + ex.getType() + " when requesting heartbeat from " + getSocket().getInetAddress());
                 }
@@ -56,11 +60,7 @@ public class ECSHeartbeatThread extends ECSThread{
             scheduledExecutor.scheduleAtFixedRate(heartbeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
 
         } catch(IOException ex) {
-            LOGGER.fatal("Caught exception while establishing connection to {}.", getSocket().getInetAddress());
-        } finally{
-            //Remove server from the ExternalConfigurationService and update metadata
-            service.removeServer(getSocket().getInetAddress().getHostAddress(), getSocket().getPort());
-            scheduledExecutor.shutdownNow();
+            LOGGER.atFatal().withThrowable(ex).log("Caught exception while establishing connection to {}.", getSocket().getInetAddress());
         }
 //        finally{
 //            //Remove server from the ExternalConfigurationService and update metadata

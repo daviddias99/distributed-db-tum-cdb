@@ -30,9 +30,9 @@ public class ECSServerConnectionThread extends ECSThread{
             }
 
         } catch(CommunicationClientException ex) {
-            LOGGER.fatal("Caught exception while trying to read from {}.", getSocket().getInetAddress());
+            LOGGER.atFatal().withThrowable(ex).log("Caught exception while trying to read from {}.", getSocket().getInetAddress());
         } catch(Exception ex){
-            LOGGER.fatal("Caught exception while trying to close connection with {}.", getSocket().getInetAddress());
+            LOGGER.atFatal().withThrowable(ex).log("Caught exception while trying to close connection with {}.", getSocket().getInetAddress());
         }
     }
     

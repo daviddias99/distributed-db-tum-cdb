@@ -65,7 +65,7 @@ public class ECSThread implements Runnable {
                 try {
                     activeConnection.close();
                 } catch( Exception ex) {
-                    LOGGER.fatal("Caught exception, while closing ECS socket", ex);
+                    LOGGER.atFatal().withThrowable(ex).log("Caught exception, while closing ECS socket", ex);
                 }
             }));
         

@@ -66,30 +66,33 @@ public class ExternalConfigurationService {
      * @param port          the port of the server to be added to the {@link ConsistentHashRing} parameter.
      */
     public synchronized void addServer(String listenAddress, int port) throws ECSException {
-
         try {
             LOGGER.info("Trying to add a new server with address {} to the HashRing.", listenAddress);
+            final int numberOfServers = serverMap.getAllNetworkLocations().size();
             NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
-            NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
-                    .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
-                            "preceding server on ring"));
-            NetworkLocation nextInRing = serverMap.getSucceedingNetworkLocation(newServer)
-                    .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
-                            "succeeding server on ring"));
+            if (numberOfServers >= 2) {
+                NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
+                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
+                                "preceding server on ring"));
+                NetworkLocation nextInRing = serverMap.getSucceedingNetworkLocation(newServer)
+                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not find " +
+                                "succeeding server on ring"));
 
-            BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-            BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
+                BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
+                BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
 
-            LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
-            new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+                LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
+                new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+            }
             //What happens if HANDOFF fails?
 
-            serverMap.addNetworkLocation(new NetworkLocationImpl(listenAddress, port));
+            serverMap.addNetworkLocation(newServer);
             LOGGER.info("Added new server with address {} to the HashRing.", listenAddress);
             updateMetadata();
         } catch (IOException ex) {
             LOGGER.fatal("Unable to connect to " + listenAddress + " and create Handoff Thread.");
         }
+
     }
 
     /**

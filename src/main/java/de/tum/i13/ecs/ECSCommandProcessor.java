@@ -18,7 +18,7 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
     private final ExternalConfigurationService service;
 
-    public ECSCommandProcessor(ExternalConfigurationService service){
+    public ECSCommandProcessor(ExternalConfigurationService service) {
         this.service = service;
     }
 
@@ -35,28 +35,37 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
     }
 
     /**
-     * Method that adds a new server to {@link ExternalConfigurationService} metadata and establishes 
+     * Method that adds a new server to {@link ExternalConfigurationService} metadata and establishes
      * a HEARTBEAT connection {@link ECSHeartbeatThread} between the ECS and the new server.
-     * @param address Address of the new server to be added to the {@link ExternalConfigurationService}.
+     *
+     * @param address    Address of the new server to be added to the {@link ExternalConfigurationService}.
      * @param portString Port of the new server in String format.
      * @return A {@link KVMessage} indicating the status of the new server request.
      */
-    private KVMessage start(String address, String portString){
-        try{
+    private KVMessage start(String address, String portString) {
+        try {
             int port = Integer.parseInt(portString);
 
             //start HEARTBEAT thread
             Socket connection = new Socket(address, port);
             new ECSHeartbeatThread(service, connection).run();
+            service.addServer(address, port);
 
             //TODO Send back metadata? It will be sent anyway by the update message
             return new KVMessageImpl(StatusType.ECS_ACK);
 
-        } catch( IOException ex){
-            LOGGER.fatal("Caught exception while trying to connect to " + address + ":" + portString);
+        } catch (IOException ex) {
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Caught exception while trying to connect to {}:{}", address, portString);
             return new KVMessageImpl(StatusType.ERROR);
-        } catch( NumberFormatException ex){
-            LOGGER.fatal("Port number not valid while trying to connect to " + address + ":" + portString);
+        } catch (NumberFormatException ex) {
+            LOGGER.atFatal()
+                    .withThrowable(ex)
+                    .log("Port number not valid while trying to connect to {}:{}", address, portString);
+            return new KVMessageImpl(StatusType.ERROR);
+        } catch (ECSException e) {
+            LOGGER.fatal("Could not add new server");
             return new KVMessageImpl(StatusType.ERROR);
         }
     }
@@ -64,17 +73,18 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
     /**
      * Method to initiate the graceful removal of a server from {@link ExternalConfigurationService}, and handoff
      * of the relevant key-value pairs to the responsible server.
-     * @param address Address of the server that will shutdown.
+     *
+     * @param address    Address of the server that will shutdown.
      * @param portString Port of the server that will shut down, in String format.
      * @return A {@link KVMessage} with the status of the shutdown request.
      */
-    private KVMessage serverShutdown(String address, String portString){
-        try{
+    private KVMessage serverShutdown(String address, String portString) {
+        try {
             int port = Integer.parseInt(portString);
             service.removeServerAndHandoffData(address, port);
             return new KVMessageImpl(StatusType.ECS_ACK);
 
-        } catch( NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             LOGGER.fatal("Port number not valid while trying to shut down" + address + ":" + portString);
             return new KVMessageImpl(StatusType.ERROR);
         } catch (ECSException e) {

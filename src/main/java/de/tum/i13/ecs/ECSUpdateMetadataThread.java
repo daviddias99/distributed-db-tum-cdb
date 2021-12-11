@@ -23,13 +23,11 @@ public class ECSUpdateMetadataThread extends ECSThread{
     @Override
     public void run() {
         try {
-
             sendAndReceiveMessage(this.metadataMessage, StatusType.SERVER_ACK);
-
         } catch( IOException ex){
-            LOGGER.fatal("Caught exception while connection to {} from ECS.", getSocket().getInetAddress());
+            LOGGER.atFatal().withThrowable(ex).log("Caught exception while connection to {} from ECS.", getSocket().getInetAddress());
         } catch( ECSException ex){
-            LOGGER.fatal("Caught " + ex.getType() + " exception while communicating with server {}. " + ex.getMessage(), getSocket().getInetAddress());
+            LOGGER.atFatal().withThrowable(ex).log("Caught " + ex.getType() + " exception while communicating with server {}. " + ex.getMessage(), getSocket().getInetAddress());
         }
         
     }
