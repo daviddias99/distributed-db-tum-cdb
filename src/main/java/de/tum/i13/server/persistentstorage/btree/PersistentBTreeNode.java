@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
@@ -98,7 +99,7 @@ public class PersistentBTreeNode<V> implements Serializable {
         Chunk<V> chunk = this.getChunk();
 
         // Find the first key greater than or equal to key
-        int i = chunk.findIndexOfFirstGreaterThen(key);
+        int i = chunk.findIndexOfFirstGreaterOrEqualThen(key);
 
         if (i < this.elementCount) {
             Pair<V> pair = chunk.get(i);
@@ -122,6 +123,43 @@ public class PersistentBTreeNode<V> implements Serializable {
 
         // Go to the appropriate child
         return children.get(i).search(key, insert, value);
+    }
+
+    /**
+     * Searches for key-value pairs in the range [lowerBound-upperBound] (limits
+     * included)
+     * 
+     * @param lowerBound lower bound for keys
+     * @param upperBound upper bounds for keys
+     * @return key-value pairs with keys in range [lowerBound-upperBound] in the
+     *         subtree rooted in the current node
+     * @throws StorageException An exception is thrown if a problem occurs
+     *                          with persistent storage.
+     */
+    LinkedList<Pair<V>> searchRange(String lowerBound, String upperBound) throws StorageException {
+        LinkedList<Pair<V>> result = new LinkedList<>();
+        Chunk<V> chunk = this.getChunk();
+
+        int i = chunk.findIndexOfFirstGreaterOrEqualThen(lowerBound);
+        int j = chunk.findIndexOfFirstGreaterThen(upperBound);
+
+        for (; i < Math.min(this.elementCount, j); i++) {
+            Pair<V> pair = chunk.get(i);
+
+            if (!this.leaf && !pair.key.equals(lowerBound)) {
+                result.addAll(this.children.get(i).searchRange(lowerBound, upperBound));
+            }
+
+            result.addLast(pair);
+        }
+
+        chunk.releaseStoredElements();
+
+        // Print the subtree rooted with last child
+        if (!this.leaf && (i == this.elementCount || i == j))
+            result.addAll(this.children.get(i).searchRange(lowerBound, upperBound));
+
+        return result;
     }
 
     /**

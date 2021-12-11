@@ -5,7 +5,6 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
@@ -88,7 +87,7 @@ public class TestTransactions {
         this.doManualInsTransRolTransCycle("F", "A");
     }
 
-    @RepeatedTest(5)
+    @Test
     void rollbackOnInsertStressTest() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -138,7 +137,7 @@ public class TestTransactions {
         this.doManualDelTransRolTransCycle("N");
     }
 
-    @RepeatedTest(5)
+    @Test
     void rollbackOnDeleteComplex() throws StorageException, PersistentBTreeException {
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
 

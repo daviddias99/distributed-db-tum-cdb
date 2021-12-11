@@ -61,16 +61,25 @@ public class ChunkImpl<V> implements Chunk<V> {
     }
 
     /**
-     * Finds index that contains the first element with a key greater than
+     * Finds index that contains the first element with a key greater or equal than
      * {@code key}
      * 
      * @param key key to check
-     * @return index of first element with a key greater than {@code key}
+     * @return index of first element with a key greater or equal than {@code key}
      */
-    public int findIndexOfFirstGreaterThen(String key) {
+    public int findIndexOfFirstGreaterOrEqualThen(String key) {
         int i = 0;
         int n = this.getElementCount();
         while (i < n && key.compareTo(elements.get(i).key) > 0)
+            i++;
+
+        return i;
+    }
+
+    public int findIndexOfFirstGreaterThen(String key) {
+        int i = 0;
+        int n = this.getElementCount();
+        while (i < n && key.compareTo(elements.get(i).key) >= 0)
             i++;
 
         return i;

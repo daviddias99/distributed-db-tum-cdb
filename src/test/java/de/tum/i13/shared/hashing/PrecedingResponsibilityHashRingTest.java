@@ -1,15 +1,13 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.net.NetworkLocation;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,29 +24,19 @@ import static org.mockito.Mockito.withSettings;
 @ExtendWith(MockitoExtension.class)
 class PrecedingResponsibilityHashRingTest {
 
-    public static final String NEEDS_LOCATION_STUBBING = "needs_location_stubbing";
-    private static final String IGNORED_STRING = "ignoredString";
-    private static final String STRING_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
+    static final String IGNORED_STRING = "ignoredString";
     @Mock
-    private HashingAlgorithm hashingAlgorithm;
-    private PrecedingResponsibilityHashRing hashRing;
+    HashingAlgorithm hashingAlgorithm;
+    PrecedingResponsibilityHashRing hashRing;
     @Mock(name = "Location 1")
-    private NetworkLocation location1;
+    NetworkLocation location1;
     @Mock(name = "Location 2")
-    private NetworkLocation location2;
+    NetworkLocation location2;
     @Mock(name = "Location 3")
-    private NetworkLocation location3;
+    NetworkLocation location3;
 
     @BeforeEach
-    void setupHashRing(TestInfo testInfo) {
-        if (testInfo.getTags().contains(NEEDS_LOCATION_STUBBING)) {
-            Map.of(location1, 1, location2, 2, location3, 3)
-                    .forEach((location, number) -> {
-                        when(location.getAddress()).thenReturn("location" + number);
-                        when(location.getPort()).thenReturn(number);
-                    });
-        }
-
+    void setupHashRing() {
         // Add three network locations with hashes 2, 4, and 7
         final NavigableMap<BigInteger, NetworkLocation> networkLocationMap = new TreeMap<>();
         hashRing = mock(PrecedingResponsibilityHashRing.class,
@@ -61,8 +48,10 @@ class PrecedingResponsibilityHashRingTest {
         assertThat(hashRing.getHashingAlgorithm())
                 .isEqualTo(hashingAlgorithm);
 
-        when(hashingAlgorithm.hash(any(NetworkLocation.class)))
-                .thenReturn(BigInteger.valueOf(2), BigInteger.valueOf(4));
+        when(hashingAlgorithm.hash(location1))
+                .thenReturn(BigInteger.valueOf(2));
+        when(hashingAlgorithm.hash(location2))
+                .thenReturn(BigInteger.valueOf(4));
         List.of(location1, location2)
                 .forEach(hashRing::addNetworkLocation);
         hashRing.addNetworkLocation(BigInteger.valueOf(7), location3);
@@ -97,24 +86,75 @@ class PrecedingResponsibilityHashRingTest {
                 .hasValue(location1);
     }
 
-    @Test
-    @Tag(NEEDS_LOCATION_STUBBING)
-    void packsMetadata() {
-        assertThat(hashRing.packMessage())
-                .isEqualTo(STRING_REPRESENTATION);
+    @Nested
+    class WithLocationsStubbedTest {
+
+        static final String STRING_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
+
+        @BeforeEach
+        void stubLocations() {
+            Map.of(location1, 1, location2, 2, location3, 3)
+                    .forEach((location, number) -> {
+                        when(location.getAddress()).thenReturn("location" + number);
+                        when(location.getPort()).thenReturn(number);
+                    });
+        }
+
+        @Test
+        void packsMetadata() {
+            assertThat(hashRing.packMessage())
+                    .isEqualTo(STRING_REPRESENTATION);
+        }
+
+        @Test
+        void packsOnToString() {
+            assertThat(hashRing)
+                    .hasToString(STRING_REPRESENTATION);
+        }
+
+    }
+
+    @Nested
+    class WithAdditionalLocationTest {
+
+        @Mock(name = "My network location")
+        NetworkLocation additionalLocation;
+
+        @BeforeEach
+        void stubAdditionalLocation() {
+            when(hashingAlgorithm.hash(additionalLocation))
+                    .thenReturn(BigInteger.valueOf(3));
+        }
+
+        @Test
+        void getsPrecedingNetworkLocation() {
+            assertThat(hashRing.getPrecedingNetworkLocation(additionalLocation))
+                    .hasValue(location1);
+        }
+
+        @Test
+        void getsSucceedingNetworkLocation() {
+            assertThat(hashRing.getSucceedingNetworkLocation(additionalLocation))
+                    .hasValue(location2);
+        }
+
+        @Test
+        void doesNotContainUnknownLocation() {
+            assertThat(hashRing.contains(additionalLocation))
+                    .isFalse();
+        }
+
+
     }
 
     @Test
-    @Tag(NEEDS_LOCATION_STUBBING)
-    void packsOnToString() {
-        assertThat(hashRing)
-                .hasToString(STRING_REPRESENTATION);
+    void containsKnownLocation() {
+        assertThat(hashRing.contains(location1))
+                .isTrue();
     }
 
     @Test
-    void removesLocation(@Mock(name = "My network location") NetworkLocation location) {
-        when(hashingAlgorithm.hash(location))
-                .thenReturn(BigInteger.valueOf(4));
+    void removesLocation() {
         when(hashingAlgorithm.hash(anyString()))
                 .thenReturn(BigInteger.valueOf(3));
 
@@ -122,11 +162,12 @@ class PrecedingResponsibilityHashRingTest {
                 .get()
                 .isEqualTo(location2);
 
-        hashRing.removeNetworkLocation(location);
+        hashRing.removeNetworkLocation(location2);
 
         assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
                 .get()
                 .isEqualTo(location3);
     }
+
 
 }

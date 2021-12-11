@@ -1,6 +1,7 @@
 package de.tum.i13.server.threadperconnection;
 
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.ConnectionHandler;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.ActiveConnection;
 import de.tum.i13.shared.net.CommunicationClientException;
@@ -15,46 +16,61 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+/**
+ * Runnable that handles a new connection to the server
+ */
 public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
 
-    private CommandProcessor cp;
+    private CommandProcessor<String> cp;
     private Socket clientSocket;
     private InetSocketAddress serverAddress;
-    private ActiveConnection activeConnection;
-    private BufferedReader in;
-    private PrintWriter out;
+    private ConnectionHandler connectionHandler;
 
-    public ConnectionHandleThread(CommandProcessor commandProcessor, Socket clientSocket,
-                                  InetSocketAddress serverAddress) {
+    /**
+     * Create new connection handler
+     * @param commandProcessor  command processor for incoming messages
+     * @param connectionHandler handler for accepted and closing messages
+     * @param clientSocket socket of incoming communication
+     * @param serverAddress address of server socket
+     */
+    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
+            InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;
         this.serverAddress = serverAddress;
+        this.connectionHandler = connectionHandler;
     }
 
     @Override
     public void run() {
         try {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
-            out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING));
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
+            PrintWriter out = new PrintWriter(
+                    new OutputStreamWriter(clientSocket.getOutputStream(), Constants.TELNET_ENCODING));
 
-            activeConnection = new ActiveConnection(clientSocket, out, in);
+            ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
+            // Send a confirmation message to peer upon connection if he needs the greet
 
-            //Send a confirmation message to client upon connection
-            String connSuccess = cp.connectionAccepted(this.serverAddress,
-                    (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-            activeConnection.send(connSuccess);
+                LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
 
-            //read messages from client and process using the CommandProcessor 
+                String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
+                        (InetSocketAddress) clientSocket.getRemoteSocketAddress());
+                activeConnection.send(connSuccess);
+
+            // read messages from client and process using the CommandProcessor
             String firstLine;
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
+                LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
                 activeConnection.send(response);
             }
 
+            LOGGER.info("({}) Closing connection", Thread.currentThread().getName());
             activeConnection.close();
-            cp.connectionClosed(clientSocket.getInetAddress());
+            connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
         } catch (IOException ex) {
             LOGGER.atFatal()

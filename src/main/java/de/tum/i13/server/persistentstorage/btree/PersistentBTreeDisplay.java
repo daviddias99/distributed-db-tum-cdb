@@ -4,12 +4,17 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 
+/**
+ * Display functions
+ */
 public class PersistentBTreeDisplay<V> {
-    /*
-     * Display functions
-     */
 
-    // function to traverse the tree
+    /**
+     * Used to traverse the tree
+     * 
+     * @param tree tree to traverse
+     * @return string containing the tree traversal
+     */
     String traverse(PersistentBTree<V> tree) {
         StringBuilder result = new StringBuilder();
         PersistentBTreeNodeDisplay nodeDisplay = new PersistentBTreeNodeDisplay();
@@ -18,6 +23,12 @@ public class PersistentBTreeDisplay<V> {
         return result.toString();
     }
 
+    /**
+     * Used to traverse the tree, showing summary information
+     * 
+     * @param tree tree to traverse
+     * @return string containing the tree traversal
+     */
     String traverseCondensed(PersistentBTree<V> tree) {
         StringBuilder result = new StringBuilder();
 
@@ -28,6 +39,12 @@ public class PersistentBTreeDisplay<V> {
 
     }
 
+    /**
+     * Used to traverse the tree, showing complete information
+     * 
+     * @param tree tree to traverse
+     * @return string containing the tree traversal
+     */
     String traverseSpecial(PersistentBTree<V> tree) {
         StringBuilder result = new StringBuilder();
 
@@ -75,7 +92,7 @@ public class PersistentBTreeDisplay<V> {
         }
 
         // A function to traverse all nodes in a subtree rooted with this node
-        void traverseCondensed(PersistentBTreeNode<V> node, StringBuilder result) {
+        private void traverseCondensed(PersistentBTreeNode<V> node, StringBuilder result) {
 
             // There are n keys and n+1 children, traverse through n keys
             // and first n children

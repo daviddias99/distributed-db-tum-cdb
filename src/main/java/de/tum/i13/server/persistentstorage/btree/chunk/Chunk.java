@@ -13,6 +13,15 @@ import java.util.List;
  */
 public interface Chunk<V> extends Serializable{
     /**
+     * Finds index that contains the first element with a key greater or equal than
+     * {@code key}
+     * 
+     * @param key key to check
+     * @return index of first element with a key greater than {@code key}
+     */
+    public int findIndexOfFirstGreaterOrEqualThen(String key);
+
+    /**
      * Finds index that contains the first element with a key greater than
      * {@code key}
      * 

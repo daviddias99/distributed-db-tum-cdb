@@ -1,38 +1,49 @@
 package de.tum.i13.server.persistentstorage.btree;
 
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
- * by ({@link PersistentBTree}) to provided a {@link PersistentStorage}
+ * by ({@link PersistentBTree}) to provide a {@link PersistentStorage}.
  */
 public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
     private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
-    private PersistentBTree<String> tree;
+    private PersistentBTree<Pair<String>> tree;
+
+    private HashingAlgorithm hashAlg;
 
     /**
-     * Create a new B-Tree with a given minum degree (see {@link PersistentBTree}).
+     * Create a new B-Tree with a given minimum degree (see
+     * {@link PersistentBTree}).
      * Storage handler is also configurable. First there is an attempt to load the
      * tree, if it fails, a new tree is created.
      * 
-     * @param minimumDegree  B-Tree minimum degree
-     * @param storageHandler Handler used by the BTree to persist
+     * @param minimumDegree    B-Tree minimum degree
+     * @param storageHandler   Handler used by the BTree to persist
+     * @param hashingAlgorithm algorithm to be use to hash data uses as key in BTree
+     * 
      * @throws StorageException An exception is thrown when an error occures while
      *                          saving tree to persistent storage
      */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<String> storageHandler)
+    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler,
+            HashingAlgorithm hashingAlgorithm)
             throws StorageException {
         try {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler);
@@ -43,6 +54,30 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         if (this.tree == null) {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler);
         }
+
+        this.hashAlg = hashingAlgorithm;
+    }
+
+    /**
+     * Create a new B-Tree with a given minimum degree (see
+     * {@link PersistentBTree}).
+     * Storage handler is also configurable. First there is an attempt to load the
+     * tree, if it fails, a new tree is created.
+     * 
+     * @param minimumDegree  B-Tree minimum degree
+     * @param storageHandler Handler used by the BTree to persist
+     *
+     * @throws StorageException An exception is thrown when an error occures while
+     *                          saving tree to persistent storage
+     */
+    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler)
+            throws StorageException {
+        this(minimumDegree, storageHandler, new MD5HashAlgorithm());
+    }
+
+    private String normalizeKey(String key) {
+        String intermediate = this.hashAlg.hash(key).toString(16);
+        return "00000000000000000000000000000000".substring(intermediate.length()) + intermediate;
     }
 
     @Override
@@ -51,14 +86,14 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         LOGGER.info("Trying to get value of key {}", key);
 
         try {
-            String value = this.tree.search(key);
+            Pair<String> keyValue = this.tree.search(this.normalizeKey(key));
 
-            if (value == null) {
+            if (keyValue == null) {
                 LOGGER.info("No value with key {}", key);
                 return new KVMessageImpl(key, KVMessage.StatusType.GET_ERROR);
             }
-            LOGGER.info("Found value {} with key {}", value, key);
-            return new KVMessageImpl(key, value, KVMessage.StatusType.GET_SUCCESS);
+            LOGGER.info("Found value {} with key {}", keyValue.value, key);
+            return new KVMessageImpl(keyValue.key, keyValue.value, KVMessage.StatusType.GET_SUCCESS);
         } catch (Exception e) {
             throw new GetException("An error occured while fetching key %s from storage.", key);
         }
@@ -71,7 +106,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         try {
             if (value == null) {
                 LOGGER.info("Trying to delete key {}", key);
-                boolean deleted = this.tree.remove(key);
+                boolean deleted = this.tree.remove(this.normalizeKey(key));
                 LOGGER.info("Deleted key {}", key);
 
                 return deleted ? new KVMessageImpl(key, KVMessage.StatusType.DELETE_SUCCESS)
@@ -80,11 +115,11 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
 
             LOGGER.info("Trying to put key {} with value {}", key, value);
 
-            String previousValue = this.tree.insert(key, value);
+            Pair<String> previousValue = this.tree.insert(this.normalizeKey(key), new Pair<>(key, value));
 
             // Note: this returns a PUT_SUCCESS if the value already exists but is updated
             // with the same value.
-            if (!value.equals(previousValue) && previousValue != null) {
+            if (previousValue != null && !value.equals(previousValue.value)) {
                 LOGGER.info("Updated key {} with value {}", key, value);
 
                 return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
@@ -113,5 +148,16 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
      */
     public synchronized void reopen() {
         this.tree.reopen();
+    }
+
+    @Override
+    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+        try {
+            return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+                    upperBound);
+        }
     }
 }
