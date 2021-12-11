@@ -59,21 +59,20 @@ public class ECSThread implements Runnable {
     private void setUpCommunication(NetworkLocation serverLocation) throws IOException{
         LOGGER.info("Trying to set up communication with server {}", serverLocation.getAddress());
 
-        try (Socket socket = new Socket(serverLocation.getAddress(), serverLocation.getPort())) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                LOGGER.info("Closing ECS connection to {}.", serverLocation.getAddress());
-                try {
-                    activeConnection.close();
-                } catch( Exception ex) {
-                    LOGGER.fatal("Caught exception, while closing ECS socket", ex);
-                }
-            }));
-        
-            this.socket = socket;
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
-            activeConnection = new ActiveConnection(socket, out, in);   
-        }
+        Socket socket = new Socket(serverLocation.getAddress(), serverLocation.getPort());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Closing ECS connection to {}.", serverLocation.getAddress());
+            try {
+                activeConnection.close();
+            } catch( Exception ex) {
+                LOGGER.fatal("Caught exception, while closing ECS socket", ex);
+            }
+        }));
+    
+        this.socket = socket;
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
+        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
+        activeConnection = new ActiveConnection(socket, out, in);   
     }
 
     /**

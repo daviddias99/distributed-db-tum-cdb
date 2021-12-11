@@ -49,16 +49,21 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
             Socket connection = new Socket(address, port);
             new ECSHeartbeatThread(service, connection).run();
 
-            //TODO Send back metadata? It will be sent anyway by the update message
+            //add server to the hash ring
+            service.addServer(address, port);
+
+            //send back ACK message to server
             return new KVMessageImpl(StatusType.ECS_ACK);
 
         } catch( IOException ex){
             LOGGER.fatal("Caught exception while trying to connect to " + address + ":" + portString);
-            return new KVMessageImpl(StatusType.ERROR);
         } catch( NumberFormatException ex){
             LOGGER.fatal("Port number not valid while trying to connect to " + address + ":" + portString);
-            return new KVMessageImpl(StatusType.ERROR);
+        } catch( ECSException ex){
+            LOGGER.fatal("Caught ECSException while adding server to the ring.");
         }
+
+        return new KVMessageImpl(StatusType.ERROR);
     }
 
     /**

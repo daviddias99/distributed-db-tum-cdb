@@ -33,6 +33,19 @@ public class ECSHeartbeatThread extends ECSThread{
 
     @Override
     public void run() {
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Closing ECS connection to {}.", getSocket().getInetAddress());
+            try {
+                scheduledExecutor.shutdownNow();
+
+                //remove the server from the hash ring
+                service.removeServer(getSocket().getInetAddress().toString(), getSocket().getPort());
+            } catch( Exception ex) {
+                LOGGER.fatal("Caught exception, while closing ECS socket", ex);
+            }
+        }));
+
         try {
             //set up the executor service to send the heartbeat message every second
             scheduledExecutor = Executors.newScheduledThreadPool(0);
@@ -42,10 +55,13 @@ public class ECSHeartbeatThread extends ECSThread{
                    sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_HEART_BEAT), StatusType.SERVER_HEART_BEAT);
 
                 } catch( SocketTimeoutException ex){
+                    scheduledExecutor.shutdownNow();
                     LOGGER.fatal("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket().getInetAddress());
                 } catch( IOException ex){
+                    scheduledExecutor.shutdownNow();
                     LOGGER.fatal("Caught exception while reading from {}.", getSocket().getInetAddress());
                 } catch( ECSException ex){
+                    scheduledExecutor.shutdownNow();
                     LOGGER.fatal("Caught ECSException of type " + ex.getType() + " when requesting heartbeat from " + getSocket().getInetAddress());
                 }
             };
@@ -57,10 +73,6 @@ public class ECSHeartbeatThread extends ECSThread{
 
         } catch(IOException ex) {
             LOGGER.fatal("Caught exception while establishing connection to {}.", getSocket().getInetAddress());
-        } finally{
-            //Remove server from the ExternalConfigurationService and update metadata
-            service.removeServer(getSocket().getInetAddress().getHostAddress(), getSocket().getPort());
-            scheduledExecutor.shutdownNow();
         }
     }
 }
