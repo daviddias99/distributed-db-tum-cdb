@@ -56,10 +56,10 @@ public class ECSCommandProcessor implements CommandProcessor {
             return new KVMessageImpl(StatusType.ECS_ACK);
 
         } catch( IOException ex){
-            LOGGER.fatal("Caught exception while trying to connect to" + address + ":" + portString);
+            LOGGER.fatal("Caught exception while trying to connect to " + address + ":" + portString);
             return new KVMessageImpl(StatusType.SERVER_START_ERROR);
         } catch( NumberFormatException ex){
-            LOGGER.fatal("Port number not valid while trying to connect to" + address + ":" + portString);
+            LOGGER.fatal("Port number not valid while trying to connect to " + address + ":" + portString);
             return new KVMessageImpl(StatusType.SERVER_START_ERROR);
         }
     }

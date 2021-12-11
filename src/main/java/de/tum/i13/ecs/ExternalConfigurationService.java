@@ -6,6 +6,7 @@ import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.NetworkLocationImpl;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.NavigableMap;
 import java.util.concurrent.ExecutorService;
@@ -64,21 +65,25 @@ public class ExternalConfigurationService {
      */
     public synchronized void addServer(String listenAddress, int port){
 
-        LOGGER.info("Trying to add a new server with address {} to the HashRing.", listenAddress);
-        NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
-        NetworkLocation previousInRing = serverMap.getPreviousNetworkLocation(newServer);
-        NetworkLocation nextInRing = serverMap.getNextNetworkLocation(newServer);
+        try{
+            LOGGER.info("Trying to add a new server with address {} to the HashRing.", listenAddress);
+            NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
+            NetworkLocation previousInRing = serverMap.getPreviousNetworkLocation(newServer);
+            NetworkLocation nextInRing = serverMap.getNextNetworkLocation(newServer);
 
-        BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-        BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
-        
-        LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
-        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
-        //What happens if HANDOFF fails?
+            BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
+            BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
+            
+            LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
+            new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+            //What happens if HANDOFF fails?
 
-        serverMap.addNetworkLocation(new NetworkLocationImpl(listenAddress, port));
-        LOGGER.info("Added new server with address {} to the HashRing.", listenAddress);
-        updateMetadata();
+            serverMap.addNetworkLocation(new NetworkLocationImpl(listenAddress, port));
+            LOGGER.info("Added new server with address {} to the HashRing.", listenAddress);
+            updateMetadata();
+        } catch( IOException ex){
+            LOGGER.fatal("Unable to connect to " + listenAddress + " and create Handoff Thread.");
+        }
     }
 
     /**
@@ -108,38 +113,46 @@ public class ExternalConfigurationService {
     public synchronized void removeServerAndHandoffData(String listenAddress, int port){
 
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
+        try{
+            //Initiate handoff from old server to successor
+            NetworkLocation oldServer = new NetworkLocationImpl(listenAddress, port);
+            NetworkLocation previousInRing = serverMap.getPreviousNetworkLocation(oldServer);
+            NetworkLocation nextInRing = serverMap.getNextNetworkLocation(oldServer);
 
-        //Initiate handoff from old server to successor
-        NetworkLocation oldServer = new NetworkLocationImpl(listenAddress, port);
-        NetworkLocation previousInRing = serverMap.getPreviousNetworkLocation(oldServer);
-        NetworkLocation nextInRing = serverMap.getNextNetworkLocation(oldServer);
+            BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
+            BigInteger upperBound = serverMap.getHashingAlgorithm().hash(oldServer);
 
-        BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-        BigInteger upperBound = serverMap.getHashingAlgorithm().hash(oldServer);
+            LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
+            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
 
-        LOGGER.info("Initiating Handoff between " + listenAddress + " and " + nextInRing.getAddress());
-        new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
-
-        serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
-        LOGGER.info("Removed server with address {} from the ring.", listenAddress);
-        updateMetadata();
+            serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
+            LOGGER.info("Removed server with address {} from the ring.", listenAddress);
+            updateMetadata();
+        } catch( IOException ex){
+            LOGGER.fatal("Unable to connect to " + listenAddress + " and create Handoff Thread.");
+        }
     }
 
     private void updateMetadata(){
-        LOGGER.info("Trying to update the metadata of all servers in the ring.");
-        ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
-        
-        //get the list of server to send the update message to
-        NavigableMap<BigInteger, NetworkLocation> map = serverMap.getNavigableMap();
+        try{
 
-        //prepare the metadata information in String format
-        String metadata = serverMap.packMessage();
+            LOGGER.info("Trying to update the metadata of all servers in the ring.");
+            ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
+            
+            //get the list of server to send the update message to
+            NavigableMap<BigInteger, NetworkLocation> map = serverMap.getNavigableMap();
 
-        for(NetworkLocation location: map.values()){
-            executor.submit( new ECSUpdateMetadataThread(location, metadata));
+            //prepare the metadata information in String format
+            String metadata = serverMap.packMessage();
+
+            for(NetworkLocation location: map.values()){
+                executor.submit( new ECSUpdateMetadataThread(location, metadata));
+            }
+
+            executor.shutdown();
+        } catch( IOException ex){
+            LOGGER.fatal("Unable to create Update Metadata Thread.");
         }
-
-        executor.shutdown();
     }
 
 }

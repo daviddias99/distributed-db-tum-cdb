@@ -117,7 +117,9 @@ public interface KVMessage {
         /**
          * Metadata information on message.key
          */
-        ECS_UPDATE_METADATA(true, false);
+        ECS_UPDATE_METADATA(true, false),
+        
+        SERVER_METADATA_SUCCESS(false, false);
 
 
         private final boolean needsKey;

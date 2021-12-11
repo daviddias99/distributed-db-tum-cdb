@@ -6,12 +6,16 @@ import static de.tum.i13.shared.LogSetup.setupLogging;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOError;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import javax.imageio.IIOException;
 
 /**
  * Class that is responsible to listen for connections from new server that will join the ring.
@@ -58,9 +62,8 @@ public class ExternalConfigurationServer {
                 // start a new Thread for this connection
                 executor.submit(new ECSServerConnectionThread(new ECSCommandProcessor(service), serverSocket));
             }
-        } catch (IOException ex) {
+        } catch( IOException ex) {
             LOGGER.fatal("Caught exception while accepting server requests for ECS", ex);
-            LOGGER.info("Closing ECS executor service");
             executor.shutdown();
         }
     }

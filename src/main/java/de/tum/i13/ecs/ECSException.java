@@ -1,5 +1,8 @@
 package de.tum.i13.ecs;
 
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.shared.Preconditions;
+
 /**
  * An Exception thrown when the communication between {@link ExternalConfigurationService} and server is not as expected
  */
@@ -9,8 +12,18 @@ public class ECSException extends Exception{
     private final String message;
 
     public ECSException(Type type, String message){
+        Preconditions.notNull(type);
+        Preconditions.notNull(message);
+
         this.type = type;
         this.message = message;
+    }
+
+    public ECSException(Type type){
+        Preconditions.notNull(type);
+        
+        this.type = type;
+        this.message = "No message provided";
     }
 
     /**
@@ -29,6 +42,17 @@ public class ECSException extends Exception{
         return this.type;
     }
 
+    public static ECSException determineECSException(KVMessage.StatusType expectedType){
+        ECSException exception = switch(expectedType){
+            case SERVER_HANDOFF_SUCCESS -> new ECSException(Type.HANDOFF_FAILURE);
+            case SERVER_ACK -> new ECSException(Type.NO_ACK_RECEIVED);
+            case SERVER_METADATA_SUCCESS -> new ECSException(Type.UPDATE_METADATA_FAILURE);
+            default -> new ECSException(Type.UNEXPECTED_RESPONSE);
+        };
+
+        return exception;
+    }
+
 
     public enum Type{
         /**
@@ -42,7 +66,15 @@ public class ECSException extends Exception{
         /**
          * Indicates that Handoff of key-value servers failed or no acknowledgment was sent to ECS.
          */
-        HANDOFF_FAILURE;
+        HANDOFF_FAILURE,
+        /**
+         * Indicates that the creation of a communication thread was not successful
+         */
+        THREAD_CREATION_FAILURE,
+        /**
+         * Indicates that the metadata of the server could not be updated by ECS. 
+         */
+        UPDATE_METADATA_FAILURE;
     }
     
 }
