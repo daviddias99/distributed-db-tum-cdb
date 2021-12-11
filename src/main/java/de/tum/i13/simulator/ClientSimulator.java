@@ -18,25 +18,22 @@ public class ClientSimulator implements Runnable {
   LinkedList<Pair<String>> toSend = new LinkedList<>();
   LinkedList<Pair<String>> sent = new LinkedList<>();
 
-  long putTime = 0;
-  long getTime = 0;
-  long deleteTime = 0;
-  int putCount = 0;
-  int getCount = 0;
-  int deleteCount = 0;
-  int putFailCount = 0;
-  int getFailCount = 0;
-  int deleteFailCount = 0;
   int totalEmailCount;
-
   String serverAddress;
   int serverPort;
+  boolean stop = false;
 
   CommandLine cmd;
+
+  ClientStats stats;
+
+  private static final double NANOS_PER_SECOND = 1000000000;
+
 
   public ClientSimulator(Path emailDir, String serverAddress, int serverPort) {
     this.serverAddress = serverAddress;
     this.serverPort = serverPort;
+    this.stats = new ClientStats();
 
     this.setupEmails(emailDir);
   }
@@ -58,7 +55,7 @@ public class ClientSimulator implements Runnable {
           .setErr(temp)
           .setExitCodeExceptionMapper(new ExitCodeMapper())
           .setCaseInsensitiveEnumValuesAllowed(true);
-      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel error"));
+      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
       exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
 
       if(exitCode != 20) {
@@ -78,12 +75,15 @@ public class ClientSimulator implements Runnable {
     int exitCode = cmd.execute(KVMessage.extractTokens(String.format("get %s",email.key)));
     long time2 = System.nanoTime();
 
-    getTime += time2 - time1;
-    getCount++;
+    boolean fail = false;
 
     if(exitCode != 20) {
-      System.out.println(exitCode);
-      getFailCount++;
+      System.out.println(String.format("Get failed with exit code %d", exitCode));
+      fail = true;
+    }
+
+    synchronized(this.stats) {
+      this.stats.get((time2 - time1)/NANOS_PER_SECOND, fail);
     }
   }
 
@@ -96,15 +96,18 @@ public class ClientSimulator implements Runnable {
     int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, email.value)));
     long time2 = System.nanoTime();
 
-    putTime += time2 - time1;
-    putCount++;
+    boolean fail = false;
 
     if (exitCode != 20) {
-      System.out.println(exitCode);
-      putFailCount++;
+      System.out.println(String.format("Put failed with exit code %d", exitCode));
+      fail = true;
     } else {
       toSend.remove(toSendIndex);
       sent.addLast(email);
+    }
+
+    synchronized(this.stats) {
+      this.stats.put((time2 - time1)/NANOS_PER_SECOND, fail);
     }
   }
 
@@ -117,15 +120,18 @@ public class ClientSimulator implements Runnable {
     int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s null", email.key)));
     long time2 = System.nanoTime();
 
-    deleteTime += time2 - time1;
-    deleteCount++;
-
+    boolean fail = false;
+;
     if (exitCode != 20) {
-      System.out.println(exitCode);
-      deleteFailCount++;
+      System.out.println(String.format("Delete failed with exit code %d", exitCode));
+      fail = true;
     } else {
       sent.remove(toDeleteIndex);
       toSend.addLast(email);
+    }
+  
+    synchronized(this.stats) {
+      this.stats.delete((time2 - time1)/NANOS_PER_SECOND, fail);
     }
   }
 
@@ -133,14 +139,14 @@ public class ClientSimulator implements Runnable {
   public void run() {
     this.setupConnection();
 
-    while (true) {
+    while (!Thread.interrupted()) {
       try {
         Thread.sleep(300);
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        Thread.currentThread().interrupt();
+        System.out.println("Client Simulator interrupted while sleeping");
       }
-      this.print();
+
       if (this.sent.size() < 0.4 * this.totalEmailCount) {
         this.putRandom();
         continue;
@@ -155,15 +161,8 @@ public class ClientSimulator implements Runnable {
       } else{
         this.deleteRandom();
       }
-
-
     }
   }
 
-  private void print() {
-    System.out.println(">> STATE");
-    System.out.println(String.format("GET(%d, %d, %d)", getCount, getFailCount, getTime));
-    System.out.println(String.format("PUT(%d, %d, %d)", putCount, putFailCount, putTime));
-    System.out.println(String.format("DELETE(%d, %d, %d)", deleteCount, deleteFailCount, deleteTime));
-  }
+
 }
