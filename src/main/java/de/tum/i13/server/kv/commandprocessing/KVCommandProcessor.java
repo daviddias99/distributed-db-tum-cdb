@@ -61,7 +61,11 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         }
 
         response = response == null ? new KVMessageImpl(KVMessage.StatusType.ERROR) : response;
-        LOGGER.info("Response processing '{}' -> '{}'", command, response);
+
+        if(response.getStatus() != StatusType.SERVER_HEART_BEAT) {
+            LOGGER.info("Response processing '{}' -> '{}'", command, response);
+        }
+
         return response.toString();
     }
 }

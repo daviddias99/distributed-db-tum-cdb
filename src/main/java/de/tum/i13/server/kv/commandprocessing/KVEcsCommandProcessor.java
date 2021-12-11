@@ -65,7 +65,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   private KVMessage heartBeat() {
-    LOGGER.info("Acknowleging heartbeat");
+    LOGGER.trace("Acknowleging heartbeat");
     return new KVMessageImpl(KVMessage.StatusType.SERVER_HEART_BEAT);
   }
 

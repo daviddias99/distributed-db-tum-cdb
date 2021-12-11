@@ -23,27 +23,28 @@ public class ECSThread implements Runnable {
     private ActiveConnection activeConnection;
     private BufferedReader in;
     private PrintWriter out;
-    
 
-    public ECSThread(Socket socket) throws IOException{
+    public ECSThread(Socket socket) throws IOException {
         this.socket = socket;
         setUpCommunication(socket);
     }
 
-    public ECSThread(NetworkLocation location) throws IOException{
+    public ECSThread(NetworkLocation location) throws IOException {
         setUpCommunication(location);
     }
 
     @Override
-    public void run() {}
+    public void run() {
+    }
 
-    
     /**
-     * Sets up the input and output streams to connect to a server at the goven socket.
+     * Sets up the input and output streams to connect to a server at the goven
+     * socket.
+     * 
      * @param ecsSocket {@link Socket} socket for the communication.
      * @throws ECSException if communication cannot be established.
      */
-    private void setUpCommunication(Socket ecsSocket) throws IOException{
+    private void setUpCommunication(Socket ecsSocket) throws IOException {
         LOGGER.info("Trying to set up communication with server {}", ecsSocket.getInetAddress());
         in = new BufferedReader(new InputStreamReader(ecsSocket.getInputStream(), Constants.TELNET_ENCODING));
         out = new PrintWriter(new OutputStreamWriter(ecsSocket.getOutputStream(), Constants.TELNET_ENCODING));
@@ -51,50 +52,60 @@ public class ECSThread implements Runnable {
     }
 
     /**
-     * Creates a socket to communicate with the server at the given {@link NetworkLocation}. 
+     * Creates a socket to communicate with the server at the given
+     * {@link NetworkLocation}.
      * Sets up the input and output streams.
+     * 
      * @param ecsSocket {@link Socket} socket for the communication.
      * @throws ECSException if communication cannot be established.
      */
-    private void setUpCommunication(NetworkLocation serverLocation) throws IOException{
+    private void setUpCommunication(NetworkLocation serverLocation) throws IOException {
         LOGGER.info("Trying to set up communication with server {}", serverLocation.getAddress());
 
-        try (Socket socket = new Socket(serverLocation.getAddress(), serverLocation.getPort())) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                LOGGER.info("Closing ECS connection to {}.", serverLocation.getAddress());
-                try {
-                    activeConnection.close();
-                } catch( Exception ex) {
-                    LOGGER.atFatal().withThrowable(ex).log("Caught exception, while closing ECS socket", ex);
-                }
-            }));
-        
-            this.socket = socket;
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
-            activeConnection = new ActiveConnection(socket, out, in);   
-        }
+        Socket socket = new Socket(serverLocation.getAddress(), serverLocation.getPort());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Closing ECS connection to {}.", serverLocation.getAddress());
+            try {
+                activeConnection.close();
+            } catch (Exception ex) {
+                LOGGER.atFatal().withThrowable(ex).log("Caught exception, while closing ECS socket", ex);
+            }
+        }));
+
+        this.socket = socket;
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
+        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
+        activeConnection = new ActiveConnection(socket, out, in);
     }
 
     /**
-     * Sends a {@link KVMessage} message to the connected server and waits for a response. 
-     * Checks the {@link StatusType} of the response against a provided expected type.
-     * @param message a {@link KVMessage} object containing the message to be sent to server.
-     * @param expectedType the {@link StatusType} object with the expecetd type of the response {@link KVMessage}.
-     * @throws IOException if unable to read a response from the server.
+     * Sends a {@link KVMessage} message to the connected server and waits for a
+     * response.
+     * Checks the {@link StatusType} of the response against a provided expected
+     * type.
+     * 
+     * @param message      a {@link KVMessage} object containing the message to be
+     *                     sent to server.
+     * @param expectedType the {@link StatusType} object with the expecetd type of
+     *                     the response {@link KVMessage}.
+     * @throws IOException  if unable to read a response from the server.
      * @throws ECSException if communication is not as expected.
      */
-    protected void sendAndReceiveMessage(KVMessage message, KVMessage.StatusType expectedType) throws IOException, ECSException{
-        activeConnection.send(message.packMessage());  //send a message
+    protected void sendAndReceiveMessage(KVMessage message, KVMessage.StatusType expectedType)
+            throws IOException, ECSException {
+        activeConnection.send(message.packMessage()); // send a message
         waitForResponse(expectedType);
     }
 
     /**
      * Method to wait for a response and determine if the response is as expected.
-     * @param expectedType The {@link KVMessage.StatusType} type that the {@link KVMessage} response must have.
+     * 
+     * @param expectedType The {@link KVMessage.StatusType} type that the
+     *                     {@link KVMessage} response must have.
      * @return the {@link KVMessage} response received from the server.
-     * @throws IOException if unable to read from the connection.
-     * @throws ECSException if the expected response is different from what is received.
+     * @throws IOException  if unable to read from the connection.
+     * @throws ECSException if the expected response is different from what is
+     *                      received.
      */
     protected KVMessage waitForResponse(KVMessage.StatusType expectedType) throws IOException, ECSException {
         String response = null;
@@ -104,9 +115,9 @@ public class ECSThread implements Runnable {
             throw new IOException("Could not receive", exception);
         }
 
-        if( response == null || response == "-1"){
-            throw new ECSException( ECSException.Type.NO_ACK_RECEIVED, "No response received from server");
-        } else if( KVMessage.unpackMessage(response).getStatus() != expectedType){
+        if (response == null || response == "-1") {
+            throw new ECSException(ECSException.Type.NO_ACK_RECEIVED, "No response received from server");
+        } else if (KVMessage.unpackMessage(response).getStatus() != expectedType) {
             throw ECSException.determineECSException(expectedType);
         }
 
@@ -115,17 +126,19 @@ public class ECSThread implements Runnable {
 
     /**
      * Getter for the socket param
+     * 
      * @return the server connection socket
      */
-    protected Socket getSocket(){
+    protected Socket getSocket() {
         return this.socket;
     }
 
     /**
      * Getter for {@link ActiveConnection} param
+     * 
      * @return
      */
-    protected ActiveConnection getActiveConnection(){
+    protected ActiveConnection getActiveConnection() {
         return this.activeConnection;
     }
 }

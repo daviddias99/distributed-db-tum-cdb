@@ -64,7 +64,11 @@ public class ConnectionHandleThread implements Runnable {
             String firstLine;
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
-                LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
+                
+                if(!response.startsWith("server_heart_beat")) {
+                    LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
+                }
+
                 activeConnection.send(response);
             }
 
