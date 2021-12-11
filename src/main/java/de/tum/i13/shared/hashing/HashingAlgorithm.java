@@ -1,7 +1,7 @@
 package de.tum.i13.shared.hashing;
 
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
 
@@ -13,6 +13,9 @@ import java.math.BigInteger;
  */
 public interface HashingAlgorithm {
 
+    /**
+     * Prefix of hexadecimal strings
+     */
     String HEX_PREFIX = "0x";
 
     /**

@@ -71,6 +71,7 @@ public class StorageUtils {
      * Read object from disk
      * 
      * @param filePath path to the object in disk
+     * @param <V>      Type of object to read
      * @return read object
      * @throws StorageException an exception is thrown if either the file can't be
      *                          found or an error occured while reading
@@ -103,6 +104,7 @@ public class StorageUtils {
      * 
      * @param filePath path where the object will be stored
      * @param obj      object to store
+     * @param <V>      Type of object to write
      * @throws StorageException an exception is thrown if either the file can't be
      *                          found or an error occured while writing
      */

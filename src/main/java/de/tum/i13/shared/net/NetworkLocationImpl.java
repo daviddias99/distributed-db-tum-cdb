@@ -1,4 +1,8 @@
-package de.tum.i13.shared;
+package de.tum.i13.shared.net;
+
+import de.tum.i13.shared.Preconditions;
+
+import java.util.Objects;
 
 /**
  * Basic data class implementation of {@link NetworkLocation}
@@ -32,6 +36,24 @@ public class NetworkLocationImpl implements NetworkLocation {
     @Override
     public int getPort() {
         return this.port;
+    }
+
+    @Override
+    public boolean equals(Object otherObject) {
+        if (this == otherObject) return true;
+        if (!(otherObject instanceof NetworkLocationImpl)) return false;
+        NetworkLocationImpl that = (NetworkLocationImpl) otherObject;
+        return getPort() == that.getPort() && Objects.equals(getAddress(), that.getAddress());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getAddress(), getPort());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s{%s:%s}", NetworkLocationImpl.class.getSimpleName(), getAddress(), getPort());
     }
 
 }

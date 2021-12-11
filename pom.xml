@@ -107,25 +107,6 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
-                    <execution> <!--If we want to build multiple jar-with-dependencies, add multiple executions-->
-                        <id>nio-echo</id>
-                        <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <archive>
-                                <manifest>
-                                    <mainClass>de.tum.i13.server.nio.StartSimpleNioServer</mainClass>
-                                </manifest>
-                            </archive>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <finalName>nio-echo-server</finalName>
-                        </configuration>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -253,14 +234,19 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.14.1</version>
+            <version>2.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-retry</artifactId>
+            <version>1.7.1</version>
         </dependency>
 
         <!-- Testing Dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.8.1</version>
+            <version>5.8.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -271,7 +257,7 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <artifactId>mockito-junit-jupiter</artifactId>
             <version>4.1.0</version>
             <scope>test</scope>
         </dependency>

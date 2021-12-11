@@ -1,55 +1,55 @@
-package de.tum.i13.client.net;
+package de.tum.i13.shared.net;
 
 /**
  * An {@link Exception} that signalizes that something went wrong in the network component of the client.
  */
-public class ClientException extends Exception {
+public class CommunicationClientException extends Exception {
 
     private final Type type;
 
     /**
-     * Creates a new {@link ClientException} with the supplied message, a cause and a type
+     * Creates a new {@link CommunicationClientException} with the supplied message, a cause and a type
      *
      * @param cause   the cause of the exception
      * @param type    the {@link Type} of the exception
      * @param message the message of the exception
      */
-    public ClientException(Throwable cause, Type type, String message) {
+    public CommunicationClientException(Throwable cause, Type type, String message) {
         super(message, cause);
         this.type = type;
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied message and a cause
+     * Creates a new {@link CommunicationClientException} with the supplied message and a cause
      *
      * @param cause   the cause of the exception
      * @param message the message of the exceptino
      */
-    public ClientException(Throwable cause, String message) {
+    public CommunicationClientException(Throwable cause, String message) {
         this(cause, Type.UNKNOWN_ERROR, message);
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied message and type
+     * Creates a new {@link CommunicationClientException} with the supplied message and type
      *
      * @param type    the {@link Type} of the exception
      * @param message the message of the exception
      */
-    public ClientException(Type type, String message) {
+    public CommunicationClientException(Type type, String message) {
         this(null, type, message);
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied message
+     * Creates a new {@link CommunicationClientException} with the supplied message
      *
      * @param message the message of the exception
      */
-    public ClientException(String message) {
+    public CommunicationClientException(String message) {
         this((Throwable) null, message);
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied format string and objects, a cause and a type
+     * Creates a new {@link CommunicationClientException} with the supplied format string and objects, a cause and a type
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting
@@ -57,42 +57,42 @@ public class ClientException extends Exception {
      * @param type   the {@link Type} of the exception
      * @see String#format(String, Object...)
      */
-    public ClientException(Throwable cause, Type type, String format, Object... args) {
+    public CommunicationClientException(Throwable cause, Type type, String format, Object... args) {
         this(cause, type, String.format(format, args));
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied format string and objects, and a cause
+     * Creates a new {@link CommunicationClientException} with the supplied format string and objects, and a cause
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting
      * @param cause  the cause of the exception
      * @see String#format(String, Object...)
      */
-    public ClientException(Throwable cause, String format, Object... args) {
+    public CommunicationClientException(Throwable cause, String format, Object... args) {
         this(cause, String.format(format, args));
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied format string and objects, and a type
+     * Creates a new {@link CommunicationClientException} with the supplied format string and objects, and a type
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting
      * @param type   the {@link Type} of the exception
      * @see String#format(String, Object...)
      */
-    public ClientException(Type type, String format, Object... args) {
+    public CommunicationClientException(Type type, String format, Object... args) {
         this(type, String.format(format, args));
     }
 
     /**
-     * Creates a new {@link ClientException} with the supplied format string and objects
+     * Creates a new {@link CommunicationClientException} with the supplied format string and objects
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
-    public ClientException(String format, Object... args) {
+    public CommunicationClientException(String format, Object... args) {
         this((Throwable) null, String.format(format, args));
     }
 

@@ -43,5 +43,8 @@ public interface ChangeListener extends Serializable {
      */
     public Set<String> getCreatedChunks();
 
+    /**
+     * Clear chunk changes
+     */
     public void reset();
 }

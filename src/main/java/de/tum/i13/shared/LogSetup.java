@@ -3,7 +3,7 @@ package de.tum.i13.shared;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.spi.StandardLevel;
 
 import java.nio.file.Path;
@@ -28,10 +28,9 @@ public class LogSetup {
      */
     public static void setupLogging(Path logfile, Level logLevel) {
         System.setProperty("logFilename", logfile.toString());
-        final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        ctx.reconfigure();
+        getLoggerContext().reconfigure();
 
-        Configurator.setRootLevel(logLevel);
+        setRootLoggerLevel(logLevel);
     }
 
     /**
@@ -45,4 +44,26 @@ public class LogSetup {
     public static void setupLogging(Path logFile, StandardLevel logLevel) {
         setupLogging(logFile, Level.getLevel(logLevel.toString()));
     }
+
+    /**
+     * Sets the level of the root logger and propagates the changes to descending logger.
+     *
+     * @param level the {@link Level} to set the logger to
+     * @return the previously set {@link Level} of the logger
+     */
+    public static String setRootLoggerLevel(Level level) {
+        final LoggerContext ctx = getLoggerContext();
+        final LoggerConfig rootLoggerConfig = ctx.getConfiguration().getRootLogger();
+        final String oldLevelName = ctx.getRootLogger().getLevel().name();
+
+        rootLoggerConfig.setLevel(level);
+        ctx.updateLoggers();
+        return oldLevelName;
+    }
+
+    private static LoggerContext getLoggerContext() {
+        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        return (LoggerContext) LogManager.getContext(classLoader, false);
+    }
+
 }

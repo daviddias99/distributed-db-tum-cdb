@@ -33,6 +33,10 @@ public interface KVMessage {
          */
         PUT(true, true),
         /**
+         * Put - request from server
+         */
+        PUT_SERVER(true, true),
+        /**
          * Put - request successful, tuple inserted
          */
         PUT_SUCCESS(true, true),
@@ -56,6 +60,12 @@ public interface KVMessage {
          * Delete - request successful
          */
         DELETE_ERROR(true, false),
+
+        /**
+         * Used by server to indicate start of shutdown
+         */
+        SERVER_SHUTDOWN(false, false),
+
         /**
          * Indicates that currently no requests are processed by the server since the
          * whole storage service is under initialization.
@@ -63,75 +73,89 @@ public interface KVMessage {
          */
         SERVER_STOPPED(false, false),
         /**
-         * Indicates that the requested key is not within the range of the answering server
+         * Indicates that the requested key is not within the range of the answering
+         * server
          */
         SERVER_NOT_RESPONSIBLE(true, false),
+
+        /**
+         * Used by server to indicate successful handoff
+         */
+        SERVER_HANDOFF_SUCCESS(false, false),
+
+        /**
+         * Used by server to ask broker for metadata
+         */
+        SERVER_START(true, true),
+
+        /**
+         * Generic acknowlegement from server
+         */
+        SERVER_ACK(false, false),
+
         /**
          * Indicates that the storage server is currently blocked for write requests due
          * to reallocation of data in case of joining or leaving storage nodes
          */
         SERVER_WRITE_LOCK(false, false),
+
+        /**
+         * Message sent by client to request keyrange metadata
+         */
+        KEYRANGE(false, false),
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for the ranges
          */
-        KEYRANGE_SUCCESS(true, false),
+        SERVER_HEART_BEAT(false, false),
+
         /**
-         * Heartbeat messages between ECS and Server.
+         * Used to indicate that the server is still alive. Usually an SERVER_HEART_BEAT
+         * message is sent in response to ECS_HEART_BEAT
          */
         ECS_HEART_BEAT(false, false),
-        SERVER_HEART_BEAT(false, false),
+
         /**
-         * Handoff message from ECS to server. message.key is the address of the peer Server, and message.value is 
-         * of the format "lowerKeyBound + " " + upperKeyBound" where lowerKeyBound and upperKeyBound are 
-         * hexadecimal strings with a "0x" prefix
+         * Signal a server to enter a write lock state
          */
-        ECS_HANDOFF(true, true),
-        
-        SERVER_HANDOFF_ACK(false, false),
-
-        SERVER_HANDOFF_SUCCESS(false, false),
-
         ECS_WRITE_LOCK(false, false),
 
+        /**
+         * Set server to allow writes
+         */
         ECS_WRITE_UNLOCK(false, false),
-        
-        SERVER_WRITE_UNLOCK(false, false),
-        /**
-         * message.key contains the listening address of the server for the heartbeat connection,
-         * message.value contains the port.
-         */
-        SERVER_START(true, true),
-        /**
-         * message.key contains the address of the server to be shut down,
-         * message.value contains the port.
-         */
-        SERVER_SHUTDOWN(true, true),
-        /**
-         * General ack message for the ECS.
-         */
-        ECS_ACK(false, false),
 
-        SERVER_ACK(false, false),
-        
-        SERVER_START_ERROR(false, false),
         /**
-         * Metadata information on message.key
+         * ECS signals that handoff to peer (key) of elements (value) should start
          */
-        ECS_UPDATE_METADATA(true, false),
-        
-        SERVER_METADATA_SUCCESS(false, false);
+        ECS_HANDOFF(true, true),
 
+        /**
+         * Set server metadata
+         */
+        ECS_SET_KEYRANGE(true, false),
+
+        /**
+         * Indicates the return of the key ranges and which KVStores are responsible for
+         * the ranges
+         */
+        KEYRANGE_SUCCESS(true, false);
 
         private final boolean needsKey;
         private final boolean needsValue;
 
+        /**
+         * Create a new status type
+         * @param needsKey  true if status is associated with a key
+         * @param needsValue true if the status is associated with a value
+         */
         StatusType(boolean needsKey, boolean needsValue) {
             this.needsKey = needsKey;
             this.needsValue = needsValue;
         }
 
         /**
-         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty key
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty
+         * key
          *
          * @return if it needs a non-empty key
          */
@@ -140,7 +164,8 @@ public interface KVMessage {
         }
 
         /**
-         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty value
+         * Check if the {@link KVMessage} with this {@link StatusType} needs a non-empty
+         * value
          *
          * @return if it needs a non-empty value
          */
@@ -151,19 +176,19 @@ public interface KVMessage {
 
     /**
      * @return the key that is associated with this message,
-     * null if not key is associated.
+     *         null if not key is associated.
      */
     String getKey();
 
     /**
      * @return the value that is associated with this message,
-     * null if not value is associated.
+     *         null if not value is associated.
      */
     String getValue();
 
     /**
      * @return a status string that is used to identify request types,
-     * response types and error types associated to the message.
+     *         response types and error types associated to the message.
      */
     StatusType getStatus();
 
@@ -178,19 +203,21 @@ public interface KVMessage {
                 "%s %s %s",
                 status.toString().toLowerCase(),
                 Objects.toString(getKey(), ""),
-                Objects.toString(getValue(), "")
-        ).trim();
+                Objects.toString(getValue(), "")).trim();
     }
 
     /**
-     * Unpacks a message in the {@link String} format using the standard implementation {@link KVMessageImpl}.
+     * Unpacks a message in the {@link String} format using the standardc
+     * implementation {@link KVMessageImpl}.
      * Uses {@link #extractTokens(String)} to extract the tokens from the message.
      * Refer to the specification document for further details.
      *
-     * @param message the message encoded as a {@link String}, must not be empty and adhere to one of the message
+     * @param message the message encoded as a {@link String}, must not be empty and
+     *                adhere to one of the message
      *                format from the specification
      * @return the message converted to a {@link KVMessage}
-     * @throws IllegalArgumentException if the message could not be converted according to the specification
+     * @throws IllegalArgumentException if the message could not be converted
+     *                                  according to the specification
      * @see KVMessageImpl
      * @see #extractTokens(String)
      */
@@ -198,14 +225,12 @@ public interface KVMessage {
         String[] msgTokens = extractTokens(message);
 
         final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
-                string.toUpperCase()
-        );
-        final Function<String, IllegalArgumentException> exceptionFunction =
-                receivedMessage -> new IllegalArgumentException(String.format(
+                string.toUpperCase());
+        final Function<String, IllegalArgumentException> exceptionFunction = receivedMessage -> new IllegalArgumentException(
+                String.format(
                         "Could not convert \"%s\" to a %s",
                         receivedMessage,
-                        KVMessage.class.getSimpleName()
-                ));
+                        KVMessage.class.getSimpleName()));
 
         if (msgTokens.length == 1) {
             if ("".equals(msgTokens[0])) {
@@ -227,12 +252,20 @@ public interface KVMessage {
 
     /**
      * Trims the message and then extracts the tokens of the message.
-     * Multiple spaces between tokens are considered as one and will not be part of the token.
+     * Multiple spaces between tokens are considered as one and will not be part of
+     * the token.
      * Keys cannot contain spaces, but values can.
      * I.e.
-     * <pre>"    put   thisKey     to this   value   "</pre>
+     * 
+     * <pre>
+     * "    put   thisKey     to this   value   "
+     * </pre>
+     * 
      * will produce the following tokens
-     * <pre>{"put", "thisKey", "to this   value" }</pre>
+     * 
+     * <pre>
+     * { "put", "thisKey", "to this   value" }
+     * </pre>
      *
      * @param message the message from which to extract the tokens
      * @return the extracted tokens of the message

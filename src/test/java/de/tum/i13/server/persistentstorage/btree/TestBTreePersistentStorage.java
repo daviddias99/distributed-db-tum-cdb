@@ -1,10 +1,13 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import de.tum.i13.server.kv.GetException;
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.PutException;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
+import de.tum.i13.shared.persistentstorage.GetException;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -17,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestBTreePersistentStorage {
     private BTreePersistentStorage storage;
-    private PersistentBTreeDiskStorageHandler<String> handler;
+    private PersistentBTreeDiskStorageHandler<Pair<String>> handler;
 
     @BeforeAll
     public static void setLogLevel() {
@@ -27,7 +30,8 @@ public class TestBTreePersistentStorage {
     @BeforeEach
     public void createTree() throws StorageException {
         handler = new PersistentBTreeDiskStorageHandler<>("database", true);
-        storage = new BTreePersistentStorage(3, handler);
+        HashingAlgorithm hashAlg = new MD5HashAlgorithm();
+        storage = new BTreePersistentStorage(3, handler, hashAlg);
     }
 
     @AfterEach

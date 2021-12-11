@@ -1,13 +1,15 @@
 package de.tum.i13.shared;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+/**
+ * Represents a class that can process commands. A command leads to an answer of
+ * the same type (or null if no answer is due).
+ */
+public interface CommandProcessor<T> {
 
-public interface CommandProcessor {
-
-    String process(String command);
-
-    String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress);
-
-    void connectionClosed(InetAddress address);
+    /**
+     * Process {@code command}. Returns the answer to the command, or null if no answer.
+     * @param command Command to process
+     * @return Answer to command or null if no answer.
+     */
+    T process(T command);
 }

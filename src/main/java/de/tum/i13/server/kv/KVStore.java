@@ -1,5 +1,8 @@
 package de.tum.i13.server.kv;
 
+/**
+ * Storer of KV elements
+ */
 public interface KVStore {
 
     /**
