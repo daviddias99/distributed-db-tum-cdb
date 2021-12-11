@@ -122,20 +122,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         }
     }
 
-    private KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
-        String packedMessage = message.packMessage();
-        LOGGER.debug("Sending message to server: '{}'", packedMessage);
-        networkMessageServer.send(packedMessage);
-        try {
-            LOGGER.debug("Receiving message from server");
-            final String response = networkMessageServer.receive();
-            LOGGER.debug("Received message from server: '{}'", response);
-            return KVMessage.unpackMessage(response);
-        } catch (IllegalArgumentException ex) {
-            throw new CommunicationClientException(ex, "Could not unpack message received by the server");
-        }
-    }
-
     @Override
     public void send(String message) throws CommunicationClientException {
         networkMessageServer.send(message);

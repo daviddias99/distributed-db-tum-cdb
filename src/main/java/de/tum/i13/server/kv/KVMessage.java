@@ -100,7 +100,11 @@ public interface KVMessage {
         SERVER_WRITE_LOCK(false, false),
 
         /**
-         * Used to signal that server is alive
+         * Message sent by client to request keyrange metadata
+         */
+        KEYRANGE(false, false),
+        /**
+         * Indicates the return of the key ranges and which KVStores are responsible for the ranges
          */
         SERVER_HEART_BEAT(false, false),
 
@@ -129,11 +133,6 @@ public interface KVMessage {
          * Set server metadata
          */
         ECS_SET_KEYRANGE(true, false),
-
-        /**
-         * Message sent by client to request keyrange metadata
-         */
-        KEYRANGE(false, false),
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for
