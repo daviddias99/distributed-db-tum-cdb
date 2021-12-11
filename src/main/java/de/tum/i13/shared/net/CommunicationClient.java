@@ -75,7 +75,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         if (!this.isConnected()) {
             LOGGER.error("Throwing exception because a disconnection from a un-connected socket was made.");
             throw new CommunicationClientException(CommunicationClientException.Type.UNCONNECTED,
-                    "Cannot disconnect since a disconnect hasn't been made yet");
+                    "Cannot disconnect since no connection has been made yet");
         }
 
         try {
