@@ -97,21 +97,27 @@ public interface KVMessage {
         
         SERVER_WRITE_UNLOCK(false, false),
         /**
-         * message.getKey() contains the listening address of the server for the heartbeat connection,
-         * message.getValue() contains the port.
+         * message.key contains the listening address of the server for the heartbeat connection,
+         * message.value contains the port.
          */
         SERVER_START(true, true),
         /**
-         * message.getKey() contains the address of the server to be shut down,
-         * message.getValue() contains the port.
+         * message.key contains the address of the server to be shut down,
+         * message.value contains the port.
          */
         SERVER_SHUTDOWN(true, true),
         /**
          * General ack message for the ECS.
          */
         ECS_ACK(false, false),
+
+        SERVER_ACK(false, false),
         
-        SERVER_START_ERROR(false, false);
+        SERVER_START_ERROR(false, false),
+        /**
+         * Metadata information on message.key
+         */
+        ECS_UPDATE_METADATA(true, false);
 
 
         private final boolean needsKey;

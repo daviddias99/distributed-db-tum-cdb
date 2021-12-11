@@ -11,21 +11,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public class ECSServerThread implements Runnable{
+public class ECSServerConnectionThread implements Runnable{
 
-    private static final Logger LOGGER = LogManager.getLogger(ECSServerThread.class);
+    private static final Logger LOGGER = LogManager.getLogger(ECSServerConnectionThread.class);
 
     private final Socket connectedServer;
     private CommandProcessor cp;
-    private InetSocketAddress serverAddress;
     private ActiveConnection activeConnection;
     private BufferedReader in;
     private PrintWriter out;
 
-    public ECSServerThread(CommandProcessor commandProcessor, Socket server){
+    public ECSServerConnectionThread(CommandProcessor commandProcessor, Socket server){
         this.connectedServer = server;
         this.cp = commandProcessor;
     }
@@ -38,10 +36,6 @@ public class ECSServerThread implements Runnable{
 
             activeConnection = new ActiveConnection(connectedServer, out, in);
 
-            //Send a confirmation message to client upon connection
-            String connSuccess = cp.connectionAccepted(this.serverAddress, (InetSocketAddress) connectedServer.getRemoteSocketAddress());
-            activeConnection.write(connSuccess);
-
             //read messages from client and process using the CommandProcessor 
             String firstLine;
             while ((firstLine = activeConnection.readline()) != null && firstLine != "-1") {
@@ -50,7 +44,6 @@ public class ECSServerThread implements Runnable{
             }
 
             activeConnection.close();
-            cp.connectionClosed(connectedServer.getInetAddress());
 
         } catch(IOException ex) {
             LOGGER.fatal("Caught exception while trying to read from {}.", connectedServer.getInetAddress());

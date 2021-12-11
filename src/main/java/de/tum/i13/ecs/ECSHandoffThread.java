@@ -74,12 +74,14 @@ public class ECSHandoffThread implements Runnable {
 
             //ECS_SET_KEY_RANGE?
 
+            activeConnection.close();
+
         } catch( IOException ex){
-            LOGGER.fatal("Caught exception while trying to connect to location {} from ECS.", successor.getAddress());
+            LOGGER.fatal("Caught exception while connecting to {} from ECS.", successor.getAddress());
         } catch( ECSException ex){
             LOGGER.fatal("Caught " + ex.getType() + " exception while communicating with server {}. " + ex.getMessage(), successor.getAddress());
         } catch( Exception ex){
-            LOGGER.fatal("Caught exception while trying to read from location {} from ECS.", successor.getAddress());
+            LOGGER.fatal("Caught exception while closing connection to {}.", successor.getAddress());
         }
     }
 

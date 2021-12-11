@@ -2,10 +2,14 @@ package de.tum.i13.ecs;
 
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.NetworkLocationImpl;
 
 import java.math.BigInteger;
+import java.util.NavigableMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +23,7 @@ public class ExternalConfigurationService {
 
     private final String address;
     private final int port;
-    private final ConsistentHashRing serverMap;
+    private final TreeMapServerMetadata serverMap;
 
     public ExternalConfigurationService(String address, int port){
         this.address = address;
@@ -123,7 +127,19 @@ public class ExternalConfigurationService {
 
     private void updateMetadata(){
         LOGGER.info("Trying to update the metadata of all servers in the ring.");
-        //TODO
+        ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
+        
+        //get the list of server to send the update message to
+        NavigableMap<BigInteger, NetworkLocation> map = serverMap.getNavigableMap();
+
+        //prepare the metadata information in String format
+        String metadata = serverMap.packMessage();
+
+        for(NetworkLocation location: map.values()){
+            executor.submit( new ECSUpdateMetadataThread(location, metadata));
+        }
+
+        executor.shutdown();
     }
 
 }

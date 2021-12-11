@@ -32,7 +32,7 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
     }
 
     @Override
-    protected NavigableMap<BigInteger, NetworkLocation> getNavigableMap() {
+    public NavigableMap<BigInteger, NetworkLocation> getNavigableMap() {
         return networkLocationMap;
     }
 
