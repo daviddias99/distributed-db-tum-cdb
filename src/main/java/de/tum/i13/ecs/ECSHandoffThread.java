@@ -1,16 +1,15 @@
 package de.tum.i13.ecs;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.shared.NetworkLocation;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
-
+import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.math.BigInteger;
 
 /**
  * Class to initiate HANDOFF of relevant key-value pairs between two servers.
@@ -59,7 +58,7 @@ public class ECSHandoffThread extends ECSThread {
     private KVMessage prepareHandoffMessage(NetworkLocation newServer, BigInteger lowerBound, BigInteger upperBound){
         String bound1 = HashingAlgorithm.convertHashToHexWithPrefix(lowerBound);
         String bound2 = HashingAlgorithm.convertHashToHexWithPrefix(upperBound);
-        String peerNetworkLocation = NetworkLocation.packNetworkLocation(newServer);
+        String peerNetworkLocation = newServer.getAddress() + ":" + newServer.getPort();
         
         return new KVMessageImpl(peerNetworkLocation, bound1 + " " + bound2, StatusType.ECS_HANDOFF);
     }

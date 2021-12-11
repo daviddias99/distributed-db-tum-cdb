@@ -84,8 +84,11 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage setKeyRange(KVMessage command) {
     LOGGER.info("Trying set server metadata");
     this.serverState.setRingMetadata(ConsistentHashRing.unpackMetadata(command.getKey()));
-    LOGGER.info("Trying to set server stat eto ACTIVE");
-    this.serverState.start();
+
+    if(this.serverState.isStopped()) {
+      LOGGER.info("Trying to set server state to ACTIVE");
+      this.serverState.start();
+    }
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
 

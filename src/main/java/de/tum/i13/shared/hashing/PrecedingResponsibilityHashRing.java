@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -116,6 +117,11 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     @Override
     public synchronized boolean contains(NetworkLocation location) {
         return networkLocationMap.containsKey(hashingAlgorithm.hash(location));
+    }
+
+    @Override
+    public Set<NetworkLocation> getAllNetworkLocations() {
+        return Set.copyOf(networkLocationMap.values());
     }
 
     @Override

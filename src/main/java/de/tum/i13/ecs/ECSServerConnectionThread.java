@@ -1,6 +1,7 @@
 package de.tum.i13.ecs;
 
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.net.CommunicationClientException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,9 +12,9 @@ public class ECSServerConnectionThread extends ECSThread{
 
     private static final Logger LOGGER = LogManager.getLogger(ECSServerConnectionThread.class);
 
-    private CommandProcessor cp;
+    private CommandProcessor<String> cp;
 
-    public ECSServerConnectionThread(CommandProcessor commandProcessor, Socket server) throws IOException{
+    public ECSServerConnectionThread(CommandProcessor<String> commandProcessor, Socket server) throws IOException{
         super(server);
         this.cp = commandProcessor;
     }
@@ -23,12 +24,12 @@ public class ECSServerConnectionThread extends ECSThread{
         try {
             //read messages from client and process using the CommandProcessor 
             String firstLine;
-            while ((firstLine = getActiveConnection().readline()) != null && firstLine != "-1") {
+            while ((firstLine = getActiveConnection().receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
-                getActiveConnection().write(response);
+                getActiveConnection().send(response);
             }
 
-        } catch(IOException ex) {
+        } catch(CommunicationClientException ex) {
             LOGGER.fatal("Caught exception while trying to read from {}.", getSocket().getInetAddress());
         } catch(Exception ex){
             LOGGER.fatal("Caught exception while trying to close connection with {}.", getSocket().getInetAddress());

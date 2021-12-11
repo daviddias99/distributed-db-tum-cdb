@@ -43,14 +43,11 @@ public class ECSException extends Exception{
     }
 
     public static ECSException determineECSException(KVMessage.StatusType expectedType){
-        ECSException exception = switch(expectedType){
+        return switch(expectedType){
             case SERVER_HANDOFF_SUCCESS -> new ECSException(Type.HANDOFF_FAILURE);
             case SERVER_ACK -> new ECSException(Type.NO_ACK_RECEIVED);
-            case SERVER_METADATA_SUCCESS -> new ECSException(Type.UPDATE_METADATA_FAILURE);
             default -> new ECSException(Type.UNEXPECTED_RESPONSE);
         };
-
-        return exception;
     }
 
 

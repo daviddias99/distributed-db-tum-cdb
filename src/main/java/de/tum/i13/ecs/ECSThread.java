@@ -1,11 +1,12 @@
 package de.tum.i13.ecs;
 
-import de.tum.i13.ecs.ECSException.Type;
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.shared.ActiveConnection;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.NetworkLocation;
+import de.tum.i13.shared.net.ActiveConnection;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,9 +14,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class ECSThread implements Runnable {
 
@@ -87,19 +85,24 @@ public class ECSThread implements Runnable {
      * @throws ECSException if communication is not as expected.
      */
     protected void sendAndReceiveMessage(KVMessage message, KVMessage.StatusType expectedType) throws IOException, ECSException{
-        activeConnection.write(message.packMessage());  //send a message
+        activeConnection.send(message.packMessage());  //send a message
         waitForResponse(expectedType);
     }
 
     /**
      * Method to wait for a response and determine if the response is as expected.
-     * @param expectedType The {@link StatusType} type that the {@link KVMessage} response must have.
+     * @param expectedType The {@link KVMessage.StatusType} type that the {@link KVMessage} response must have.
      * @return the {@link KVMessage} response received from the server.
      * @throws IOException if unable to read from the connection.
      * @throws ECSException if the expected response is different from what is received.
      */
-    protected KVMessage waitForResponse( KVMessage.StatusType expectedType) throws IOException, ECSException{
-        String response = activeConnection.readline();
+    protected KVMessage waitForResponse(KVMessage.StatusType expectedType) throws IOException, ECSException {
+        String response = null;
+        try {
+            response = activeConnection.receive();
+        } catch (CommunicationClientException exception) {
+            throw new IOException("Could not receive", exception);
+        }
 
         if( response == null || response == "-1"){
             throw new ECSException( ECSException.Type.NO_ACK_RECEIVED, "No response received from server");

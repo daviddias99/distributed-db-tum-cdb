@@ -1,22 +1,19 @@
 package de.tum.i13.ecs;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.CommandProcessor;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.net.Socket;
 
 /**
  * Class responsible to process commands sent by servers to the ECS.
  */
-public class ECSCommandProcessor implements CommandProcessor {
+public class ECSCommandProcessor implements CommandProcessor<String> {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
     private final ExternalConfigurationService service;
@@ -57,10 +54,10 @@ public class ECSCommandProcessor implements CommandProcessor {
 
         } catch( IOException ex){
             LOGGER.fatal("Caught exception while trying to connect to " + address + ":" + portString);
-            return new KVMessageImpl(StatusType.SERVER_START_ERROR);
+            return new KVMessageImpl(StatusType.ERROR);
         } catch( NumberFormatException ex){
             LOGGER.fatal("Port number not valid while trying to connect to " + address + ":" + portString);
-            return new KVMessageImpl(StatusType.SERVER_START_ERROR);
+            return new KVMessageImpl(StatusType.ERROR);
         }
     }
 
@@ -80,19 +77,10 @@ public class ECSCommandProcessor implements CommandProcessor {
         } catch( NumberFormatException ex){
             LOGGER.fatal("Port number not valid while trying to shut down" + address + ":" + portString);
             return new KVMessageImpl(StatusType.ERROR);
+        } catch (ECSException e) {
+            LOGGER.fatal("An error occurred during handoff while trying to shut down" + address + ":" + portString);
+            return new KVMessageImpl(StatusType.ERROR);
         }
     }
 
-    @Override
-    public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public void connectionClosed(InetAddress address) {
-        // TODO Auto-generated method stub
-        
-    }
-    
 }
