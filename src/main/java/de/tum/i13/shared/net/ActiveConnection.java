@@ -37,8 +37,7 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
             throw new CommunicationClientException(
                     exception,
                     CommunicationClientException.Type.INTERNAL_ERROR,
-                    "Could not receive"
-            );
+                    "Could not receive");
         }
     }
 
@@ -52,4 +51,8 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
         socket.close();
     }
 
+    // TODO: check this
+    public NetworkLocation getNetworkLocation() {
+        return new NetworkLocationImpl(this.socket.getInetAddress().getHostAddress(), this.socket.getPort());
+    }
 }

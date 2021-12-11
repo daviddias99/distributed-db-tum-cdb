@@ -69,6 +69,7 @@ public class PersistentBTreeDiskStorageHandler<V>
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @param reset         True if the target folder should be cleared if it
      *                      already exists.
+     * @param cListener     Change listener used for transactions
      * @throws StorageException An exception is thrown when an error with the
      *                          {@code storageFolder} occurs
      */
@@ -114,6 +115,11 @@ public class PersistentBTreeDiskStorageHandler<V>
 
     @Override
     public PersistentBTreeNode<V> load() throws StorageException {
+
+        if(!Paths.get(storageFolder, "root").toFile().exists()) {
+            return null;
+        }
+
         return StorageUtils.readObject(Paths.get(storageFolder, "root"));
     }
 
