@@ -62,5 +62,10 @@ public class ECSHeartbeatThread extends ECSThread{
             service.removeServer(getSocket().getInetAddress().getHostAddress(), getSocket().getPort());
             scheduledExecutor.shutdownNow();
         }
+//        finally{
+//            //Remove server from the ExternalConfigurationService and update metadata
+//            service.removeServer(getSocket().getInetAddress().getHostAddress(), getSocket().getPort());
+//            scheduledExecutor.shutdownNow();
+//        }
     }
 }

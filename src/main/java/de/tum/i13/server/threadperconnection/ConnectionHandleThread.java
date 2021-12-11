@@ -56,9 +56,9 @@ public class ConnectionHandleThread implements Runnable {
 
                 LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
 
-                String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
-                        (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-                activeConnection.send(connSuccess);
+//                String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
+//                        (InetSocketAddress) clientSocket.getRemoteSocketAddress());
+//                activeConnection.send(connSuccess);
 
             // read messages from client and process using the CommandProcessor
             String firstLine;
