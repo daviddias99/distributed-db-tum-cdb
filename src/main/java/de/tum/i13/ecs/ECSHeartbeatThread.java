@@ -50,7 +50,7 @@ class ECSHeartbeatThread extends ECSThread {
 
     private void heartBeatTask() {
         try {
-            LOGGER.trace("Sending heartbeat to {}", socket.getInetAddress());
+            LOGGER.trace("Sending heartbeat to {}", getSocket());
             sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_HEART_BEAT), StatusType.SERVER_HEART_BEAT);
         } catch (SocketTimeoutException ex) {
             LOGGER.atFatal()
