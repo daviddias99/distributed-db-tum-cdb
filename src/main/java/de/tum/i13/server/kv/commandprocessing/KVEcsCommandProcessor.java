@@ -104,7 +104,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, bounds[0].substring(2), bounds[1].substring(2));
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
-    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0], bounds[1].substring(2), storage);
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0].substring(2), bounds[1].substring(2), storage);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

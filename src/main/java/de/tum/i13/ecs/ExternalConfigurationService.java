@@ -41,7 +41,7 @@ class ExternalConfigurationService {
             final int numberOfServers = serverMap.getAllNetworkLocations().size();
             NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
             // TODO Also do the handoff, if there is only one server in the hash ring
-            if (numberOfServers >= 2) {
+            if (numberOfServers >= 1) {
                 LOGGER.trace("There were at least 2 server in the {}. Determining predecessor and successor",
                         ConsistentHashRing.class.getSimpleName());
                 NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
@@ -52,7 +52,7 @@ class ExternalConfigurationService {
                                 "find succeeding server on ring"));
 
                 BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-                BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
+                BigInteger upperBound = serverMap.getHashingAlgorithm().hash(newServer);
 
                 //calculate the updated metadata and send it to both servers
                 TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
@@ -61,7 +61,7 @@ class ExternalConfigurationService {
                 new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 
                 LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
-                new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+                new ECSHandoffThread(nextInRing, newServer, lowerBound.add(BigInteger.ONE), upperBound).run();
             }
 
             serverMap.addNetworkLocation(newServer);
