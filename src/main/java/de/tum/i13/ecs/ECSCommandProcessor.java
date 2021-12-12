@@ -17,10 +17,8 @@ import java.io.IOException;
 class ECSCommandProcessor implements CommandProcessor<String> {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
-    private final ExternalConfigurationService service;
 
-    ECSCommandProcessor(ExternalConfigurationService service) {
-        this.service = service;
+    public ECSCommandProcessor(){
     }
 
     @Override
@@ -57,7 +55,7 @@ class ECSCommandProcessor implements CommandProcessor<String> {
                     .run();
             LOGGER.trace("Adding server '{}:{}' to {}",
                     address, port, ExternalConfigurationService.class.getSimpleName());
-            service.addServer(address, port);
+            ExternalConfigurationService.addServer(address, port);
 
             //TODO Send back metadata? It will be sent anyway by the update message
             return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
@@ -89,7 +87,7 @@ class ECSCommandProcessor implements CommandProcessor<String> {
             int port = Integer.parseInt(portString);
             LOGGER.trace("Removing server '{}:{}' and initiating handoff at {}",
                     address, port, ExternalConfigurationService.class.getSimpleName());
-            service.removeServerAndHandoffData(address, port);
+            ExternalConfigurationService.removeServerAndHandoffData(address, port);
             return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
 
         } catch (NumberFormatException ex) {

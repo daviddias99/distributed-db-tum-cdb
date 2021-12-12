@@ -22,12 +22,11 @@ class ExternalConfigurationService {
 
     private final String address;
     private final int port;
-    private final TreeMapServerMetadata serverMap;
+    private final static TreeMapServerMetadata serverMap = new TreeMapServerMetadata();
 
     ExternalConfigurationService(String address, int port) {
         this.address = address;
         this.port = port;
-        this.serverMap = new TreeMapServerMetadata();
     }
 
     /**
@@ -53,8 +52,8 @@ class ExternalConfigurationService {
      *
      * @return
      */
-    ConsistentHashRing getMetadata() {
-        return this.serverMap;
+    TreeMapServerMetadata getMetadata() {
+        return serverMap;
     }
 
     /**
@@ -65,7 +64,7 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be added to the {@link ConsistentHashRing} parameter.
      * @param port          the port of the server to be added to the {@link ConsistentHashRing} parameter.
      */
-    synchronized void addServer(String listenAddress, int port) throws ECSException {
+    synchronized static void addServer(String listenAddress, int port) throws ECSException {
         LOGGER.info("Trying to add  new server with address '{}:{}' to the {}", listenAddress, port,
                 ConsistentHashRing.class.getSimpleName());
         try {
@@ -85,10 +84,16 @@ class ExternalConfigurationService {
                 BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
                 BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
 
+                //calculate the updated metadata and send it to both servers
+                TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
+                copyMetadata.addNetworkLocation(newServer);
+                new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage());
+                new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage());
+
                 LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
                 new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
             }
-            //What happens if HANDOFF fails?
+
             serverMap.addNetworkLocation(newServer);
             LOGGER.debug("Added new server '{}' to the {}", newServer, ConsistentHashRing.class.getSimpleName());
             updateMetadata();
@@ -105,8 +110,8 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the {@link ConsistentHashRing},
      * @param port          the port of the server to be deleted from the {@link ConsistentHashRing}.
      */
-    synchronized void removeServer(String listenAddress, int port) {
-        // TODO Call this removal somewhere
+    synchronized static void removeServer(String listenAddress, int port) {
+        
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
 
         NetworkLocationImpl serverLocation = new NetworkLocationImpl(listenAddress, port);
@@ -125,7 +130,7 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the serverMap
      * @param port          the port of the server to be deleted from the serverMap
      */
-    synchronized void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
+    synchronized static void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
         try {
             //Initiate handoff from old server to successor
@@ -141,9 +146,15 @@ class ExternalConfigurationService {
             BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
             BigInteger upperBound = serverMap.getHashingAlgorithm().hash(oldServer);
 
+            //calculate the updated metadata and send it to both servers
+            TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
+            copyMetadata.removeNetworkLocation(oldServer);
+            new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage());
+
             LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
             new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
 
+            //actually update the metadata
             serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
             LOGGER.debug("Removed server '{}' from the ring", oldServer);
             updateMetadata();
@@ -154,7 +165,7 @@ class ExternalConfigurationService {
         }
     }
 
-    private void updateMetadata() {
+    private static void updateMetadata() {
         LOGGER.info("Trying to update the metadata of all servers in the ring.");
         try {
             ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
