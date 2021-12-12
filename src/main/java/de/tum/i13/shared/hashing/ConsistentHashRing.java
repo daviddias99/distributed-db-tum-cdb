@@ -183,4 +183,19 @@ public interface ConsistentHashRing {
      */
     Set<NetworkLocation> getAllNetworkLocations();
 
+
+    /**
+     * Returns the number of {@link NetworkLocation}s in this {@link ConsistentHashRing}
+     *
+     * @return the number of contained {@link NetworkLocation}s
+     */
+    int size();
+
+    /**
+     * Returns true if this {@link ConsistentHashRing} contains no {@link NetworkLocation}s
+     *
+     * @return if this {@link ConsistentHashRing} contains no {@link NetworkLocation}s
+     */
+    boolean isEmpty();
+
 }
