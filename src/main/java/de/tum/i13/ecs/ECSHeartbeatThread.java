@@ -71,6 +71,9 @@ class ECSHeartbeatThread extends ECSThread {
     private void shutDownExecutor() {
         LOGGER.info("Shutting down heartbeat executor service");
         scheduledExecutor.shutdown();
+
+        //TODO Check if the address given here is correct
+        ExternalConfigurationService.removeServer(getSocket().getInetAddress().toString(), getSocket().getPort());
     }
 
 }

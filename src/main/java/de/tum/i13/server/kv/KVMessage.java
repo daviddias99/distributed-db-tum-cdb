@@ -149,6 +149,7 @@ public interface KVMessage {
          * the ranges
          */
         KEYRANGE_SUCCESS(true, false);
+        
 
         private final boolean needsKey;
         private final boolean needsValue;

@@ -37,7 +37,8 @@ class ECSHandoffThread extends ECSThread {
             LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_HANDOFF, StatusType.SERVER_HANDOFF_SUCCESS);
             sendAndReceiveMessage(this.handoffMessage, StatusType.SERVER_HANDOFF_SUCCESS);
 
-            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WAITING_FOR_HANDOFF, StatusType.SERVER_HANDOFF_SUCCESS);
+            //Wait for SERVER_HANDOFF_SUCCESS
+            LOGGER.trace("Waiting for {} message", StatusType.SERVER_HANDOFF_SUCCESS);
             sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WAITING_FOR_HANDOFF), StatusType.SERVER_HANDOFF_SUCCESS);
 
             LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_UNLOCK, StatusType.SERVER_WRITE_UNLOCK);

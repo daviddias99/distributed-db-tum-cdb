@@ -64,7 +64,7 @@ public class ExternalConfigurationServer {
 
                 // start a new Thread for this connection
                 LOGGER.trace("Starting new server connection thread");
-                executor.submit(new ECSServerConnectionThread(new ECSCommandProcessor(service), serverSocket));
+                executor.submit(new ECSServerConnectionThread(new ECSCommandProcessor(), serverSocket));
             }
         } catch(IOException ex) {
             LOGGER.fatal("Caught exception while accepting server requests for ECS", ex);
