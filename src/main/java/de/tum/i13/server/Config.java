@@ -74,7 +74,7 @@ public class Config {
      * BTree minimum degree
      */
     @CommandLine.Option(names = { "-t",
-            "-bTreeMinDegree" }, description = "Minimum degree used by the BTree Persistent storage. Each BTree node stores 2*minimumDegree - 1 values.", defaultValue = "5"
+            "-bTreeMinDegree" }, description = "Minimum degree used by the BTree Persistent storage. Each BTree node stores 2*minimumDegree - 1 values.", defaultValue = "15"
 
     )
     public int minimumDegree;

@@ -54,7 +54,7 @@ public class HandoffHandler implements Runnable {
 
     try {
       LOGGER.info("Trying to connect to peer {} for handhoff", peer);
-      netPeerStorage.connect(peer.getAddress(), peer.getPort());
+      netPeerStorage.connectAndReceive(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
     }
@@ -65,7 +65,7 @@ public class HandoffHandler implements Runnable {
     // Fetch items from storage
     try {
       LOGGER.info("Fetching range from database");
-      itemsToSend = this.getRange(lowerBound, upperBound, netPeerStorage);
+      itemsToSend = this.getRange(lowerBound, upperBound);
     } catch (GetException e) {
       LOGGER.error("Error while getting key range during handoff.", e);
     }
@@ -96,24 +96,16 @@ public class HandoffHandler implements Runnable {
         LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
       }
     }
-
-    // Communicate sucess to ECS
-    try {
-      LOGGER.info("Communicating handhoff to ECS.");
-      ecs.confirmHandoff();
-    } catch (CommunicationClientException e) {
-      LOGGER.error("Could not confirm handoff to ECS.", e);
-    }
   }
   
-  private List<Pair<String>> getRange(String lowerBound, String upperBound, NetworkPersistentStorage netStorage) throws GetException {
-    if(lowerBound.compareTo(upperBound) > 0) {
-      return netStorage.getRange(lowerBound, upperBound);
+  private List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+    if(lowerBound.compareTo(upperBound) <= 0) {
+      return this.storage.getRange(lowerBound, upperBound);
     }
 
     List<Pair<String>> result = new LinkedList<>();
-    result.addAll(netStorage.getRange("00000000000000000000000000000000", upperBound));
-    result.addAll(netStorage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+    result.addAll(this.storage.getRange("00000000000000000000000000000000", upperBound));
+    result.addAll(this.storage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
 
     return result;
   }

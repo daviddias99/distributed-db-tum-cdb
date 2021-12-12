@@ -41,8 +41,9 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     this.ecsCommunicator = ecsCommunicator;
   }
 
-    /**
-   * Create a new ECS KVMessage processor. This handler uses asynchronous handoffs.
+  /**
+   * Create a new ECS KVMessage processor. This handler uses asynchronous
+   * handoffs.
    * 
    * @param storage         server storage
    * @param serverState     server state
@@ -85,7 +86,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     LOGGER.info("Trying set server metadata");
     this.serverState.setRingMetadata(ConsistentHashRing.unpackMetadata(command.getKey()));
 
-    if(this.serverState.isStopped()) {
+    if (this.serverState.isStopped()) {
       LOGGER.info("Trying to set server state to ACTIVE");
       this.serverState.start();
     }
@@ -100,21 +101,21 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       LOGGER.error("More than two values given as bounds");
       return new KVMessageImpl(KVMessage.StatusType.ERROR);
     }
-    LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, bounds[0], bounds[1]);
+    LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, bounds[0].substring(2), bounds[1].substring(2));
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
-    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0], bounds[1], storage);
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0], bounds[1].substring(2), storage);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);
       handoffProcess.start();
       LOGGER.info("Started handoff process, returing acknowlegement to ECS");
-      return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_HANDOFF_ACK);
     } else {
       handoff.run();
+      // Communicate sucess to ECS
       LOGGER.info("Finished sync. handoff.");
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_HANDOFF_SUCCESS);
     }
-
-    return null;
   }
 }

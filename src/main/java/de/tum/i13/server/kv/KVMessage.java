@@ -64,7 +64,7 @@ public interface KVMessage {
         /**
          * Used by server to indicate start of shutdown
          */
-        SERVER_SHUTDOWN(false, false),
+        SERVER_SHUTDOWN(true, true),
 
         /**
          * Indicates that currently no requests are processed by the server since the
@@ -141,6 +141,8 @@ public interface KVMessage {
         ECS_SET_KEYRANGE(true, false),
 
         ECS_ACK(false, false),
+
+        ECS_WAITING_FOR_HANDOFF(false, false),
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for

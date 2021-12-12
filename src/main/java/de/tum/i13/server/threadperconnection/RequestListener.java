@@ -1,8 +1,6 @@
 package de.tum.i13.server.threadperconnection;
 
 import de.tum.i13.server.kv.KVConnectionHandler;
-import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
-import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
 import org.apache.logging.log4j.LogManager;
@@ -21,15 +19,11 @@ public class RequestListener implements Runnable {
   private CommandProcessor<String> commandProcessor;
   private String listenAddress;
   private int listenPort;
-  private ServerCommunicator ecsCommunicator;
-  private KVEcsCommandProcessor ecsCommandProcessor;
 
-  public RequestListener(String listenAddress, int listenPort, CommandProcessor<String> commandProcessor, ServerCommunicator ecsCommunicator, KVEcsCommandProcessor ecsCommandProcessor) {
+  public RequestListener(String listenAddress, int listenPort, CommandProcessor<String> commandProcessor) {
     this.listenAddress = listenAddress;
     this.listenPort = listenPort;
     this.commandProcessor = commandProcessor;
-    this.ecsCommunicator = ecsCommunicator;
-    this.ecsCommandProcessor = ecsCommandProcessor;
   }
 
   @Override
@@ -37,14 +31,14 @@ public class RequestListener implements Runnable {
 
     try (final ServerSocket serverSocket = new ServerSocket()) {
 
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        LOGGER.info("Closing server socket");
-        try {
-          serverSocket.close();
-        } catch (IOException ex) {
-          LOGGER.fatal("Caught exception, while closing server socket", ex);
-        }
-      }));
+      // Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      //   LOGGER.info("Closing server socket");
+      //   try {
+      //     serverSocket.close();
+      //   } catch (IOException ex) {
+      //     LOGGER.fatal("Caught exception, while closing server socket", ex);
+      //   }
+      // }));
 
       // bind to localhost only
       serverSocket.bind(new InetSocketAddress(this.listenAddress, this.listenPort));

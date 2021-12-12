@@ -3,6 +3,7 @@ package de.tum.i13.server.kv.commandprocessing.handlers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.tum.i13.server.Config;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
@@ -16,15 +17,17 @@ public class ShutdownHandler implements Runnable {
   private static final Logger LOGGER = LogManager.getLogger(ShutdownHandler.class);
   private ServerCommunicator ecsComms;
   private KVEcsCommandProcessor processor;
+  private Config config;
 
   /**
    * Create a new shutdown handler
    * @param ecsComms ECS communications interface
    * @param processor processor of commands from the ECS 
    */
-  public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor) {
+  public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor, Config config) {
     this.ecsComms = ecsComms;
     this.processor = processor;
+    this.config = config;
   }
 
   @Override
@@ -43,7 +46,7 @@ public class ShutdownHandler implements Runnable {
     }
 
     try {
-      KVMessage ecsResponse = ecsComms.sendShutdown();
+      KVMessage ecsResponse = ecsComms.sendShutdown(config.listenAddress, config.port);
       KVMessage message;
 
       /**

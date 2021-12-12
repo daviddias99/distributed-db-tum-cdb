@@ -8,7 +8,6 @@ import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
-import de.tum.i13.server.kv.KVConnectionHandler;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.handlers.ShutdownHandler;
@@ -18,21 +17,14 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.shared.ConnectionHandler;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
 
@@ -75,16 +67,13 @@ public class Main {
 
             // Setup shutdown procedure (handoff)
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor)));
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg)));
 
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(
-                    new RequestListener(cfg.listenAddress, cfg.port, commandProcessor, ecsCommunicator,
-                            ecsCommandProcessor)
-            );
+            final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(2000);
@@ -93,7 +82,6 @@ public class Main {
             LOGGER.info("Requesting metadata do ECS");
             ecsCommandProcessor.process(ecsCommunicator.signalStart(cfg.listenAddress, Integer.toString(cfg.port)));
 
-            // startListening(serverSocket, storage, commandProcessor);
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (CommunicationClientException ex) {
@@ -138,32 +126,4 @@ public class Main {
         communicator.connect(ecsLocation.getAddress(), ecsLocation.getPort());
         return communicator;
     }
-
-    @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, CommandProcessor<String> commandProcessor) {
-
-        LOGGER.info("Listening for requests at {}", serverSocket);
-
-        ConnectionHandler cHandler = new KVConnectionHandler();
-
-        // Use ThreadPool
-        ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
-
-        try {
-            while (true) {
-                // accept a connection
-                Socket clientSocket = serverSocket.accept();
-                LOGGER.info("New connection at {}", clientSocket);
-
-                // start a new Thread for this connection
-                executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, clientSocket,
-                        (InetSocketAddress) serverSocket.getLocalSocketAddress()));
-            }
-        } catch (IOException ex) {
-            LOGGER.fatal("Caught exception while accepting client request", ex);
-            LOGGER.info("Closing executor service");
-            executorService.shutdown();
-        }
-    }
-
 }

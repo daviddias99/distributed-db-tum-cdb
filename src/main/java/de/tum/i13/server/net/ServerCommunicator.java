@@ -75,9 +75,9 @@ public class ServerCommunicator implements NetworkMessageServer {
    * @throws CommunicationClientException An exception is thrown when a
    *                                      communication error occurs
    */
-  public KVMessage sendShutdown() throws CommunicationClientException {
+  public KVMessage sendShutdown(String addrress, int port) throws CommunicationClientException {
     LOGGER.info("Sending shutdown");
-    KVMessage message = new KVMessageImpl(StatusType.SERVER_SHUTDOWN);
+    KVMessage message = new KVMessageImpl(addrress, Integer.toString(port), StatusType.SERVER_SHUTDOWN);
     return this.sendAndReceive(message);
   }
 
