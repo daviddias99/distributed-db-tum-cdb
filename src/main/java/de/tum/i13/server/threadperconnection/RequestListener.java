@@ -31,6 +31,7 @@ public class RequestListener implements Runnable {
 
     try (final ServerSocket serverSocket = new ServerSocket()) {
 
+      // Hook not used to allow receiving messages after shutdown (for handoff)
       // Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       //   LOGGER.info("Closing server socket");
       //   try {
