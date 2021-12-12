@@ -256,7 +256,7 @@ public interface KVMessage {
                     msgTokens[2],
                     stringToStatusType.apply(msgTokens[0]));
         } else {
-            throw exceptionFunction.apply("message");
+            throw exceptionFunction.apply(message);
         }
     }
 

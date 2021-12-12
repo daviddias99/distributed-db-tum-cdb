@@ -30,13 +30,15 @@ public class ConnectionHandleThread implements Runnable {
 
     /**
      * Create new connection handler
+     *
      * @param commandProcessor  command processor for incoming messages
      * @param connectionHandler handler for accepted and closing messages
-     * @param clientSocket socket of incoming communication
-     * @param serverAddress address of server socket
+     * @param clientSocket      socket of incoming communication
+     * @param serverAddress     address of server socket
      */
-    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler, Socket clientSocket,
-            InetSocketAddress serverAddress) {
+    public ConnectionHandleThread(CommandProcessor<String> commandProcessor, ConnectionHandler connectionHandler,
+                                  Socket clientSocket,
+                                  InetSocketAddress serverAddress) {
         this.cp = commandProcessor;
         this.clientSocket = clientSocket;
         this.serverAddress = serverAddress;
@@ -45,6 +47,7 @@ public class ConnectionHandleThread implements Runnable {
 
     @Override
     public void run() {
+        LOGGER.info("Handling connection to {} in new thread", serverAddress);
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
@@ -54,17 +57,22 @@ public class ConnectionHandleThread implements Runnable {
             ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
             // Send a confirmation message to peer upon connection if he needs the greet
 
-                LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
+            LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
 
-                String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
-                        (InetSocketAddress) clientSocket.getRemoteSocketAddress());
-                activeConnection.send(connSuccess);
+            String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
+                    (InetSocketAddress) clientSocket.getRemoteSocketAddress());
+            activeConnection.send(connSuccess);
 
             // read messages from client and process using the CommandProcessor
             String firstLine;
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
-                LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(), firstLine, response);
+
+                if (!response.startsWith("server_heart_beat")) {
+                    LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(),
+                            firstLine, response);
+                }
+
                 activeConnection.send(response);
             }
 

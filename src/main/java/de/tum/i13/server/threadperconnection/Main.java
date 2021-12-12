@@ -53,19 +53,7 @@ public class Main {
         Config cfg = Config.parseCommandlineArgs(args); // Do not change this
         setupLogging(cfg.logfile, cfg.logLevel);
 
-        try (final ServerSocket serverSocket = new ServerSocket()) {
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                LOGGER.info("Closing server socket");
-                try {
-                    serverSocket.close();
-                } catch (IOException ex) {
-                    LOGGER.fatal("Caught exception, while closing server socket", ex);
-                }
-            }));
-
-            // bind to localhost only
-            serverSocket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
-
+        try {
             // Setup storage
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy,
                     cfg.cacheSize);
@@ -77,7 +65,7 @@ public class Main {
                     cfg.bootstrap.getPort());
 
             // Create state
-            LOGGER.info("Creating server state");
+            LOGGER.trace("Creating server state");
             final ServerState state = new ServerState(curLocation, ecsLocation);
 
             // Setup communications with ECS
@@ -86,24 +74,33 @@ public class Main {
                     false);
 
             // Setup shutdown procedure (handoff)
-            LOGGER.info("Adding shutdown handler for handoff");
+            LOGGER.trace("Adding shutdown handler for handoff");
             Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor)));
+
+            final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
+
+            LOGGER.trace("Starting the listening thread");
+            // Listen for messages
+            final Thread listeningThread = new Thread(
+                    new RequestListener(cfg.listenAddress, cfg.port, commandProcessor, ecsCommunicator,
+                            ecsCommandProcessor)
+            );
+            listeningThread.start();
+            LOGGER.trace("Waiting briefly until server is ready to accept new connections");
+            Thread.sleep(2000);
 
             // Request metadata from ECS
             LOGGER.info("Requesting metadata do ECS");
             ecsCommandProcessor.process(ecsCommunicator.signalStart(cfg.listenAddress, Integer.toString(cfg.port)));
 
-            final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
-
-            // Listen for messages
-            startListening(serverSocket, storage, commandProcessor);
-
-        } catch (IOException ex) {
-            LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
+            // startListening(serverSocket, storage, commandProcessor);
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (CommunicationClientException ex) {
             LOGGER.fatal("Caught exception while connecting to the ECS", ex);
+        } catch (InterruptedException exception) {
+            LOGGER.warn("The current thread was interrupted", exception);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -143,8 +140,7 @@ public class Main {
     }
 
     @SuppressWarnings("java:S2189")
-    private static void startListening(ServerSocket serverSocket, PersistentStorage storage,
-            CommandProcessor<String> commandProcessor) {
+    private static void startListening(ServerSocket serverSocket, CommandProcessor<String> commandProcessor) {
 
         LOGGER.info("Listening for requests at {}", serverSocket);
 
