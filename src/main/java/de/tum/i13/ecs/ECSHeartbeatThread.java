@@ -24,9 +24,11 @@ class ECSHeartbeatThread extends ECSThread {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSHeartbeatThread.class);
     private final ScheduledExecutorService scheduledExecutor;
+    private final NetworkLocation networkLocation;
 
     ECSHeartbeatThread(NetworkLocation networkLocation) throws IOException {
         super(networkLocation);
+        this.networkLocation = networkLocation;
         //set up the executor service to send the heartbeat message every second
         LOGGER.trace("Creating executor service");
         scheduledExecutor = Executors.newScheduledThreadPool(1);
@@ -72,8 +74,7 @@ class ECSHeartbeatThread extends ECSThread {
         LOGGER.info("Shutting down heartbeat executor service");
         scheduledExecutor.shutdown();
 
-        //TODO Check if the address given here is correct
-        ExternalConfigurationService.removeServer(getSocket().getInetAddress().toString(), getSocket().getPort());
+        ExternalConfigurationService.removeServer(networkLocation.getAddress(), networkLocation.getPort());
     }
 
 }
