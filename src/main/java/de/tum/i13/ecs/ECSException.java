@@ -68,7 +68,7 @@ public class ECSException extends Exception {
 
     public enum Type {
         /**
-         * Indicates that the status of the response received by ECS is not the expected {@link StatusType}
+         * Indicates that the status of the response received by ECS is not the expected {@link KVMessage.StatusType}
          */
         UNEXPECTED_RESPONSE,
         /**
