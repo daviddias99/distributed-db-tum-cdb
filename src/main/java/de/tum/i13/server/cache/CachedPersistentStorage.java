@@ -101,7 +101,7 @@ public class CachedPersistentStorage implements PersistentStorage {
             }
             // Note that if an error happens the cache and the storage might diverge from each other
             else if (cacheStatus == StatusType.PUT_ERROR) return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
-            else return new KVMessageImpl(key, value, storageStatus);
+            else return new KVMessageImpl(key, storageStatus);
         }
     }
 
