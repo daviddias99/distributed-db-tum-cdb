@@ -19,4 +19,8 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
     public TreeMapServerMetadata() {
         super(new MD5HashAlgorithm(), new TreeMap<>());
     }
+
+    public TreeMapServerMetadata(TreeMapServerMetadata copy) {
+        super(copy);
+    }
 }

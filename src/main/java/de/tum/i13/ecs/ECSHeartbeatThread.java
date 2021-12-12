@@ -23,12 +23,10 @@ public class ECSHeartbeatThread extends ECSThread{
 
     private static final Logger LOGGER = LogManager.getLogger(ECSHeartbeatThread.class);
 
-    private final ExternalConfigurationService service;
     private ScheduledExecutorService scheduledExecutor;
 
-    public ECSHeartbeatThread(ExternalConfigurationService service, Socket server) throws IOException{
+    public ECSHeartbeatThread(Socket server) throws IOException{
         super(server);
-        this.service = service;
     }
 
     @Override
@@ -40,7 +38,7 @@ public class ECSHeartbeatThread extends ECSThread{
                 scheduledExecutor.shutdownNow();
 
                 //remove the server from the hash ring
-                service.removeServer(getSocket().getInetAddress().toString(), getSocket().getPort());
+                ExternalConfigurationService.removeServer(getSocket().getInetAddress().toString(), getSocket().getPort());
             } catch( Exception ex) {
                 LOGGER.fatal("Caught exception, while closing ECS socket", ex);
             }

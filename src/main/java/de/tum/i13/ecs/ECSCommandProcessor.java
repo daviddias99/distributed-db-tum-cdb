@@ -16,10 +16,8 @@ import java.net.Socket;
 public class ECSCommandProcessor implements CommandProcessor<String> {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
-    private final ExternalConfigurationService service;
 
-    public ECSCommandProcessor(ExternalConfigurationService service){
-        this.service = service;
+    public ECSCommandProcessor(){
     }
 
     @Override
@@ -47,10 +45,10 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
 
             //start HEARTBEAT thread
             Socket connection = new Socket(address, port);
-            new ECSHeartbeatThread(service, connection).run();
+            new ECSHeartbeatThread(connection).run();
 
             //add server to the hash ring
-            service.addServer(address, port);
+            ExternalConfigurationService.addServer(address, port);
 
             //send back ACK message to server
             return new KVMessageImpl(StatusType.ECS_ACK);
@@ -76,7 +74,7 @@ public class ECSCommandProcessor implements CommandProcessor<String> {
     private KVMessage serverShutdown(String address, String portString){
         try{
             int port = Integer.parseInt(portString);
-            service.removeServerAndHandoffData(address, port);
+            ExternalConfigurationService.removeServerAndHandoffData(address, port);
             return new KVMessageImpl(StatusType.ECS_ACK);
 
         } catch( NumberFormatException ex){

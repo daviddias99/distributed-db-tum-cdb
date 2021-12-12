@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -28,6 +29,12 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                                               NavigableMap<BigInteger, NetworkLocation> networkLocationMap) {
         this.hashingAlgorithm = hashingAlgorithm;
         this.networkLocationMap = networkLocationMap;
+    }
+
+    protected PrecedingResponsibilityHashRing(PrecedingResponsibilityHashRing copy) {
+        this.hashingAlgorithm = copy.getHashingAlgorithm();
+        this.networkLocationMap = new TreeMap<>();
+        this.networkLocationMap.putAll(copy.getNetworkLocationMap());
     }
 
     @Override
@@ -146,6 +153,10 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .or(() -> Optional.ofNullable(networkLocationMap.lastEntry()))
                 .map(Map.Entry::getValue)
                 .filter(foundLocation -> !foundLocation.equals(location));
+    }
+
+    protected NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
+        return this.networkLocationMap;
     }
 
 }

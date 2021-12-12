@@ -146,7 +146,9 @@ public interface KVMessage {
          * Indicates the return of the key ranges and which KVStores are responsible for
          * the ranges
          */
-        KEYRANGE_SUCCESS(true, false);
+        KEYRANGE_SUCCESS(true, false),
+        
+        ECS_WAITING_FOR_HANDOFF(false, false);
 
         private final boolean needsKey;
         private final boolean needsValue;
