@@ -5,11 +5,11 @@ import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.NetworkLocationImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.Socket;
 
 /**
  * Class responsible to process commands sent by servers to the ECS.
@@ -53,7 +53,7 @@ class ECSCommandProcessor implements CommandProcessor<String> {
             int port = Integer.parseInt(portString);
 
             LOGGER.trace("Starting new heartbeat thread for '{}:{}'", address, port);
-            new ECSHeartbeatThread(new Socket(address, port))
+            new ECSHeartbeatThread(new NetworkLocationImpl(address, port))
                     .run();
             LOGGER.trace("Adding server '{}:{}' to {}",
                     address, port, ExternalConfigurationService.class.getSimpleName());

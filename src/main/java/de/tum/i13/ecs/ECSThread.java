@@ -22,6 +22,12 @@ abstract class ECSThread implements Runnable {
     private final Socket socket;
     private ActiveConnection activeConnection;
 
+    /**
+     * Handles a connection initiated from the server side. In this case no welcome message is consumed.
+     *
+     * @param socket the {@link Socket} where the connection was established
+     * @throws IOException if the connection cannot be fully established
+     */
     protected ECSThread(Socket socket) throws IOException {
         LOGGER.info("Creating new thread to communicate with server {}", socket);
         this.socket = socket;
@@ -34,21 +40,28 @@ abstract class ECSThread implements Runnable {
             }
         }));
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(),
+                Constants.TELNET_ENCODING));
         PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
         activeConnection = new ActiveConnection(socket, out, in);
-//        try {
-//            LOGGER.trace("Trying to receive welcome message");
-//            activeConnection.receive();
-//        } catch (CommunicationClientException exception) {
-//            final IOException newException = new IOException("Could not receive welcome message", exception);
-//            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
-//            throw newException;
-//        }
     }
 
+    /**
+     * Initiates a connection from the ECS side. In this case the welcome message of the server is consumed.
+     *
+     * @param location the server to connect to
+     * @throws IOException if the connection could not be established
+     */
     protected ECSThread(NetworkLocation location) throws IOException {
         this(new Socket(location.getAddress(), location.getPort()));
+        try {
+            LOGGER.trace("Trying to receive welcome message");
+            activeConnection.receive();
+        } catch (CommunicationClientException exception) {
+            final IOException newException = new IOException("Could not receive welcome message", exception);
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
+            throw newException;
+        }
     }
 
     /**

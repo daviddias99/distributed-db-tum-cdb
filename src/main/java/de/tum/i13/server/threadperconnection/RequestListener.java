@@ -5,8 +5,6 @@ import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
-import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.net.CommunicationClientException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,16 +48,14 @@ public class RequestListener implements Runnable {
 
       // bind to localhost only
       serverSocket.bind(new InetSocketAddress(this.listenAddress, this.listenPort));
-      // Request metadata from ECS
-      LOGGER.info("Requesting metadata do ECS");
-      ecsCommandProcessor.process(ecsCommunicator.signalStart(listenAddress, Integer.toString(listenPort)));
+
 
       LOGGER.info("Listening for requests at {}", serverSocket);
 
       ConnectionHandler cHandler = new KVConnectionHandler();
 
       // Use ThreadPool
-      ExecutorService executorService = Executors.newFixedThreadPool(Constants.CORE_POOL_SIZE);
+      ExecutorService executorService = Executors.newCachedThreadPool();
 
       try {
         while (!Thread.interrupted()) {
@@ -77,7 +73,7 @@ public class RequestListener implements Runnable {
         executorService.shutdown();
       }
 
-    } catch (IOException | CommunicationClientException ex) {
+    } catch (IOException ex) {
       LOGGER.fatal("Caught exception, while creating and binding server socket", ex);
     }
   }

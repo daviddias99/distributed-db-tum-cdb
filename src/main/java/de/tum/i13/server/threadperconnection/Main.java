@@ -65,7 +65,7 @@ public class Main {
                     cfg.bootstrap.getPort());
 
             // Create state
-            LOGGER.info("Creating server state");
+            LOGGER.trace("Creating server state");
             final ServerState state = new ServerState(curLocation, ecsLocation);
 
             // Setup communications with ECS
@@ -74,19 +74,33 @@ public class Main {
                     false);
 
             // Setup shutdown procedure (handoff)
-            LOGGER.info("Adding shutdown handler for handoff");
+            LOGGER.trace("Adding shutdown handler for handoff");
             Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor)));
 
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
 
+            LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            (new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor, ecsCommunicator, ecsCommandProcessor))).start();
+            final Thread listeningThread = new Thread(
+                    new RequestListener(cfg.listenAddress, cfg.port, commandProcessor, ecsCommunicator,
+                            ecsCommandProcessor)
+            );
+            listeningThread.start();
+            LOGGER.trace("Waiting briefly until server is ready to accept new connections");
+            Thread.sleep(2000);
+
+            // Request metadata from ECS
+            LOGGER.info("Requesting metadata do ECS");
+            ecsCommandProcessor.process(ecsCommunicator.signalStart(cfg.listenAddress, Integer.toString(cfg.port)));
 
             // startListening(serverSocket, storage, commandProcessor);
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (CommunicationClientException ex) {
             LOGGER.fatal("Caught exception while connecting to the ECS", ex);
+        } catch (InterruptedException exception) {
+            LOGGER.warn("The current thread was interrupted", exception);
+            Thread.currentThread().interrupt();
         }
     }
 

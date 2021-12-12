@@ -4,11 +4,12 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,8 +25,8 @@ class ECSHeartbeatThread extends ECSThread {
     private static final Logger LOGGER = LogManager.getLogger(ECSHeartbeatThread.class);
     private final ScheduledExecutorService scheduledExecutor;
 
-    ECSHeartbeatThread(Socket server) throws IOException {
-        super(server);
+    ECSHeartbeatThread(NetworkLocation networkLocation) throws IOException {
+        super(networkLocation);
         //set up the executor service to send the heartbeat message every second
         LOGGER.trace("Creating executor service");
         scheduledExecutor = Executors.newScheduledThreadPool(1);
@@ -35,17 +36,17 @@ class ECSHeartbeatThread extends ECSThread {
     @Override
     public void run() {
         LOGGER.info("Starting heartbeat thread");
+        //set up waiting time for the response
+        //TODO check if this works or needs to be set for every task
+        LOGGER.trace("Setting heartbeat timeout and scheduling task");
         try {
-            //set up waiting time for the response
-            //TODO check if this works or needs to be set for every task
-            LOGGER.trace("Setting heartbeat timeout and scheduling task");
             getSocket().setSoTimeout(Constants.HEARTBEAT_TIMEOUT_MILLISECONDS);
-            scheduledExecutor.scheduleAtFixedRate(this::heartBeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
-        } catch (IOException ex) {
+        } catch (SocketException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Caught exception while establishing connection to {}.", getSocket());
         }
+        scheduledExecutor.scheduleAtFixedRate(this::heartBeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
     }
 
     private void heartBeatTask() {
