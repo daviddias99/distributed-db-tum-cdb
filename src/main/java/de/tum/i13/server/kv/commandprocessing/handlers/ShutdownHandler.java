@@ -55,6 +55,8 @@ public class ShutdownHandler implements Runnable {
 
       /**
        * Expected message sequence (< outgoing, > inbound)
+       * NOTE: Currently these embedded processing cycle isn't being used because the
+       * resposes are sent to the listening address. Because of this, an interrupt of the server thread is needed
        * < SERVER_SHUTDOWN
        * > ECS_WRITE_LOCK
        * < SERVER_WRITE_LOCK
@@ -77,6 +79,7 @@ public class ShutdownHandler implements Runnable {
       LOGGER.fatal("Error while communicating with ECS for shutdown", e);
     }
 
+    // Stop listenint thread
     listeningThread.interrupt();
   }
 }

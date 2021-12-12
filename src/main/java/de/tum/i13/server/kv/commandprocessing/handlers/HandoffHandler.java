@@ -30,6 +30,7 @@ public class HandoffHandler implements Runnable {
   private NetworkLocation peer;
   private String lowerBound;
   private String upperBound;
+  private boolean async;
 
   /**
    * Create a new handoff handler
@@ -40,12 +41,13 @@ public class HandoffHandler implements Runnable {
    * @param storage current server storage
    */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage) {
+      PersistentStorage storage, boolean async) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
+    this.async = async;
   }
 
   @Override
@@ -94,6 +96,15 @@ public class HandoffHandler implements Runnable {
         storage.put(key, null);
       } catch (PutException e) {
         LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
+      }
+    }
+
+    if(this.async) {
+      try {
+        LOGGER.info("Finished sync. handoff.");
+        ecs.confirmHandoff();
+      } catch( CommunicationClientException ex) {
+        LOGGER.error("Could not notify handoff success", ex);
       }
     }
   }

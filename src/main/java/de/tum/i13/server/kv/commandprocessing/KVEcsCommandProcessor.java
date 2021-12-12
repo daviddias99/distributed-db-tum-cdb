@@ -96,20 +96,22 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage handoff(KVMessage command) {
 
     String[] bounds = command.getValue().split(" ");
+    String lowerBound = bounds[0].substring(2);
+    String upperBound = bounds[1].substring(2);
 
     if (bounds.length != 2) {
       LOGGER.error("More than two values given as bounds");
       return new KVMessageImpl(KVMessage.StatusType.ERROR);
     }
-    LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, bounds[0].substring(2), bounds[1].substring(2));
+    LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, lowerBound, upperBound);
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
-    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, bounds[0].substring(2), bounds[1].substring(2), storage);
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage, asyncHandoff);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);
       handoffProcess.start();
-      LOGGER.info("Started handoff process, returing acknowlegement to ECS");
+      LOGGER.info("Started async handoff process, returing acknowlegement to ECS");
       return new KVMessageImpl(KVMessage.StatusType.SERVER_HANDOFF_ACK);
     } else {
       handoff.run();
