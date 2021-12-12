@@ -76,7 +76,7 @@ public interface KVMessage {
          * Indicates that the requested key is not within the range of the answering
          * server
          */
-        SERVER_NOT_RESPONSIBLE(true, false),
+        SERVER_NOT_RESPONSIBLE(false, false),
 
         /**
          * Used by server to indicate successful handoff

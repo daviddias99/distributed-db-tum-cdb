@@ -50,8 +50,7 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
    */
   private KVMessage get(String key) {
     if (!this.serverState.responsibleForKey(key)) {
-      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(),
-          KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
     }
 
     try {
@@ -65,7 +64,7 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
 
   private KVMessage put(String key, String value) {
     if(! this.serverState.responsibleForKey(key)) {
-      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
     }
 
     if (this.serverState.canWrite()) {
@@ -83,7 +82,7 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
 
   private KVMessage delete(String key) {
     if(! this.serverState.responsibleForKey(key)) {
-      return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
     }
 
     if (this.serverState.canWrite()) {
