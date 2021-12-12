@@ -57,8 +57,8 @@ class ExternalConfigurationService {
                 //calculate the updated metadata and send it to both servers
                 TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
                 copyMetadata.addNetworkLocation(newServer);
-                new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage());
-                new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage());
+                new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
+                new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 
                 LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
                 new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
@@ -119,7 +119,7 @@ class ExternalConfigurationService {
             //calculate the updated metadata and send it to both servers
             TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
             copyMetadata.removeNetworkLocation(oldServer);
-            new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage());
+            new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 
             LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
             new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
