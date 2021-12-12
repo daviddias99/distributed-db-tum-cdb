@@ -49,7 +49,7 @@ abstract class CacheTest {
                         KVMessage::getStatus
                 ).containsExactly(
                         "myKey",
-                        "myValue",
+                        null,
                         KVMessage.StatusType.PUT_SUCCESS
                 );
         assertThat(cache.put("myKey2", "myValue2"))
@@ -59,7 +59,7 @@ abstract class CacheTest {
                         KVMessage::getStatus
                 ).containsExactly(
                         "myKey2",
-                        "myValue2",
+                        null,
                         KVMessage.StatusType.PUT_SUCCESS
                 );
     }

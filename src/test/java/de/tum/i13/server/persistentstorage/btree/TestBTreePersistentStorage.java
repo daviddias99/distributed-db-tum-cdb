@@ -1,8 +1,11 @@
 package de.tum.i13.server.persistentstorage.btree;
 
 import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PutException;
 
@@ -17,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TestBTreePersistentStorage {
     private BTreePersistentStorage storage;
-    private PersistentBTreeDiskStorageHandler<String> handler;
+    private PersistentBTreeDiskStorageHandler<Pair<String>> handler;
 
     @BeforeAll
     public static void setLogLevel() {
@@ -27,7 +30,8 @@ public class TestBTreePersistentStorage {
     @BeforeEach
     public void createTree() throws StorageException {
         handler = new PersistentBTreeDiskStorageHandler<>("database", true);
-        storage = new BTreePersistentStorage(3, handler);
+        HashingAlgorithm hashAlg = new MD5HashAlgorithm();
+        storage = new BTreePersistentStorage(3, handler, hashAlg);
     }
 
     @AfterEach
@@ -39,10 +43,10 @@ public class TestBTreePersistentStorage {
     void putReturnsCorrectKeysAndValues() throws PutException {
         assertThat(storage.put("myKey", "myValue"))
                 .extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
-                .containsExactly("myKey", "myValue", KVMessage.StatusType.PUT_SUCCESS);
+                .containsExactly("myKey", null, KVMessage.StatusType.PUT_SUCCESS);
         assertThat(storage.put("myKey2", "myValue2"))
                 .extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
-                .containsExactly("myKey2", "myValue2", KVMessage.StatusType.PUT_SUCCESS);
+                .containsExactly("myKey2", null, KVMessage.StatusType.PUT_SUCCESS);
     }
 
     @Test

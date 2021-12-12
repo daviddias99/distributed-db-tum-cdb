@@ -50,8 +50,8 @@ public abstract class AbstractLinkedHashMapCache implements Cache {
         LOGGER.debug("Putting key {} to value {}", key, value);
 
         return Optional.ofNullable(cache.put(key, value))
-                .map(previousValue -> new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE))
-                .orElseGet(() -> new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS));
+                .map(previousValue -> new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE))
+                .orElseGet(() -> new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS));
     }
 
     private KVMessage deleteKey(String key) {

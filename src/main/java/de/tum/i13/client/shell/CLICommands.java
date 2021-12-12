@@ -2,6 +2,7 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.NetworkMessageServer;
+import de.tum.i13.shared.persistentstorage.DistributedPersistentStorage;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import picocli.CommandLine;
@@ -18,7 +19,8 @@ public class CLICommands {
 
     public CLICommands() {
         final NetworkMessageServer client = new CommunicationClient();
-        remoteStorage = new WrappingPersistentStorage(client);
+        final NetworkPersistentStorage wrappingStorage = new WrappingPersistentStorage(client);
+        remoteStorage = new DistributedPersistentStorage(wrappingStorage);
     }
 
 }

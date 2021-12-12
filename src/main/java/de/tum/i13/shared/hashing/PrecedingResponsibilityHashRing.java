@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -119,6 +120,11 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
+    public Set<NetworkLocation> getAllNetworkLocations() {
+        return Set.copyOf(networkLocationMap.values());
+    }
+
+    @Override
     public synchronized Optional<NetworkLocation> getSucceedingNetworkLocation(NetworkLocation location) {
         LOGGER.info("Getting succeeding {} for {} '{}'", NetworkLocation.class.getSimpleName(),
                 NetworkLocation.class.getSimpleName(), location);
@@ -140,6 +146,20 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .or(() -> Optional.ofNullable(networkLocationMap.lastEntry()))
                 .map(Map.Entry::getValue)
                 .filter(foundLocation -> !foundLocation.equals(location));
+    }
+
+    @Override
+    public synchronized int size() {
+        return networkLocationMap.size();
+    }
+
+    @Override
+    public synchronized boolean isEmpty() {
+        return size() == 0;
+    }
+
+    protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
+        return this.networkLocationMap;
     }
 
 }
