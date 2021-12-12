@@ -21,6 +21,6 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
     }
 
     public TreeMapServerMetadata(TreeMapServerMetadata copy) {
-        super(copy);
+        super(copy.getHashingAlgorithm(), new TreeMap<>(copy.getNetworkLocationMap()));
     }
 }

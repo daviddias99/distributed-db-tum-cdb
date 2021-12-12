@@ -31,12 +31,6 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         this.networkLocationMap = networkLocationMap;
     }
 
-    protected PrecedingResponsibilityHashRing(PrecedingResponsibilityHashRing copy) {
-        this.hashingAlgorithm = copy.getHashingAlgorithm();
-        this.networkLocationMap = new TreeMap<>();
-        this.networkLocationMap.putAll(copy.getNetworkLocationMap());
-    }
-
     @Override
     public synchronized Optional<NetworkLocation> getResponsibleNetworkLocation(String key) {
         LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
