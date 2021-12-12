@@ -65,8 +65,8 @@ class ECSHandoffThread extends ECSThread {
     private KVMessage prepareHandoffMessage(NetworkLocation newServer, BigInteger lowerBound, BigInteger upperBound) {
         LOGGER.trace("Preparing the handoff message for '{}' with lower bound '{}' and upperBound '{}'",
                 newServer, lowerBound, upperBound);
-        String lowerHexBound = HashingAlgorithm.convertHashToHexWithPrefix(lowerBound);
-        String upperHexBound = HashingAlgorithm.convertHashToHexWithPrefix(upperBound);
+        String lowerHexBound = HashingAlgorithm.convertHashToHex(lowerBound);
+        String upperHexBound = HashingAlgorithm.convertHashToHex(upperBound);
         String peerNetworkLocation = newServer.getAddress() + ":" + newServer.getPort();
 
         return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT,

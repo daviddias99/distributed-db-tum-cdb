@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -149,7 +148,17 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .filter(foundLocation -> !foundLocation.equals(location));
     }
 
-    protected NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
+    @Override
+    public synchronized int size() {
+        return networkLocationMap.size();
+    }
+
+    @Override
+    public synchronized boolean isEmpty() {
+        return size() == 0;
+    }
+
+    protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
         return this.networkLocationMap;
     }
 

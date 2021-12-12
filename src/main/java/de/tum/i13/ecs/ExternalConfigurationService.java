@@ -38,31 +38,9 @@ class ExternalConfigurationService {
         LOGGER.info("Trying to add  new server with address '{}:{}' to the {}", listenAddress, port,
                 ConsistentHashRing.class.getSimpleName());
         try {
-            final int numberOfServers = serverMap.getAllNetworkLocations().size();
             NetworkLocation newServer = new NetworkLocationImpl(listenAddress, port);
-            // TODO Also do the handoff, if there is only one server in the hash ring
-            if (numberOfServers >= 2) {
-                LOGGER.trace("There were at least 2 server in the {}. Determining predecessor and successor",
-                        ConsistentHashRing.class.getSimpleName());
-                NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
-                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
-                                "find preceding server on ring"));
-                NetworkLocation nextInRing = serverMap.getSucceedingNetworkLocation(newServer)
-                        .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
-                                "find succeeding server on ring"));
-
-                BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-                BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
-
-                //calculate the updated metadata and send it to both servers
-                TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
-                copyMetadata.addNetworkLocation(newServer);
-                new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
-                new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
-
-                LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
-                new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
-            }
+            if (!serverMap.isEmpty())
+                handleHandoff(newServer);
 
             serverMap.addNetworkLocation(newServer);
             LOGGER.debug("Added new server '{}' to the {}", newServer, ConsistentHashRing.class.getSimpleName());
@@ -73,6 +51,29 @@ class ExternalConfigurationService {
 
     }
 
+    private static synchronized void handleHandoff(NetworkLocation newServer) throws ECSException, IOException {
+        LOGGER.trace("The {} is not empty. Handling handoff", ConsistentHashRing.class.getSimpleName());
+        NetworkLocation previousInRing = serverMap.getPrecedingNetworkLocation(newServer)
+                .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
+                        "find preceding server on ring"));
+        NetworkLocation nextInRing = serverMap.getSucceedingNetworkLocation(newServer)
+                .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
+                        "find succeeding server on ring"));
+
+        BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing)
+                .add(BigInteger.ONE);
+        BigInteger upperBound = serverMap.getHashingAlgorithm().hash(newServer);
+
+        //calculate the updated metadata and send it to both servers
+        TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
+        copyMetadata.addNetworkLocation(newServer);
+        new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
+        new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
+
+        LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
+        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+    }
+
     /**
      * Remove server from the serverMap after it unexpectedly shuts down/fails to send back a HEARTBEAT.
      * Update metadata of all other servers. The key-value pairs of the failed server are considered lost.
@@ -81,7 +82,7 @@ class ExternalConfigurationService {
      * @param port          the port of the server to be deleted from the {@link ConsistentHashRing}.
      */
     static synchronized void removeServer(String listenAddress, int port) {
-        
+
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
 
         NetworkLocationImpl serverLocation = new NetworkLocationImpl(listenAddress, port);
