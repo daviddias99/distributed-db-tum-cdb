@@ -20,40 +20,10 @@ class ExternalConfigurationService {
 
     private static final Logger LOGGER = LogManager.getLogger(ExternalConfigurationService.class);
 
-    private final String address;
-    private final int port;
-    private final static TreeMapServerMetadata serverMap = new TreeMapServerMetadata();
 
-    ExternalConfigurationService(String address, int port) {
-        this.address = address;
-        this.port = port;
-    }
+    private static final TreeMapServerMetadata serverMap = new TreeMapServerMetadata();
 
-    /**
-     * Getter method for the address of the ECS Service.
-     *
-     * @return
-     */
-    String getAddress() {
-        return this.address;
-    }
-
-    /**
-     * Getter method for the port of the ECS Service.
-     *
-     * @return
-     */
-    int getPort() {
-        return this.port;
-    }
-
-    /**
-     * Getter method for the metadata of the ECS Service.
-     *
-     * @return
-     */
-    TreeMapServerMetadata getMetadata() {
-        return serverMap;
+    private ExternalConfigurationService() {
     }
 
     /**
@@ -64,7 +34,7 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be added to the {@link ConsistentHashRing} parameter.
      * @param port          the port of the server to be added to the {@link ConsistentHashRing} parameter.
      */
-    synchronized static void addServer(String listenAddress, int port) throws ECSException {
+    static synchronized void addServer(String listenAddress, int port) throws ECSException {
         LOGGER.info("Trying to add  new server with address '{}:{}' to the {}", listenAddress, port,
                 ConsistentHashRing.class.getSimpleName());
         try {
@@ -110,7 +80,7 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the {@link ConsistentHashRing},
      * @param port          the port of the server to be deleted from the {@link ConsistentHashRing}.
      */
-    synchronized static void removeServer(String listenAddress, int port) {
+    static synchronized void removeServer(String listenAddress, int port) {
         
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
 
@@ -130,7 +100,7 @@ class ExternalConfigurationService {
      * @param listenAddress the address of the server to be deleted from the serverMap
      * @param port          the port of the server to be deleted from the serverMap
      */
-    synchronized static void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
+    static synchronized void removeServerAndHandoffData(String listenAddress, int port) throws ECSException {
         LOGGER.info("Trying to remove server with address {} from the ring.", listenAddress);
         try {
             //Initiate handoff from old server to successor
