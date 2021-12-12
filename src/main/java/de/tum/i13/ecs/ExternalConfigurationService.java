@@ -60,8 +60,9 @@ class ExternalConfigurationService {
                 .orElseThrow(() -> new ECSException(ECSException.Type.UPDATE_METADATA_FAILURE, "Could not " +
                         "find succeeding server on ring"));
 
-        BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing);
-        BigInteger upperBound = serverMap.getHashingAlgorithm().hash(nextInRing);
+        BigInteger lowerBound = serverMap.getHashingAlgorithm().hash(previousInRing)
+                .add(BigInteger.ONE);
+        BigInteger upperBound = serverMap.getHashingAlgorithm().hash(newServer);
 
         //calculate the updated metadata and send it to both servers
         TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
