@@ -39,11 +39,11 @@ public interface KVMessage {
         /**
          * Put - request successful, tuple inserted
          */
-        PUT_SUCCESS(true, true),
+        PUT_SUCCESS(true, false),
         /**
          * Put - request successful, i.e. value updated
          */
-        PUT_UPDATE(true, true),
+        PUT_UPDATE(true, false),
         /**
          * Put - request not successful
          */

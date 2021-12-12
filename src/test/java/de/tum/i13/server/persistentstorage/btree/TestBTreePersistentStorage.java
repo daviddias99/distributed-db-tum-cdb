@@ -43,10 +43,10 @@ public class TestBTreePersistentStorage {
     void putReturnsCorrectKeysAndValues() throws PutException {
         assertThat(storage.put("myKey", "myValue"))
                 .extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
-                .containsExactly("myKey", "myValue", KVMessage.StatusType.PUT_SUCCESS);
+                .containsExactly("myKey", null, KVMessage.StatusType.PUT_SUCCESS);
         assertThat(storage.put("myKey2", "myValue2"))
                 .extracting(KVMessage::getKey, KVMessage::getValue, KVMessage::getStatus)
-                .containsExactly("myKey2", "myValue2", KVMessage.StatusType.PUT_SUCCESS);
+                .containsExactly("myKey2", null, KVMessage.StatusType.PUT_SUCCESS);
     }
 
     @Test

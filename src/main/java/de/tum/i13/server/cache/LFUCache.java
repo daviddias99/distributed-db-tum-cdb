@@ -139,7 +139,7 @@ public class LFUCache implements Cache {
         LOGGER.debug("Putting key {} with previously present value {} to value {}", key, mapNode.value, value);
         mapNode.value = value;
         updateKeyFrequency(key, mapNode);
-        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
+        return new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE);
     }
 
     /**
@@ -159,7 +159,7 @@ public class LFUCache implements Cache {
             keyNodeMap.put(key, new MapNode(value, indexLFU));
             accessFrequencyList.set(indexLFU, new ListNode(key));
         }
-        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+        return new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS);
     }
 
     @Override

@@ -122,12 +122,12 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
             if (previousValue != null && !value.equals(previousValue.value)) {
                 LOGGER.info("Updated key {} with value {}", key, value);
 
-                return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_UPDATE);
+                return new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE);
             }
 
             LOGGER.info("Put key {} with value {}", key, value);
 
-            return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_SUCCESS);
+            return new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS);
         } catch (Exception e) {
             throw new PutException("An error occured while %s key %s from storage.",
                     value == null ? "deleting" : "putting", key);
