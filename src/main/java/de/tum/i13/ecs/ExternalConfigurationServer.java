@@ -38,9 +38,8 @@ public class ExternalConfigurationServer {
             }));
 
             socket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
-        
-            final ExternalConfigurationService service = new ExternalConfigurationService(cfg.listenAddress, cfg.port);
-            startListening(socket, service);
+
+            startListening(socket);
         } catch(IOException ex){
             LOGGER.fatal("Caught exception, while creating and binding ECS socket", ex);
         }
@@ -48,7 +47,7 @@ public class ExternalConfigurationServer {
     }
 
     @SuppressWarnings("java:S2189")
-    public static void startListening(ServerSocket socket, ExternalConfigurationService service){
+    public static void startListening(ServerSocket socket){
         LOGGER.info("Start listening on {} for new connections", socket);
 
         ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
