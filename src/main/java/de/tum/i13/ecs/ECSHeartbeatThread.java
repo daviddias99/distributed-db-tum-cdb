@@ -22,23 +22,20 @@ import java.util.concurrent.TimeUnit;
 class ECSHeartbeatThread extends ECSThread {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSHeartbeatThread.class);
+    private final ScheduledExecutorService scheduledExecutor;
 
     ECSHeartbeatThread(Socket server) throws IOException {
         super(server);
+        //set up the executor service to send the heartbeat message every second
+        LOGGER.trace("Creating executor service");
+        scheduledExecutor = Executors.newScheduledThreadPool(1);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::shutDownExecutor));
     }
 
     @Override
     public void run() {
         LOGGER.info("Starting heartbeat thread");
         try {
-            //set up the executor service to send the heartbeat message every second
-            LOGGER.trace("Creating executor service");
-            ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                LOGGER.info("Closing heartbeat executor service");
-                scheduledExecutor.shutdown();
-            }));
-
             //set up waiting time for the response
             //TODO check if this works or needs to be set for every task
             LOGGER.trace("Setting heartbeat timeout and scheduling task");
@@ -59,6 +56,7 @@ class ECSHeartbeatThread extends ECSThread {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Heartbeat timeout. Heartbeat from {} not detected after 700ms.", getSocket());
+            shutDownExecutor();
         } catch (IOException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
@@ -67,6 +65,11 @@ class ECSHeartbeatThread extends ECSThread {
             LOGGER.fatal("Caught ECSException of type {} when requesting heartbeat from {}", ex.getType(),
                     getSocket());
         }
+    }
+
+    private void shutDownExecutor() {
+        LOGGER.info("Shutting down heartbeat executor service");
+        scheduledExecutor.shutdown();
     }
 
 }

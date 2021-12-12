@@ -19,10 +19,8 @@ abstract class ECSThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSThread.class);
 
-    Socket socket;
+    private final Socket socket;
     private ActiveConnection activeConnection;
-    private BufferedReader in;
-    private PrintWriter out;
 
     protected ECSThread(Socket socket) throws IOException {
         LOGGER.info("Creating new thread to communicate with server {}", socket);
@@ -36,8 +34,8 @@ abstract class ECSThread implements Runnable {
             }
         }));
 
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
-        out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), Constants.TELNET_ENCODING));
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), Constants.TELNET_ENCODING));
         activeConnection = new ActiveConnection(socket, out, in);
 //        try {
 //            LOGGER.trace("Trying to receive welcome message");

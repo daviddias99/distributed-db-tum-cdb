@@ -61,21 +61,18 @@ class ECSCommandProcessor implements CommandProcessor<String> {
 
             //TODO Send back metadata? It will be sent anyway by the update message
             return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
-
         } catch (IOException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Caught exception while trying to connect to {}:{}", address, portString);
-            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
         } catch (NumberFormatException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Port number not valid while trying to connect to {}:{}", address, portString);
-            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
-        } catch (ECSException e) {
-            LOGGER.fatal("Could not add new server");
-            return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
+        } catch (ECSException ex) {
+            LOGGER.fatal("Could not add new server", ex);
         }
+        return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ERROR));
     }
 
     /**
