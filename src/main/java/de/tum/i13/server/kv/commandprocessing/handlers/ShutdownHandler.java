@@ -18,16 +18,20 @@ public class ShutdownHandler implements Runnable {
   private ServerCommunicator ecsComms;
   private KVEcsCommandProcessor processor;
   private Config config;
+  private Thread listeningThread;
 
   /**
    * Create a new shutdown handler
-   * @param ecsComms ECS communications interface
-   * @param processor processor of commands from the ECS 
+   * 
+   * @param ecsComms  ECS communications interface
+   * @param processor processor of commands from the ECS
    */
-  public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor, Config config) {
+  public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor, Config config,
+      Thread listeningThread) {
     this.ecsComms = ecsComms;
     this.processor = processor;
     this.config = config;
+    this.listeningThread = listeningThread;
   }
 
   @Override
@@ -35,7 +39,7 @@ public class ShutdownHandler implements Runnable {
     LOGGER.info("Starting server shutdown procedure");
 
     // Check if comms are connected
-    if(!ecsComms.isConnected()) {      
+    if (!ecsComms.isConnected()) {
       try {
         LOGGER.info("ECS not connected, trying to reconnect");
         ecsComms.reconnect();
@@ -61,16 +65,18 @@ public class ShutdownHandler implements Runnable {
         message = processor.process(ecsResponse);
 
         // null message means that there is no response to be sent
-        if(message == null) {
+        if (message == null) {
           break;
         }
 
-        ecsResponse =  ecsComms.sendAndReceive(message);
+        ecsResponse = ecsComms.sendAndReceive(message);
       } while (true);
 
       LOGGER.info("Finished shutdown procedure");
     } catch (CommunicationClientException e) {
       LOGGER.fatal("Error while communicating with ECS for shutdown", e);
     }
+
+    listeningThread.interrupt();
   }
 }
