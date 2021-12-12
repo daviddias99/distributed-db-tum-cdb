@@ -77,7 +77,7 @@ public class Main {
             Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread)));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
-            Thread.sleep(2000);
+            Thread.sleep(500);
 
             // Request metadata from ECS
             LOGGER.info("Requesting metadata do ECS");

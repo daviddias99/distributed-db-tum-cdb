@@ -1,6 +1,8 @@
 package de.tum.i13.server;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.spi.StandardLevel;
 import picocli.CommandLine;
 
@@ -14,6 +16,9 @@ import java.nio.file.Path;
  * Server configuration. Provides function to parse command line arguments
  */
 public class Config {
+
+    private static final Logger LOGGER = LogManager.getLogger(Config.class);
+
     /**
      * Port where the server listens to commands
      */
@@ -49,7 +54,7 @@ public class Config {
     /**
      * Log leve
      */
-    @CommandLine.Option(names = "-ll", description = "Log level. Default: ${DEFAULT-VALUE}. Valid values: ${COMPLETION-CANDIDATES}", defaultValue = "ALL")
+    @CommandLine.Option(names = "-ll", description = "Log level. Default: ${DEFAULT-VALUE}. Valid values: ${COMPLETION-CANDIDATES}", defaultValue = "ALL", converter = LogLevelConverter.class)
     public StandardLevel logLevel;
 
     /**
@@ -138,5 +143,31 @@ public class Config {
                 ", usageHelp=" + usageHelp +
                 '}';
     }
+
+    private static class LogLevelConverter implements CommandLine.ITypeConverter<StandardLevel> {
+
+        @Override
+        public StandardLevel convert(String levelString) {
+            try {
+                return StandardLevel.valueOf(levelString);
+            } catch (IllegalArgumentException | NullPointerException ex) {
+                LOGGER.warn("Could not convert '{}' to standard log4j log level", levelString);
+                return switch (levelString) {
+                    case "ALL", "FINEST" -> StandardLevel.TRACE;
+                    case "FINER", "FINE" -> StandardLevel.DEBUG;
+                    case "CONFIG", "INFO" -> StandardLevel.INFO;
+                    case "WARNING" -> StandardLevel.WARN;
+                    case "SEVERE" -> StandardLevel.ERROR;
+                    case "OFF" -> StandardLevel.OFF;
+                    default -> {
+                        LOGGER.warn("Could not find standard util log level '{}'", levelString);
+                        yield StandardLevel.ALL;
+                    }
+                };
+            }
+        }
+
+    }
+
 
 }
