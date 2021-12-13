@@ -51,14 +51,29 @@ public class ClientStats {
   }
 
   public void add(ClientStats c) {
-    this.putTime = c.putTime;
-    this.getTime = c.getTime;
-    this.deleteTime = c.deleteTime;
-    this.putCount = c.putCount;
-    this.getCount = c.getCount;
-    this.deleteCount = c.deleteCount;
-    this.putFailCount = c.putFailCount;
-    this.getFailCount = c.getFailCount;
-    this.deleteFailCount = c.deleteFailCount;
+    this.putTime += c.putTime;
+    this.getTime += c.getTime;
+    this.deleteTime += c.deleteTime;
+    this.putCount += c.putCount;
+    this.getCount += c.getCount;
+    this.deleteCount += c.deleteCount;
+    this.putFailCount += c.putFailCount;
+    this.getFailCount += c.getFailCount;
+    this.deleteFailCount += c.deleteFailCount;
+  }
+
+  public String toCSVString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append(this.putCount).append(",");
+    builder.append(this.putFailCount).append(",");
+    builder.append(this.putTime).append(",");
+    builder.append(this.getCount).append(",");
+    builder.append(this.getFailCount).append(",");
+    builder.append(this.getTime).append(",");
+    builder.append(this.deleteCount).append(",");
+    builder.append(this.deleteFailCount).append(",");
+    builder.append(this.deleteTime).append("\n");
+
+    return builder.toString();
   }
 }

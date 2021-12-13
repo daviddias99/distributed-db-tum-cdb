@@ -17,7 +17,7 @@ public class EmailParser {
       String content = Files.readString(emailPath, StandardCharsets.US_ASCII).replaceAll("[\\t\\n\\r]+"," ");
       return new Pair<>(getIdFromEmail(content), content);
     } catch (IOException e) {
-      e.printStackTrace();
+      // e.printStackTrace();
     }
 
     return null;

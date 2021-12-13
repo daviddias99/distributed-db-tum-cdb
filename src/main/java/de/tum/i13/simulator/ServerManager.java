@@ -1,6 +1,7 @@
 package de.tum.i13.simulator;
 
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Random;
@@ -9,7 +10,7 @@ public class ServerManager {
 
   LinkedList<Process> servers;
   LinkedList<String> addresses;
-  int port = 25565;
+  int port = 35660;
 
   int cacheSize;
   String cacheStrategy;
@@ -26,6 +27,12 @@ public class ServerManager {
 
     for (int i = 0; i < count; i++) {
       this.addServer();
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
 
     this.addServerHook();
@@ -33,7 +40,7 @@ public class ServerManager {
 
   private String getServerCommand() {
     String dataDir = Paths.get("data", Integer.toString(port)).toString();
-    return String.format("java -jar target/kv-server.jar -p %d -s %s -c %d -d %s -l logs/server_%d.txt", this.port,
+    return String.format("java -jar target/kv-server.jar -b 127.0.0.1:25670 -t 100 -p %d -s %s -c %d -d %s -l logs/server_%d.txt", this.port,
         this.cacheStrategy, this.cacheSize, dataDir, this.port);
   }
 
@@ -55,7 +62,11 @@ public class ServerManager {
 
   public void addServer() {
     try {
-      servers.add(Runtime.getRuntime().exec(this.getServerCommand()));
+      ProcessBuilder processBuilder = new ProcessBuilder(this.getServerCommand().split(" "));
+      processBuilder.redirectOutput(Redirect.DISCARD);
+      processBuilder.redirectError(Redirect.DISCARD);
+      Process server = processBuilder.start();
+      servers.add(server);
       this.addresses.push(String.format("127.0.0.1 %d", port));
       port++;
     } catch (IOException e) {

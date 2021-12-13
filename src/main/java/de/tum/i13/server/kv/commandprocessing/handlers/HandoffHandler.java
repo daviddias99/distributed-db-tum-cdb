@@ -108,15 +108,32 @@ public class HandoffHandler implements Runnable {
       }
     }
   }
+
+  private String padLeftZeros(String inputString, int length) {
+    if (inputString.length() >= length) {
+        return inputString;
+    }
+    StringBuilder sb = new StringBuilder();
+    while (sb.length() < length - inputString.length()) {
+        sb.append('0');
+    }
+    sb.append(inputString);
+
+    return sb.toString();
+}
   
   private List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
-    if(lowerBound.compareTo(upperBound) <= 0) {
-      return this.storage.getRange(lowerBound, upperBound);
+
+    String paddedLower = this.padLeftZeros(lowerBound, 32);
+    String paddedUpper = this.padLeftZeros(upperBound, 32);
+
+    if(paddedLower.compareTo(paddedUpper) <= 0) {
+      return this.storage.getRange(paddedLower, paddedUpper);
     }
 
     List<Pair<String>> result = new LinkedList<>();
-    result.addAll(this.storage.getRange("00000000000000000000000000000000", upperBound));
-    result.addAll(this.storage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+    result.addAll(this.storage.getRange("00000000000000000000000000000000", paddedUpper));
+    result.addAll(this.storage.getRange(paddedLower, "ffffffffffffffffffffffffffffffff"));
 
     return result;
   }

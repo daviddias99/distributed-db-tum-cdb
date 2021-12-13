@@ -96,8 +96,8 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage handoff(KVMessage command) {
 
     String[] bounds = command.getValue().split(" ");
-    String lowerBound = bounds[0].substring(2);
-    String upperBound = bounds[1].substring(2);
+    String lowerBound = bounds[0];
+    String upperBound = bounds[1];
 
     if (bounds.length != 2) {
       LOGGER.error("More than two values given as bounds");

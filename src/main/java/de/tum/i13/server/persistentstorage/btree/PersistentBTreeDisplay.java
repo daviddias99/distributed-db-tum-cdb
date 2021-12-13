@@ -118,7 +118,7 @@ public class PersistentBTreeDisplay<V> {
 
                 Pair<V> pair = chunk.get(i);
                 chunk.releaseStoredElements();
-                result.append(pair.key + " ");
+                result.append(pair.key + "\n");
             }
 
             // Print the subtree rooted with last child

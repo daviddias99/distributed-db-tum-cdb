@@ -22,9 +22,10 @@ public class ClientManager {
     this.clientThreads = new LinkedList<>();
     this.clients = new LinkedList<>();
     this.clientCount = count;
+    this.createClients();
   }
 
-  public void startClients() {
+  private void createClients() {
     for (int i = 0; i < clientCount; i++) {
 
       Path path = null;
@@ -35,6 +36,14 @@ public class ClientManager {
 
       this.addClient(path);
     }
+  }
+
+  public void startClients() {
+
+    for (Thread thread : clientThreads) {
+      thread.start();
+    }
+
     this.countStatistics();
   }
 
@@ -42,7 +51,7 @@ public class ClientManager {
     (new Thread(new StatsAccumulator(clients))).start();
   }
 
-  public void addClient(Path emailsPath) {
+  public Thread addClient(Path emailsPath) {
     Random random = new Random();
     int serverIndex = random.nextInt(servers.servers.size());
     int port = Integer.parseInt(servers.addresses.get(serverIndex).split(" ")[1]);
@@ -50,6 +59,16 @@ public class ClientManager {
     this.clients.add(newClient);
     Thread clientThread = new Thread(newClient);
     this.clientThreads.add(clientThread);
-    this.clientThreads.getFirst().start();
+    return clientThread;
+  }
+
+  public void addAndStartClient() {
+    Path path = null;
+
+    do {
+      path = Paths.get(emailDirs[counter++].getAbsolutePath(), "all_documents");
+    } while (!path.toFile().exists() || path.toFile().listFiles().length < 15);
+
+    this.addClient(path).start();
   }
 }

@@ -50,7 +50,7 @@ public class ExternalConfigurationServer {
     public static void startListening(ServerSocket socket){
         LOGGER.info("Start listening on {} for new connections", socket);
 
-        ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
+        ExecutorService executor = Executors.newCachedThreadPool();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             LOGGER.info("Closing server connection executor service");
             executor.shutdown();

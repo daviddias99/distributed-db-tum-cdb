@@ -153,9 +153,24 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     @Override
     public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
-            return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
-                    .collect(Collectors.toList());
+            List<Pair<String>> result = this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
+            .collect(Collectors.toList());
+
+            StringBuilder builder = new StringBuilder();
+
+            for (Pair<String> fetched : result) {
+                builder.append(normalizeKey(fetched.key)).append(" - ").append(fetched.key).append("\n");
+            }
+
+            LOGGER.trace("Range fetch result\n {} \n of \n {} ", builder, (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree));
+
+            return result;
+        } catch (StorageException | PersistentBTreeException e) {
+            LOGGER.error(e);
+            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+                    upperBound);
         } catch (Exception e) {
+            LOGGER.error(e.getLocalizedMessage());
             throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
                     upperBound);
         }

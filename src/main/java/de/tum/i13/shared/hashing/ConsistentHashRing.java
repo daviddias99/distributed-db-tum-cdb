@@ -198,4 +198,9 @@ public interface ConsistentHashRing {
      */
     boolean isEmpty();
 
+    public static void main(String[] args) {                                      
+        ConsistentHashRing ring = unpackMetadata("ec94d7df67d2557eca3e0cdddd4abce0,bb0fa534951e1e58bb7d2efd8d5127d,127.0.0.1:35664;bb0fa534951e1e58bb7d2efd8d5127e,4fd3635df1b0f151f6a067d845339f84,127.0.0.1:35660;4fd3635df1b0f151f6a067d845339f85,628c50f277c3c9d1a00ad280c8d5a383,127.0.0.1:35663;628c50f277c3c9d1a00ad280c8d5a384,8c7da3540e421da132731f82c6b96029,127.0.0.1:35662;8c7da3540e421da132731f82c6b9602a,e2e5b1f3c5443f4b56bf03d0a97539d1,127.0.0.1:35661;e2e5b1f3c5443f4b56bf03d0a97539d2,ec94d7df67d2557eca3e0cdddd4abcdf,127.0.0.1:35665;");
+        Optional<NetworkLocation> loc = ring.getResponsibleNetworkLocation("1075855588433");
+        System.out.println(loc);
+    }
 }

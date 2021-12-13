@@ -68,10 +68,10 @@ class ExternalConfigurationService {
         TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
         copyMetadata.addNetworkLocation(newServer);
         new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
-        new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
-
+        
         LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
         new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+        new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
     }
 
     /**
@@ -139,7 +139,7 @@ class ExternalConfigurationService {
     private static void updateMetadata() {
         LOGGER.info("Trying to update the metadata of all servers in the ring.");
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
+            ExecutorService executor = Executors.newCachedThreadPool();
 
             //prepare the metadata information in String format
             String metadata = serverMap.packMessage();

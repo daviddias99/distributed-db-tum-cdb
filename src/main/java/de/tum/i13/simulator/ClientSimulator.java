@@ -42,7 +42,11 @@ public class ClientSimulator implements Runnable {
     File[] files = emailDir.toFile().listFiles();
 
     for (File file : files) {
-      toSend.push(EmailParser.parseEmail(file.toPath()));
+      Pair<String> parsedEmail = EmailParser.parseEmail(file.toPath());
+
+      if(parsedEmail != null) {
+        toSend.push(EmailParser.parseEmail(file.toPath()));
+      }
     }
     this.totalEmailCount = files.length;
   }
@@ -55,7 +59,7 @@ public class ClientSimulator implements Runnable {
           .setErr(temp)
           .setExitCodeExceptionMapper(new ExitCodeMapper())
           .setCaseInsensitiveEnumValuesAllowed(true);
-      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
+      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel all"));
       exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
 
       if(exitCode != 20) {
@@ -93,7 +97,7 @@ public class ClientSimulator implements Runnable {
     Pair<String> email = this.toSend.get(toSendIndex);
 
     long time1 = System.nanoTime();
-    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, email.value)));
+    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, "value1")));
     long time2 = System.nanoTime();
 
     boolean fail = false;
@@ -121,7 +125,7 @@ public class ClientSimulator implements Runnable {
     long time2 = System.nanoTime();
 
     boolean fail = false;
-;
+
     if (exitCode != 20) {
       System.out.println(String.format("Delete failed with exit code %d", exitCode));
       fail = true;
@@ -147,7 +151,7 @@ public class ClientSimulator implements Runnable {
         System.out.println("Client Simulator interrupted while sleeping");
       }
 
-      if (this.sent.size() < 0.4 * this.totalEmailCount) {
+      if (this.sent.size() < 0.2 * this.totalEmailCount) {
         this.putRandom();
         continue;
       } 
