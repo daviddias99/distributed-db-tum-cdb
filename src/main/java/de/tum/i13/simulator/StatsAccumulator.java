@@ -2,7 +2,6 @@ package de.tum.i13.simulator;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -13,13 +12,16 @@ import java.util.Random;
 public class StatsAccumulator implements Runnable {
 
   List<ClientSimulator> clients;
-  LinkedList<ClientStats> timeStats;
+  LinkedList<TimeEvent> timeStats;
   ClientStats accStats;
 
-  public StatsAccumulator(List<ClientSimulator> clients) {
-    this.clients = clients;
+  public StatsAccumulator() {
     this.timeStats = new LinkedList<>();
     this.accStats = new ClientStats();
+  }
+
+  public void setClients(List<ClientSimulator> clients) {
+    this.clients = clients;
   }
 
   @Override
@@ -49,7 +51,10 @@ public class StatsAccumulator implements Runnable {
         this.accStats.print();
       }
 
-      this.timeStats.addLast(currentTimeStats);
+      synchronized(this.timeStats) {
+        this.timeStats.addLast(currentTimeStats);
+      }
+
       this.accStats.add(currentTimeStats);
 
       i++;
@@ -66,21 +71,20 @@ public class StatsAccumulator implements Runnable {
     Random random = new Random();
 
     File fout = new File(String.format("stats/out_%d.csv", random.nextInt()));
-    try {
-      FileOutputStream fos = new FileOutputStream(fout);
-      BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-
-      for (ClientStats timeStep : this.timeStats) {
-        bw.write(timeStep.toCSVString());
+    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))){
+      synchronized(this.timeStats) {
+        for (TimeEvent timeStep : this.timeStats) {
+          bw.write(timeStep.toCSVString());
+        }
       }
-  
-      bw.close();
-    } catch (FileNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+    }
+  }
+
+  public void signalEvent(TimeEvent event) {
+    synchronized(this.timeStats) {
+      this.timeStats.addLast(event);
     }
   }
 }

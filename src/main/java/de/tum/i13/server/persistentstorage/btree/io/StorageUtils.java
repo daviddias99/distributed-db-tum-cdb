@@ -1,5 +1,6 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -89,7 +90,7 @@ public class StorageUtils {
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             throw storageException;
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while reading object from memory");
+            StorageException storageException = new StorageException(e, String.format("I/O error while reading object from memory %s", filePath.toString()));
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             throw storageException;
         } catch (ClassNotFoundException e) {

@@ -30,8 +30,7 @@ public class ServerManager {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        Thread.currentThread().interrupt();
       }
     }
 
@@ -40,7 +39,7 @@ public class ServerManager {
 
   private String getServerCommand() {
     String dataDir = Paths.get("data", Integer.toString(port)).toString();
-    return String.format("java -jar target/kv-server.jar -b 127.0.0.1:25670 -t 100 -p %d -s %s -c %d -d %s -l logs/server_%d.txt", this.port,
+    return String.format("java -jar target/kv-server.jar -b 127.0.0.1:25670 -ll TRACE -t %d -p %d -s %s -c %d -d %s -l logs/server_%d.log",this.bTreeNodeSize, this.port,
         this.cacheStrategy, this.cacheSize, dataDir, this.port);
   }
 
@@ -51,7 +50,6 @@ public class ServerManager {
         try {
           Runtime.getRuntime().exec("kill -SIGINT " + process.pid());
         } catch (IOException e) {
-          // TODO Auto-generated catch block
           e.printStackTrace();
         }
         process.destroy();
@@ -62,6 +60,7 @@ public class ServerManager {
 
   public void addServer() {
     try {
+      System.out.println("Launching server");
       ProcessBuilder processBuilder = new ProcessBuilder(this.getServerCommand().split(" "));
       processBuilder.redirectOutput(Redirect.DISCARD);
       processBuilder.redirectError(Redirect.DISCARD);
@@ -75,6 +74,12 @@ public class ServerManager {
   }
 
   public void stopServer() {
+    System.out.println("Stopping server");
+
+    if(this.servers.size() <= 1) {
+      return;
+    } 
+
     Random rand = new Random();
     int index = rand.nextInt(this.servers.size());
     Process server = servers.get(index);

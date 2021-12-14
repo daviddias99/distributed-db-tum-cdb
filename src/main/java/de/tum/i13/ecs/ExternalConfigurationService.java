@@ -70,8 +70,8 @@ class ExternalConfigurationService {
         new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
         
         LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
-        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
-        new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
+        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound, copyMetadata.packMessage()).run();
+        // new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
     }
 
     /**
@@ -123,7 +123,7 @@ class ExternalConfigurationService {
             new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 
             LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
-            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
+            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound, copyMetadata.packMessage()).run();
 
             //actually update the metadata
             serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));

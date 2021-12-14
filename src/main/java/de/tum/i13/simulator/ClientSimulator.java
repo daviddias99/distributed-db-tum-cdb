@@ -59,7 +59,7 @@ public class ClientSimulator implements Runnable {
           .setErr(temp)
           .setExitCodeExceptionMapper(new ExitCodeMapper())
           .setCaseInsensitiveEnumValuesAllowed(true);
-      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel all"));
+      int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
       exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
 
       if(exitCode != 20) {
@@ -72,6 +72,10 @@ public class ClientSimulator implements Runnable {
   }
 
   private void getRandom() {
+    if(this.sent.isEmpty()) {
+      return;
+    }
+
     Random rand = new Random();
     Pair<String> email = this.sent.get(rand.nextInt(this.sent.size()));
   
@@ -92,6 +96,10 @@ public class ClientSimulator implements Runnable {
   }
 
   private void putRandom() {
+    if(this.toSend.isEmpty()) {
+      return;
+    }
+
     Random rand = new Random();
     int toSendIndex = rand.nextInt(this.toSend.size());
     Pair<String> email = this.toSend.get(toSendIndex);
@@ -116,6 +124,10 @@ public class ClientSimulator implements Runnable {
   }
 
   private void deleteRandom() {
+    if(this.sent.size() < 0.3 * this.totalEmailCount) {
+      return;
+    }
+
     Random rand = new Random();
     int toDeleteIndex = rand.nextInt(this.sent.size());
     Pair<String> email = this.sent.get(toDeleteIndex);
@@ -144,29 +156,15 @@ public class ClientSimulator implements Runnable {
     this.setupConnection();
 
     while (!Thread.interrupted()) {
-      try {
-        Thread.sleep(300);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Client Simulator interrupted while sleeping");
-      }
-
-      if (this.sent.size() < 0.2 * this.totalEmailCount) {
-        this.putRandom();
-        continue;
-      } 
-
-      double random = Math.random();
-
-      if(random <= 0.4) {
-        this.getRandom();
-      } else if (random <= 0.7) {
-        this.putRandom();
-      } else{
-        this.deleteRandom();
-      }
+      // try {
+      //   Thread.sleep(300);
+      // } catch (InterruptedException e) {
+      //   Thread.currentThread().interrupt();
+      //   System.out.println("Client Simulator interrupted while sleeping");
+      // }
+      this.getRandom();
+      this.putRandom();
+      this.deleteRandom();
     }
   }
-
-
 }

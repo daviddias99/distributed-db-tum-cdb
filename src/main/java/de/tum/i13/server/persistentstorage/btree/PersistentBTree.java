@@ -213,14 +213,14 @@ public class PersistentBTree<V> implements Serializable, Closeable {
             throw ex;
         }
 
-        this.readWriteLock.readLock().lock();
+        this.readWriteLock.writeLock().lock();
 
         if (this.root == null) {
-            this.readWriteLock.readLock().unlock();
+            this.readWriteLock.writeLock().unlock();
             return new LinkedList<>();
         } else {
             LinkedList<Pair<V>> result = this.root.searchRange(lowerBound, upperBound);
-            this.readWriteLock.readLock().unlock();
+            this.readWriteLock.writeLock().unlock();
             return result;
         }
     }

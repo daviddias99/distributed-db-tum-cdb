@@ -14,14 +14,16 @@ public class ClientManager {
   int counter = 0;
   int clientCount;
   ServerManager servers;
+  StatsAccumulator statsAcc;
 
-  public ClientManager(int count, ServerManager servers) {
+  public ClientManager(int count, ServerManager servers, StatsAccumulator statsAcc) {
     this.servers = servers;
     emailDirs = Paths.get("maildir").toFile().listFiles();
 
     this.clientThreads = new LinkedList<>();
     this.clients = new LinkedList<>();
     this.clientCount = count;
+    this.statsAcc = statsAcc;
     this.createClients();
   }
 
@@ -48,7 +50,8 @@ public class ClientManager {
   }
 
   private void countStatistics() {
-    (new Thread(new StatsAccumulator(clients))).start();
+    this.statsAcc.setClients(this.clients);
+    (new Thread(this.statsAcc)).start();
   }
 
   public Thread addClient(Path emailsPath) {
@@ -64,11 +67,11 @@ public class ClientManager {
 
   public void addAndStartClient() {
     Path path = null;
-
     do {
       path = Paths.get(emailDirs[counter++].getAbsolutePath(), "all_documents");
     } while (!path.toFile().exists() || path.toFile().listFiles().length < 15);
 
     this.addClient(path).start();
+    System.out.println("Launching client");
   }
 }

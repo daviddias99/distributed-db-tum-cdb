@@ -1,6 +1,6 @@
 package de.tum.i13.simulator;
 
-public class ClientStats {
+public class ClientStats implements TimeEvent  {
   public double putTime = 0;
   public double getTime = 0;
   public double deleteTime = 0;

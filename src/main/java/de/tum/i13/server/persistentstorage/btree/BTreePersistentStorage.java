@@ -125,7 +125,8 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
                 return new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE);
             }
 
-            LOGGER.info("Put key {} with value {}", key, value);
+            String tree = (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree);
+            LOGGER.info("Put key {} ({}) with value {} ({})", key, this.normalizeKey(key), value, tree.indexOf(this.normalizeKey(key)));
 
             return new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS);
         } catch (Exception e) {
@@ -151,20 +152,26 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     }
 
     @Override
-    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+    public synchronized List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
-            List<Pair<String>> result = this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
-            .collect(Collectors.toList());
-
-            StringBuilder builder = new StringBuilder();
-
-            for (Pair<String> fetched : result) {
-                builder.append(normalizeKey(fetched.key)).append(" - ").append(fetched.key).append("\n");
+            List<Pair<String>> range = this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
+            String tree;
+            synchronized(this.tree) {
+                tree = (new PersistentBTreeDisplay<Pair<String>>()).traverse(this.tree);
             }
 
-            LOGGER.trace("Range fetch result\n {} \n of \n {} ", builder, (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree));
+            StringBuilder rangeStrLog = new StringBuilder();
 
-            return result;
+            rangeStrLog.append("Fetching ").append(lowerBound).append(" ").append(upperBound).append("\n");
+
+            for (Pair<String> pair : range) {
+                rangeStrLog.append(pair.key).append(" - ").append(this.normalizeKey(pair.key)).append("\n");
+            }
+
+            rangeStrLog.append("\nof\n");
+            rangeStrLog.append(tree);
+            LOGGER.info(rangeStrLog);
+            return range;
         } catch (StorageException | PersistentBTreeException e) {
             LOGGER.error(e);
             throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,

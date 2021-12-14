@@ -23,7 +23,8 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
 
   /**
    * Create a new client KVMessage processor
-   * @param storage server storage
+   * 
+   * @param storage     server storage
    * @param serverState server state
    */
   public KVClientCommandProcessor(PersistentStorage storage, ServerState serverState) {
@@ -63,39 +64,45 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   private KVMessage put(String key, String value) {
-    if(! this.serverState.responsibleForKey(key)) {
-      return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
-    }
-
-    if (this.serverState.canWrite()) {
-      try {
-        LOGGER.info("Trying to put key: {} and value: {}", key, value);
-        return kvStore.put(key, value);
-      } catch (PutException e) {
-        LOGGER.error(e);
-        return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
+    synchronized (this.kvStore) {
+      if (!this.serverState.responsibleForKey(key)) {
+        return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
       }
+
+      if (this.serverState.canWrite()) {
+        try {
+          LOGGER.info("Trying to put key: {} and value: {}", key, value);
+          return kvStore.put(key, value);
+        } catch (PutException e) {
+          LOGGER.error(e);
+          return new KVMessageImpl(key, value, KVMessage.StatusType.PUT_ERROR);
+        }
+      }
+
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
     }
 
-    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
   }
 
   private KVMessage delete(String key) {
-    if(! this.serverState.responsibleForKey(key)) {
-      return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
-    }
+    synchronized (this.kvStore) {
 
-    if (this.serverState.canWrite()) {
-      try {
-        LOGGER.info("Trying to delete key: {}", key);
-        return kvStore.put(key, null);
-      } catch (PutException e) {
-        LOGGER.error(e);
-        return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+      if (!this.serverState.responsibleForKey(key)) {
+        return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
       }
-    }
 
-    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+      if (this.serverState.canWrite()) {
+        try {
+          LOGGER.info("Trying to delete key: {}", key);
+          return kvStore.put(key, null);
+        } catch (PutException e) {
+          LOGGER.error(e);
+          return new KVMessageImpl(key, KVMessage.StatusType.DELETE_ERROR);
+        }
+      }
+
+      return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_LOCK);
+    }
   }
 
   private KVMessage keyRange() {

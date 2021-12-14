@@ -1,2 +1,2 @@
-Log level set from ALL to ALL.
-Connection to KVServer established: /127.0.0.1:35662
+Log level set from OFF to OFF.
+Connection to KVServer established: /127.0.0.1:35660
