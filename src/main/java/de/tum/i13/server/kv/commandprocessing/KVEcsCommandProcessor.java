@@ -84,7 +84,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage writeUnlock() {
     LOGGER.info("Trying to remove server write-lock");
     this.serverState.start();
-    return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_UNLOCK);
   }
 
   private KVMessage setKeyRange(KVMessage command) {

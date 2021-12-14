@@ -125,8 +125,8 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
                 return new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE);
             }
 
-            String tree = (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree);
-            LOGGER.info("Put key {} ({}) with value {} ({})", key, this.normalizeKey(key), value, tree.indexOf(this.normalizeKey(key)));
+            // String tree = (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree);
+            LOGGER.info("Put key {} ({}) with value {}", key, this.normalizeKey(key), value);
 
             return new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS);
         } catch (Exception e) {
@@ -155,22 +155,22 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     public synchronized List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
             List<Pair<String>> range = this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
-            String tree;
-            synchronized(this.tree) {
-                tree = (new PersistentBTreeDisplay<Pair<String>>()).traverse(this.tree);
-            }
+            // String tree;
+            // synchronized(this.tree) {
+            //     tree = (new PersistentBTreeDisplay<Pair<String>>()).traverse(this.tree);
+            // }
 
-            StringBuilder rangeStrLog = new StringBuilder();
+            // StringBuilder rangeStrLog = new StringBuilder();
 
-            rangeStrLog.append("Fetching ").append(lowerBound).append(" ").append(upperBound).append("\n");
+            // rangeStrLog.append("Fetching ").append(lowerBound).append(" ").append(upperBound).append("\n");
 
-            for (Pair<String> pair : range) {
-                rangeStrLog.append(pair.key).append(" - ").append(this.normalizeKey(pair.key)).append("\n");
-            }
+            // for (Pair<String> pair : range) {
+            //     rangeStrLog.append(pair.key).append(" - ").append(this.normalizeKey(pair.key)).append("\n");
+            // }
 
-            rangeStrLog.append("\nof\n");
-            rangeStrLog.append(tree);
-            LOGGER.info(rangeStrLog);
+            // rangeStrLog.append("\nof\n");
+            // rangeStrLog.append(tree);
+            // LOGGER.info(rangeStrLog);
             return range;
         } catch (StorageException | PersistentBTreeException e) {
             LOGGER.error(e);

@@ -84,11 +84,12 @@ public class ServerManager {
     int index = rand.nextInt(this.servers.size());
     Process server = servers.get(index);
     
-    try {
-      Runtime.getRuntime().exec("kill -SIGINT" + server.pid());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    server.destroy();
+    // try {
+    //   // Process p = Runtime.getRuntime().exec("kill -SIGINT" + server.pid());
+    // } catch (IOException e) {
+    //   e.printStackTrace();
+    // }
 
     servers.remove(index);
     addresses.remove(index);

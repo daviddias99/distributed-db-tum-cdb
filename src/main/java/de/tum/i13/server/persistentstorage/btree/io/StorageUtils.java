@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -29,7 +29,6 @@ public class ClientSimulator implements Runnable {
 
   private static final double NANOS_PER_SECOND = 1000000000;
 
-
   public ClientSimulator(Path emailDir, String serverAddress, int serverPort) {
     this.serverAddress = serverAddress;
     this.serverPort = serverPort;
@@ -44,7 +43,7 @@ public class ClientSimulator implements Runnable {
     for (File file : files) {
       Pair<String> parsedEmail = EmailParser.parseEmail(file.toPath());
 
-      if(parsedEmail != null) {
+      if (parsedEmail != null) {
         toSend.push(EmailParser.parseEmail(file.toPath()));
       }
     }
@@ -62,7 +61,7 @@ public class ClientSimulator implements Runnable {
       int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
       exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
 
-      if(exitCode != 20) {
+      if (exitCode != 20) {
         Thread.currentThread().interrupt();
       }
 
@@ -72,31 +71,33 @@ public class ClientSimulator implements Runnable {
   }
 
   private void getRandom() {
-    if(this.sent.isEmpty()) {
+    if (this.sent.isEmpty()) {
       return;
     }
 
     Random rand = new Random();
-    Pair<String> email = this.sent.get(rand.nextInt(this.sent.size()));
-  
+    int toGetIndex = rand.nextInt(this.sent.size());
+    Pair<String> email = this.sent.get(toGetIndex);
+
     long time1 = System.nanoTime();
-    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("get %s",email.key)));
+    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("get %s", email.key)));
     long time2 = System.nanoTime();
 
     boolean fail = false;
 
-    if(exitCode != 20) {
-      System.out.println(String.format("Get failed with exit code %d", exitCode));
+    if (exitCode != 20) {
+      // System.out.println(String.format("Get failed with exit code %d", exitCode));
       fail = true;
+      sent.remove(toGetIndex);
     }
 
-    synchronized(this.stats) {
-      this.stats.get((time2 - time1)/NANOS_PER_SECOND, fail);
+    synchronized (this.stats) {
+      this.stats.get((time2 - time1) / NANOS_PER_SECOND, fail);
     }
   }
 
   private void putRandom() {
-    if(this.toSend.isEmpty()) {
+    if (this.toSend.isEmpty()) {
       return;
     }
 
@@ -111,20 +112,20 @@ public class ClientSimulator implements Runnable {
     boolean fail = false;
 
     if (exitCode != 20) {
-      System.out.println(String.format("Put failed with exit code %d", exitCode));
+      // System.out.println(String.format("Put failed with exit code %d", exitCode));
       fail = true;
     } else {
       toSend.remove(toSendIndex);
       sent.addLast(email);
     }
 
-    synchronized(this.stats) {
-      this.stats.put((time2 - time1)/NANOS_PER_SECOND, fail);
+    synchronized (this.stats) {
+      this.stats.put((time2 - time1) / NANOS_PER_SECOND, fail);
     }
   }
 
   private void deleteRandom() {
-    if(this.sent.size() < 0.3 * this.totalEmailCount) {
+    if (this.sent.size() < 0.3 * this.totalEmailCount) {
       return;
     }
 
@@ -139,15 +140,16 @@ public class ClientSimulator implements Runnable {
     boolean fail = false;
 
     if (exitCode != 20) {
-      System.out.println(String.format("Delete failed with exit code %d", exitCode));
+      // System.out.println(String.format("Delete failed with exit code %d",
+      // exitCode));
       fail = true;
     } else {
       sent.remove(toDeleteIndex);
       toSend.addLast(email);
     }
-  
-    synchronized(this.stats) {
-      this.stats.delete((time2 - time1)/NANOS_PER_SECOND, fail);
+
+    synchronized (this.stats) {
+      this.stats.delete((time2 - time1) / NANOS_PER_SECOND, fail);
     }
   }
 
@@ -156,15 +158,37 @@ public class ClientSimulator implements Runnable {
     this.setupConnection();
 
     while (!Thread.interrupted()) {
-      // try {
-      //   Thread.sleep(300);
-      // } catch (InterruptedException e) {
-      //   Thread.currentThread().interrupt();
-      //   System.out.println("Client Simulator interrupted while sleeping");
-      // }
-      this.getRandom();
+      try {
+        Thread.sleep(150);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        System.out.println("Client Simulator interrupted while sleeping");
+      }
       this.putRandom();
-      this.deleteRandom();
+      try {
+        Thread.sleep(150);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        System.out.println("Client Simulator interrupted while sleeping");
+      }
+      this.getRandom();
+      try {
+        Thread.sleep(150);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        System.out.println("Client Simulator interrupted while sleeping");
+      }
+
+      if (this.sent.size() >= 0.3 * this.totalEmailCount) {
+
+        if(Math.random() > 0.5) {
+          this.deleteRandom();
+        } else {
+          this.putRandom();
+        }
+      } else {
+          this.putRandom();
+      }
     }
   }
 }
