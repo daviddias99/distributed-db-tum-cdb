@@ -35,7 +35,6 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
 
         final BigInteger hash = hashingAlgorithm.hash(key);
-        String hashStr = hash.toString(16);
         return Optional.ofNullable(networkLocationMap.ceilingEntry(hash))
                 .or(() -> Optional.ofNullable(networkLocationMap.firstEntry()))
                 .map(Map.Entry::getValue);

@@ -216,7 +216,7 @@ public class CachedPersistentStorage implements PersistentStorage {
     }
 
     @Override
-    public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
+    public synchronized List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         return this.persistentStorage.getRange(lowerBound, upperBound);
     }
 }

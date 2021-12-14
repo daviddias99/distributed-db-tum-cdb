@@ -86,7 +86,6 @@ public class ClientSimulator implements Runnable {
     boolean fail = false;
 
     if (exitCode != 20) {
-      // System.out.println(String.format("Get failed with exit code %d", exitCode));
       fail = true;
       sent.remove(toGetIndex);
     }
@@ -106,13 +105,12 @@ public class ClientSimulator implements Runnable {
     Pair<String> email = this.toSend.get(toSendIndex);
 
     long time1 = System.nanoTime();
-    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, "value1")));
+    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, email.value.substring(0, 100))));
     long time2 = System.nanoTime();
 
     boolean fail = false;
 
     if (exitCode != 20) {
-      // System.out.println(String.format("Put failed with exit code %d", exitCode));
       fail = true;
     } else {
       toSend.remove(toSendIndex);
@@ -140,8 +138,6 @@ public class ClientSimulator implements Runnable {
     boolean fail = false;
 
     if (exitCode != 20) {
-      // System.out.println(String.format("Delete failed with exit code %d",
-      // exitCode));
       fail = true;
     } else {
       sent.remove(toDeleteIndex);
@@ -158,36 +154,30 @@ public class ClientSimulator implements Runnable {
     this.setupConnection();
 
     while (!Thread.interrupted()) {
-      try {
-        Thread.sleep(150);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Client Simulator interrupted while sleeping");
+      if (!this.sent.isEmpty()) {
+        // try {
+        //   Thread.sleep(300);
+        // } catch (InterruptedException e) {
+        //   Thread.currentThread().interrupt();
+        //   System.out.println("Client Simulator interrupted while sleeping");
+        // }
+        this.getRandom();
       }
-      this.putRandom();
-      try {
-        Thread.sleep(150);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Client Simulator interrupted while sleeping");
-      }
-      this.getRandom();
-      try {
-        Thread.sleep(150);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        System.out.println("Client Simulator interrupted while sleeping");
-      }
+      // try {
+      //   Thread.sleep(300);
+      // } catch (InterruptedException e) {
+      //   Thread.currentThread().interrupt();
+      //   System.out.println("Client Simulator interrupted while sleeping");
+      // }
 
       if (this.sent.size() >= 0.3 * this.totalEmailCount) {
-
-        if(Math.random() > 0.5) {
+        if (Math.random() > 0.5) {
           this.deleteRandom();
         } else {
           this.putRandom();
         }
       } else {
-          this.putRandom();
+        this.putRandom();
       }
     }
   }

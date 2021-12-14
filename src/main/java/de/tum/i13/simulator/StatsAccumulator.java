@@ -12,8 +12,9 @@ import java.util.Random;
 public class StatsAccumulator implements Runnable {
 
   List<ClientSimulator> clients;
-  LinkedList<TimeEvent> timeStats;
+  LinkedList<ClientStats> timeStats;
   ClientStats accStats;
+  DelayedEvent event;
 
   public StatsAccumulator() {
     this.timeStats = new LinkedList<>();
@@ -42,6 +43,12 @@ public class StatsAccumulator implements Runnable {
 
       for (ClientSimulator client : this.clients) {
         synchronized (client.stats) {
+
+          if (this.event != null) {
+            currentTimeStats.periodEvent = this.event;
+            this.event = null;
+          }
+
           currentTimeStats.add(client.stats);
           client.stats.reset();
         }
@@ -51,7 +58,7 @@ public class StatsAccumulator implements Runnable {
         this.accStats.print();
       }
 
-      synchronized(this.timeStats) {
+      synchronized (this.timeStats) {
         this.timeStats.addLast(currentTimeStats);
       }
 
@@ -62,17 +69,17 @@ public class StatsAccumulator implements Runnable {
 
   }
 
-  private void save(){
+  private void save() {
     File directory = new File("stats");
-    if (! directory.exists()){
-        directory.mkdir();
+    if (!directory.exists()) {
+      directory.mkdir();
     }
 
     Random random = new Random();
 
     File fout = new File(String.format("stats/out_%d.csv", random.nextInt()));
-    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))){
-      synchronized(this.timeStats) {
+    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))) {
+      synchronized (this.timeStats) {
         for (TimeEvent timeStep : this.timeStats) {
           bw.write(timeStep.toCSVString());
         }
@@ -82,9 +89,7 @@ public class StatsAccumulator implements Runnable {
     }
   }
 
-  public void signalEvent(TimeEvent event) {
-    synchronized(this.timeStats) {
-      this.timeStats.addLast(event);
-    }
+  public void signalEvent(DelayedEvent event) {
+    this.event = event;
   }
 }

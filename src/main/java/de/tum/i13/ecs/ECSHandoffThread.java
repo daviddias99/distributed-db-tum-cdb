@@ -21,12 +21,14 @@ class ECSHandoffThread extends ECSThread {
 
     private final KVMessage handoffMessage;
     private final KVMessage setMetadataMessage;
+    private final boolean isShutdown;
 
     ECSHandoffThread(NetworkLocation successor, NetworkLocation newServer, BigInteger lowerBound,
-                     BigInteger upperBound, String metadata) throws IOException {
+                     BigInteger upperBound, String metadata, boolean isShutdown) throws IOException {
         super(successor);
         this.handoffMessage = prepareHandoffMessage(newServer, lowerBound, upperBound);
         this.setMetadataMessage = new KVMessageImpl(metadata, StatusType.ECS_SET_KEYRANGE);
+        this.isShutdown = isShutdown;
     }
 
     @Override
@@ -39,13 +41,13 @@ class ECSHandoffThread extends ECSThread {
             LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_HANDOFF, StatusType.SERVER_HANDOFF_SUCCESS);
             sendAndReceiveMessage(this.handoffMessage, StatusType.SERVER_HANDOFF_SUCCESS);
 
-            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, this.setMetadataMessage, StatusType.SERVER_ACK);
-            sendAndReceiveMessage(this.setMetadataMessage, StatusType.SERVER_ACK);
-
-            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_UNLOCK, StatusType.SERVER_WRITE_UNLOCK);
-            sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WRITE_UNLOCK), StatusType.SERVER_WRITE_UNLOCK);
-
-            // TODO Doesn't ECS_SET_KEYRANGE have to be send somewhere here?
+            if(!this.isShutdown) {
+                LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, this.setMetadataMessage, StatusType.SERVER_ACK);
+                sendAndReceiveMessage(this.setMetadataMessage, StatusType.SERVER_ACK);
+    
+                LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_UNLOCK, StatusType.SERVER_WRITE_UNLOCK);
+                sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WRITE_UNLOCK), StatusType.SERVER_WRITE_UNLOCK);    
+            }
         } catch (IOException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
@@ -55,6 +57,8 @@ class ECSHandoffThread extends ECSThread {
                     .withThrowable(ex)
                     .log("Caught exception while communication with {}", getSocket());
         }
+
+        LOGGER.info("Handoff done.");
     }
 
     /**

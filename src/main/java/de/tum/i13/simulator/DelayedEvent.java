@@ -53,4 +53,9 @@ public class DelayedEvent implements Runnable, TimeEvent {
   public String toCSVString() {
     return this.eType.name() + ",,,,,,,,\n";
   }
+
+  @Override
+  public String toString() {
+    return this.eType.name();
+  }
 }

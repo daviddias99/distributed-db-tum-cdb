@@ -96,16 +96,17 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       this.serverState.start();
     }
 
-    for (String key : nodesToDelete) {
-      try {
-        LOGGER.info("Trying to delete item with key {}.", key);
-        storage.put(key, null);
-      } catch (PutException e) {
-        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+    (new Thread(() -> {
+      for (String key : nodesToDelete) {
+        try {
+          LOGGER.info("Trying to delete item with key {}.", key);
+          storage.put(key, null);
+        } catch (PutException e) {
+          LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+        }
       }
-    }
-
-    nodesToDelete = new LinkedList<>();
+      nodesToDelete = new LinkedList<>();
+    })).start();
 
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
@@ -123,7 +124,8 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, lowerBound, upperBound);
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
-    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage, asyncHandoff, nodesToDelete);
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage,
+        asyncHandoff, nodesToDelete);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);
