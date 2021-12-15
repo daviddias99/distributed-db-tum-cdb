@@ -5,7 +5,8 @@ public class DelayedEvent implements Runnable, TimeEvent {
   public enum Type {
     START_SERVER,
     STOP_SERVER,
-    START_CLIENT
+    START_CLIENT,
+    STOP_PROGRAM
   }
 
   private int timeSeconds;
@@ -38,6 +39,9 @@ public class DelayedEvent implements Runnable, TimeEvent {
           break;
         case START_CLIENT:
           cManager.addAndStartClient();
+          break;
+        case STOP_PROGRAM:
+          System.exit(0);
           break;
         default:
           break;

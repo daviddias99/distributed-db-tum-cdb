@@ -15,10 +15,12 @@ public class StatsAccumulator implements Runnable {
   LinkedList<ClientStats> timeStats;
   ClientStats accStats;
   DelayedEvent event;
+  String name;
 
-  public StatsAccumulator() {
+  public StatsAccumulator(String name) {
     this.timeStats = new LinkedList<>();
     this.accStats = new ClientStats();
+    this.name = name;
   }
 
   public void setClients(List<ClientSimulator> clients) {
@@ -38,7 +40,6 @@ public class StatsAccumulator implements Runnable {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-
       ClientStats currentTimeStats = new ClientStats();
 
       for (ClientSimulator client : this.clients) {
@@ -58,6 +59,7 @@ public class StatsAccumulator implements Runnable {
         this.accStats.print();
       }
 
+      currentTimeStats.timeStep = this.timeStats.size() + 1;
       synchronized (this.timeStats) {
         this.timeStats.addLast(currentTimeStats);
       }
@@ -77,8 +79,9 @@ public class StatsAccumulator implements Runnable {
 
     Random random = new Random();
 
-    File fout = new File(String.format("stats/out_%d.csv", random.nextInt()));
+    File fout = new File(String.format("stats/out_%s_%d.csv", this.name, random.nextInt()));
     try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))) {
+      bw.write("timeStep,getCount,getFailCount,getTime,putCount,putFailCount,putTime,deleteCount,deleteFailCount,deleteTime,totalSucc,event\n");
       synchronized (this.timeStats) {
         for (TimeEvent timeStep : this.timeStats) {
           bw.write(timeStep.toCSVString());

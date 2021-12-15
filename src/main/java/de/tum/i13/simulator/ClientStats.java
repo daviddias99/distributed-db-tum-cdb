@@ -11,6 +11,7 @@ public class ClientStats implements TimeEvent  {
   public int getFailCount = 0;
   public int deleteFailCount = 0;
   public DelayedEvent periodEvent;
+  public int timeStep = -1;
 
   public ClientStats() {
     this.reset();
@@ -65,6 +66,7 @@ public class ClientStats implements TimeEvent  {
 
   public String toCSVString() {
     StringBuilder builder = new StringBuilder();
+    builder.append(this.timeStep).append(",");
     builder.append(this.getCount).append(",");
     builder.append(this.getFailCount).append(",");
     builder.append(this.getTime).append(",");
@@ -75,7 +77,7 @@ public class ClientStats implements TimeEvent  {
     builder.append(this.deleteFailCount).append(",");
     builder.append(this.deleteTime).append(",");
     builder.append(putCount - putFailCount + getCount - getFailCount + deleteCount - deleteFailCount).append(",");
-    builder.append(this.periodEvent).append("\n");
+    builder.append(this.periodEvent == null ? "" : this.periodEvent).append("\n");
 
     return builder.toString();
   }

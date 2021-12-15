@@ -155,20 +155,8 @@ public class ClientSimulator implements Runnable {
 
     while (!Thread.interrupted()) {
       if (!this.sent.isEmpty()) {
-        // try {
-        //   Thread.sleep(300);
-        // } catch (InterruptedException e) {
-        //   Thread.currentThread().interrupt();
-        //   System.out.println("Client Simulator interrupted while sleeping");
-        // }
         this.getRandom();
       }
-      // try {
-      //   Thread.sleep(300);
-      // } catch (InterruptedException e) {
-      //   Thread.currentThread().interrupt();
-      //   System.out.println("Client Simulator interrupted while sleeping");
-      // }
 
       if (this.sent.size() >= 0.3 * this.totalEmailCount) {
         if (Math.random() > 0.5) {
