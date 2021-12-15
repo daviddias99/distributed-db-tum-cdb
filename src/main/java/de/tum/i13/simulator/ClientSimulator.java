@@ -105,7 +105,7 @@ public class ClientSimulator implements Runnable {
     Pair<String> email = this.toSend.get(toSendIndex);
 
     long time1 = System.nanoTime();
-    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, email.value.substring(0, 100))));
+    int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key, email.value.substring(0, Math.min(email.value.length(), 200)))));
     long time2 = System.nanoTime();
 
     boolean fail = false;

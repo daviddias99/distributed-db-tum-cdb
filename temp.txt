@@ -1,2 +1,0 @@
-Log level set from OFF to OFF.
-Connection to KVServer established: /127.0.0.1:35660

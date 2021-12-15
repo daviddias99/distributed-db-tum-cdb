@@ -6,10 +6,11 @@ import java.lang.ProcessBuilder.Redirect;
 public class Main {
 
   public static void main(String[] args) throws InterruptedException, IOException {
-    cacheExperiment();
+    // cacheExperiment("LFU");
+    behaviourExperiment();
   }
 
-  private static void cacheExperiment() throws InterruptedException, IOException {
+  private static void cacheExperiment(String strat) throws InterruptedException, IOException {
     final int STARTING_SERVER_COUNT = 1;
     final int STARTING_CLIENT_COUNT = 0;
     final int FINAL_SERVER_COUNT = 5;
@@ -17,9 +18,9 @@ public class Main {
     final int SERVER_START_DELAY = 90;
     final int CLIENT_START_DELAY = 20;
   
-    final int SERVER_CACHE_SIZE = 100;
+    final int SERVER_CACHE_SIZE = 500;
     final int BTREE_NODE_SIZE = 100;
-    final String SERVER_CACHE_STRAT = "LRU";
+    final String SERVER_CACHE_STRAT = strat;
 
     ProcessBuilder processBuilder = new ProcessBuilder("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log -ll all".split(" "));
     processBuilder.redirectOutput(Redirect.DISCARD);
@@ -36,7 +37,7 @@ public class Main {
     System.out.println("Waiting...");
     Thread.sleep(4000);
     System.out.println("Creating clients");
-    StatsAccumulator acc = new StatsAccumulator("exp");
+    StatsAccumulator acc = new StatsAccumulator(strat);
     final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
     System.out.println("Starting clients");
     clientManager.startClients();
@@ -55,6 +56,8 @@ public class Main {
       (new Thread(new DelayedEvent(base + i * SERVER_START_DELAY, DelayedEvent.Type.START_SERVER, manager, clientManager, acc))).start();
     }
     base = base + i * SERVER_START_DELAY + 15;
+
+    (new Thread(new DelayedEvent(base, DelayedEvent.Type.STOP_PROGRAM, manager, clientManager, acc))).start();
   }
 
   private static void behaviourExperiment() throws InterruptedException, IOException {
@@ -65,9 +68,9 @@ public class Main {
     final int SERVER_START_DELAY = 60;
     final int CLIENT_START_DELAY = 20;
   
-    final int SERVER_CACHE_SIZE = 100;
+    final int SERVER_CACHE_SIZE = 500;
     final int BTREE_NODE_SIZE = 100;
-    final String SERVER_CACHE_STRAT = "LRU";
+    final String SERVER_CACHE_STRAT = "LFU";
 
     ProcessBuilder processBuilder = new ProcessBuilder("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log -ll all".split(" "));
     processBuilder.redirectOutput(Redirect.DISCARD);
@@ -84,7 +87,7 @@ public class Main {
     System.out.println("Waiting...");
     Thread.sleep(4000);
     System.out.println("Creating clients");
-    StatsAccumulator acc = new StatsAccumulator("exp");
+    StatsAccumulator acc = new StatsAccumulator("behaviour");
     final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
     System.out.println("Starting clients");
     clientManager.startClients();
