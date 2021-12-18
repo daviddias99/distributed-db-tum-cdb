@@ -3,14 +3,14 @@ package de.tum.i13.client.shell;
 /**
  * An unchecked checked {@link Exception} thrown when the shell encounters unexpected behavior
  */
-public class ShellException extends RuntimeException {
+class ShellException extends RuntimeException {
 
     /**
      * Creates a new {@link ShellException} with the supplied message
      *
      * @param message the message of the exception
      */
-    public ShellException(String message) {
+    ShellException(String message) {
         super(message);
     }
 
@@ -20,7 +20,7 @@ public class ShellException extends RuntimeException {
      * @param message the message of the exception
      * @param cause   the cause of the exception
      */
-    public ShellException(String message, Throwable cause) {
+    ShellException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -32,7 +32,7 @@ public class ShellException extends RuntimeException {
      * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
-    public ShellException(String format, Object... args) {
+    ShellException(String format, Object... args) {
         this(String.format(format, args));
     }
 
@@ -44,7 +44,7 @@ public class ShellException extends RuntimeException {
      * @param cause  the cause of the exception
      * @see String#format(String, Object...)
      */
-    public ShellException(Throwable cause, String format, Object... args) {
+    ShellException(Throwable cause, String format, Object... args) {
         this(String.format(format, args), cause);
     }
 

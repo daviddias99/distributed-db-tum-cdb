@@ -7,6 +7,9 @@ import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import picocli.CommandLine;
 
+/**
+ * Provides the CLI commands to interact with a {@link NetworkPersistentStorage}
+ */
 @CommandLine.Command(name = "",
         description = "CLI application for interacting with a server on the client side",
         mixinStandardHelpOptions = true,

@@ -1,17 +1,18 @@
 package de.tum.i13.simulator;
 
+import de.tum.i13.client.shell.CLICommands;
+import de.tum.i13.client.shell.ExitCode;
+import de.tum.i13.client.shell.ExitCodeMapper;
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import picocli.CommandLine;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Random;
-
-import picocli.CommandLine;
-import de.tum.i13.client.shell.CLICommands;
-import de.tum.i13.client.shell.ExitCodeMapper;
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 
 public class ClientSimulator implements Runnable {
 
@@ -61,7 +62,7 @@ public class ClientSimulator implements Runnable {
       int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
       exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
 
-      if (exitCode != 20) {
+      if (exitCode != ExitCode.SUCCESS.getValue()) {
         Thread.currentThread().interrupt();
       }
 
@@ -85,7 +86,7 @@ public class ClientSimulator implements Runnable {
 
     boolean fail = false;
 
-    if (exitCode != 20) {
+    if (exitCode != ExitCode.SUCCESS.getValue()) {
       fail = true;
       sent.remove(toGetIndex);
     }
@@ -110,7 +111,7 @@ public class ClientSimulator implements Runnable {
 
     boolean fail = false;
 
-    if (exitCode != 20) {
+    if (exitCode != ExitCode.SUCCESS.getValue()) {
       fail = true;
     } else {
       toSend.remove(toSendIndex);
@@ -137,7 +138,7 @@ public class ClientSimulator implements Runnable {
 
     boolean fail = false;
 
-    if (exitCode != 20) {
+    if (exitCode != ExitCode.SUCCESS.getValue()) {
       fail = true;
     } else {
       sent.remove(toDeleteIndex);
