@@ -49,4 +49,10 @@ public class Pair<V> implements Serializable {
         // Compare the data members and return accordingly
         return  c.key.equals(this.key) && c.value.equals(this.value);
     }
+
+    @Override
+    public String toString() {
+        // TODO Auto-generated method stub
+        return this.key + " | " + this.value;
+    }
 }

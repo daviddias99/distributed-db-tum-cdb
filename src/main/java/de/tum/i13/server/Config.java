@@ -122,7 +122,7 @@ public class Config {
     private static void ensureDataDirectoryExistence(Path dataDir, PrintWriter out, PrintWriter err) {
         if (!Files.exists(dataDir)) {
             try {
-                Files.createDirectory(dataDir);
+                Files.createDirectories(dataDir);
             } catch (IOException ex) {
                 out.println("Could not create directory");
                 ex.printStackTrace(err);

@@ -67,11 +67,13 @@ class ExternalConfigurationService {
         //calculate the updated metadata and send it to both servers
         TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
         copyMetadata.addNetworkLocation(newServer);
+        LOGGER.debug("Preparing to update metadata of '{}'", newServer);
         new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
-        new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
-
+        LOGGER.debug("Finished updagint metadata of '{}'", newServer);
+        
         LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
-        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound).run();
+        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound, copyMetadata.packMessage(), false).run();
+        LOGGER.debug("Finished Handoff between '{}' and '{}'", newServer, nextInRing);
     }
 
     /**
@@ -123,7 +125,7 @@ class ExternalConfigurationService {
             new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 
             LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
-            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound).run();
+            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound, copyMetadata.packMessage(), true).run();
 
             //actually update the metadata
             serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
@@ -139,7 +141,7 @@ class ExternalConfigurationService {
     private static void updateMetadata() {
         LOGGER.info("Trying to update the metadata of all servers in the ring.");
         try {
-            ExecutorService executor = Executors.newFixedThreadPool(Constants.SERVER_POOL_SIZE);
+            ExecutorService executor = Executors.newCachedThreadPool();
 
             //prepare the metadata information in String format
             String metadata = serverMap.packMessage();

@@ -197,5 +197,4 @@ public interface ConsistentHashRing {
      * @return if this {@link ConsistentHashRing} contains no {@link NetworkLocation}s
      */
     boolean isEmpty();
-
 }

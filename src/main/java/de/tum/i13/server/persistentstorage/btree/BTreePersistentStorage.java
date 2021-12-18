@@ -125,7 +125,8 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
                 return new KVMessageImpl(key, KVMessage.StatusType.PUT_UPDATE);
             }
 
-            LOGGER.info("Put key {} with value {}", key, value);
+            // String tree = (new PersistentBTreeDisplay<Pair<String>>()).traverseCondensed(this.tree);
+            LOGGER.info("Put key {} ({}) with value {}", key, this.normalizeKey(key), value);
 
             return new KVMessageImpl(key, KVMessage.StatusType.PUT_SUCCESS);
         } catch (Exception e) {
@@ -153,9 +154,13 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     @Override
     public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
-            return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value)
-                    .collect(Collectors.toList());
+            return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
+        } catch (StorageException | PersistentBTreeException e) {
+            LOGGER.error(e);
+            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+                    upperBound);
         } catch (Exception e) {
+            LOGGER.error(e.getLocalizedMessage());
             throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
                     upperBound);
         }

@@ -1,5 +1,8 @@
 package de.tum.i13.server.kv.commandprocessing;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +15,7 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 /**
  * Command processor for ECS KVMessages
@@ -23,6 +27,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private PersistentStorage storage;
   private ServerCommunicator ecsCommunicator;
   private boolean asyncHandoff;
+  private List<String> nodesToDelete = new LinkedList<>();
 
   /**
    * Create a new ECS KVMessage processor
@@ -79,7 +84,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage writeUnlock() {
     LOGGER.info("Trying to remove server write-lock");
     this.serverState.start();
-    return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+    return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_UNLOCK);
   }
 
   private KVMessage setKeyRange(KVMessage command) {
@@ -90,14 +95,27 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       LOGGER.info("Trying to set server state to ACTIVE");
       this.serverState.start();
     }
+
+    (new Thread(() -> {
+      for (String key : nodesToDelete) {
+        try {
+          LOGGER.info("Trying to delete item with key {}.", key);
+          storage.put(key, null);
+        } catch (PutException e) {
+          LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+        }
+      }
+      nodesToDelete = new LinkedList<>();
+    })).start();
+
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
 
   private KVMessage handoff(KVMessage command) {
 
     String[] bounds = command.getValue().split(" ");
-    String lowerBound = bounds[0].substring(2);
-    String upperBound = bounds[1].substring(2);
+    String lowerBound = bounds[0];
+    String upperBound = bounds[1];
 
     if (bounds.length != 2) {
       LOGGER.error("More than two values given as bounds");
@@ -106,7 +124,8 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", asyncHandoff, lowerBound, upperBound);
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
-    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage, asyncHandoff);
+    Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage,
+        asyncHandoff, nodesToDelete);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

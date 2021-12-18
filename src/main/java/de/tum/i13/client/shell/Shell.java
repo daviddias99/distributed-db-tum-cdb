@@ -37,7 +37,6 @@ public class Shell {
                 .setCaseInsensitiveEnumValuesAllowed(true);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
         final PrintWriter out = cmd.getOut();
 
         boolean quit = false;

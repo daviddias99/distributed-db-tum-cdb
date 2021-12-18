@@ -31,6 +31,7 @@ public class HandoffHandler implements Runnable {
   private String lowerBound;
   private String upperBound;
   private boolean async;
+  private List<String> nodesToDelete;
 
   /**
    * Create a new handoff handler
@@ -41,13 +42,14 @@ public class HandoffHandler implements Runnable {
    * @param storage current server storage
    */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage, boolean async) {
+      PersistentStorage storage, boolean async, List<String> nodesToDelete) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
     this.async = async;
+    this.nodesToDelete = nodesToDelete;  
   }
 
   @Override
@@ -62,7 +64,6 @@ public class HandoffHandler implements Runnable {
     }
 
     List<Pair<String>> itemsToSend = new LinkedList<>();
-    List<String> nodesToDelete = new LinkedList<>();
 
     // Fetch items from storage
     try {
@@ -89,15 +90,15 @@ public class HandoffHandler implements Runnable {
       }
     }
 
-    // Delete items after sending (only sucessful ones)
-    for (String key : nodesToDelete) {
-      try {
-        LOGGER.info("Trying to delete item with key {}.", key);
-        storage.put(key, null);
-      } catch (PutException e) {
-        LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
-      }
-    }
+    // // Delete items after sending (only sucessful ones)
+    // for (String key : nodesToDelete) {
+    //   try {
+    //     LOGGER.info("Trying to delete item with key {}.", key);
+    //     storage.put(key, null);
+    //   } catch (PutException e) {
+    //     LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
+    //   }
+    // }
 
     if(this.async) {
       try {
@@ -108,15 +109,32 @@ public class HandoffHandler implements Runnable {
       }
     }
   }
+
+  private String padLeftZeros(String inputString, int length) {
+    if (inputString.length() >= length) {
+        return inputString;
+    }
+    StringBuilder sb = new StringBuilder();
+    while (sb.length() < length - inputString.length()) {
+        sb.append('0');
+    }
+    sb.append(inputString);
+
+    return sb.toString();
+}
   
   private List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
-    if(lowerBound.compareTo(upperBound) <= 0) {
-      return this.storage.getRange(lowerBound, upperBound);
+
+    String paddedLower = this.padLeftZeros(lowerBound, 32);
+    String paddedUpper = this.padLeftZeros(upperBound, 32);
+
+    if(paddedLower.compareTo(paddedUpper) <= 0) {
+      return this.storage.getRange(paddedLower, paddedUpper);
     }
 
     List<Pair<String>> result = new LinkedList<>();
-    result.addAll(this.storage.getRange("00000000000000000000000000000000", upperBound));
-    result.addAll(this.storage.getRange(lowerBound, "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"));
+    result.addAll(this.storage.getRange("00000000000000000000000000000000", paddedUpper));
+    result.addAll(this.storage.getRange(paddedLower, "ffffffffffffffffffffffffffffffff"));
 
     return result;
   }
