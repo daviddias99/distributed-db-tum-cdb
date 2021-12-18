@@ -1,5 +1,9 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
+import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,14 +11,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.shared.Constants;
 
 /**
  * This class contains several utilities for operations with the file system. It
@@ -89,7 +89,7 @@ public class StorageUtils {
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             throw storageException;
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, String.format("I/O error while reading object from memory %s", filePath.toString()));
+            StorageException storageException = new StorageException(e, "I/O error while reading object from memory %s", filePath);
             LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
             throw storageException;
         } catch (ClassNotFoundException e) {
