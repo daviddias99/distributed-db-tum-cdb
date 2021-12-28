@@ -3,8 +3,6 @@ package de.tum.i13.server.state;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 
-import java.util.Optional;
-
 /**
  * Class that represents the server's state. It contains the actual state, the
  * ring metadata and the location of the ECS.
@@ -174,10 +172,7 @@ public class ServerState {
    * @return true if the server is responsible for the key
    */
   public synchronized boolean responsibleForKey(String key) {
-    Optional<NetworkLocation> opt = this.ringMetadata.getResponsibleNetworkLocation(key);
-    return opt
-        .map(curNetworkLocation::equals)
-        .orElseGet(() -> false);
+    return ringMetadata.isWriteResponsible(curNetworkLocation, key);
   }
 
   private synchronized void setState(State state) {

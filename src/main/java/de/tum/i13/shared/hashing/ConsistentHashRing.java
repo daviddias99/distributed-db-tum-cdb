@@ -89,7 +89,7 @@ public interface ConsistentHashRing {
      * @return an {@link Optional} containing the {@link NetworkLocation} responsible for that key.
      * Empty if the {@link ConsistentHashRing} is empty
      */
-    Optional<NetworkLocation> getResponsibleNetworkLocation(String key);
+    Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key);
 
     /**
      * Adds a {@link NetworkLocation} to the ring by calculating its location using
@@ -199,5 +199,7 @@ public interface ConsistentHashRing {
     boolean isEmpty();
 
     RingRange getWriteRange(NetworkLocation networkLocation);
+
+    boolean isWriteResponsible(NetworkLocation networkLocation, String key);
 
 }

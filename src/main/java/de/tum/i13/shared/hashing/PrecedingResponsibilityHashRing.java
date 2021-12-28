@@ -32,7 +32,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public synchronized Optional<NetworkLocation> getResponsibleNetworkLocation(String key) {
+    public synchronized Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key) {
         LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
 
         final BigInteger hash = hashingAlgorithm.hash(key);
@@ -164,7 +164,16 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public RingRange getWriteRange(NetworkLocation networkLocation) {
+    public synchronized boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
+        Preconditions.check(contains(networkLocation), "The location must be contained in the map");
+
+        return getWriteResponsibleNetworkLocation(key)
+                .map(responsibleLocation -> responsibleLocation.equals(networkLocation))
+                .orElse(false);
+    }
+
+    @Override
+    public synchronized RingRange getWriteRange(NetworkLocation networkLocation) {
         Preconditions.check(contains(networkLocation), "The location must be contained in the map");
 
         final BigInteger networkLocationHash = hashingAlgorithm.hash(networkLocation);

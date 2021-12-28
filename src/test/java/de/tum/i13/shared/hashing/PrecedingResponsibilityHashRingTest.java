@@ -62,11 +62,11 @@ class PrecedingResponsibilityHashRingTest {
         when(hashingAlgorithm.hash(anyString()))
                 .thenReturn(BigInteger.valueOf(1), BigInteger.valueOf(3), BigInteger.valueOf(6));
 
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .hasValue(location1);
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .hasValue(location2);
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .hasValue(location3);
     }
 
@@ -74,7 +74,7 @@ class PrecedingResponsibilityHashRingTest {
     void wrapsResponsibilityAround() {
         when(hashingAlgorithm.hash(anyString()))
                 .thenReturn(BigInteger.valueOf(6));
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .hasValue(location3);
     }
 
@@ -82,7 +82,7 @@ class PrecedingResponsibilityHashRingTest {
     void returnsResponsibilityWithHashSameAsServer() {
         when(hashingAlgorithm.hash(anyString()))
                 .thenReturn(BigInteger.valueOf(2));
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .hasValue(location1);
     }
 
@@ -158,13 +158,13 @@ class PrecedingResponsibilityHashRingTest {
         when(hashingAlgorithm.hash(anyString()))
                 .thenReturn(BigInteger.valueOf(3));
 
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .get()
                 .isEqualTo(location2);
 
         hashRing.removeNetworkLocation(location2);
 
-        assertThat(hashRing.getResponsibleNetworkLocation(IGNORED_STRING))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                 .get()
                 .isEqualTo(location3);
     }
