@@ -202,4 +202,6 @@ public interface ConsistentHashRing {
 
     boolean isWriteResponsible(NetworkLocation networkLocation, String key);
 
+    boolean isReadResponsible(NetworkLocation networkLocation, String key);
+
 }

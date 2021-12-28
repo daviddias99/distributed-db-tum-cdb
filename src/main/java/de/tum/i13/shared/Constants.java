@@ -40,6 +40,7 @@ public class Constants {
             "message as response";
     public static final int METADATA_UPDATE_TIMEOUT = 5;
     public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    public static final int NUMBER_OF_REPLICAS = 2;
 
     private Constants() {
     }

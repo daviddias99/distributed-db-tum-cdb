@@ -1,5 +1,6 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -22,6 +24,8 @@ import java.util.Set;
 public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
     private static final Logger LOGGER = LogManager.getLogger(PrecedingResponsibilityHashRing.class);
+    public static final String REQUIRE_PRESENCE_STRING = String.format("The %s must be contained in the %s",
+            NetworkLocation.class.getSimpleName(), ConsistentHashRing.class.getSimpleName());
     private final HashingAlgorithm hashingAlgorithm;
     private final NavigableMap<BigInteger, NetworkLocation> networkLocationMap;
 
@@ -33,7 +37,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key) {
-        LOGGER.info("Getting {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
+        LOGGER.info("Getting write responsible {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
 
         final BigInteger hash = hashingAlgorithm.hash(key);
         return Optional.ofNullable(networkLocationMap.ceilingEntry(hash))
@@ -159,13 +163,13 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         return size() == 0;
     }
 
-    protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
+    protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap() {
         return this.networkLocationMap;
     }
 
     @Override
     public synchronized boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
-        Preconditions.check(contains(networkLocation), "The location must be contained in the map");
+        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
 
         return getWriteResponsibleNetworkLocation(key)
                 .map(responsibleLocation -> responsibleLocation.equals(networkLocation))
@@ -173,8 +177,27 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
+    public synchronized boolean isReadResponsible(NetworkLocation networkLocation, String key) {
+        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
+
+        // If the size is below or equal to the number of replicas we don't replicate
+        // Thus, we do not have to check other network location, but the given one
+        if (size() <= Constants.NUMBER_OF_REPLICAS)
+            return isWriteResponsible(networkLocation, key);
+
+        // Check whether the key should be replicated on the location from one of the preceding locations
+        // Or whether the location itself is write-responsible
+        return Stream.iterate(networkLocation,
+                        iterLocation -> getPrecedingNetworkLocation(iterLocation)
+                                .orElseThrow(() -> new IllegalStateException("Could not get preceding location"))
+                )
+                .limit(Constants.NUMBER_OF_REPLICAS + 1)
+                .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
+    }
+
+    @Override
     public synchronized RingRange getWriteRange(NetworkLocation networkLocation) {
-        Preconditions.check(contains(networkLocation), "The location must be contained in the map");
+        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
 
         final BigInteger networkLocationHash = hashingAlgorithm.hash(networkLocation);
 
