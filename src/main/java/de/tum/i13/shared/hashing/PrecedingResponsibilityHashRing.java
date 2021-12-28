@@ -1,5 +1,6 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -160,6 +161,22 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap(){
         return this.networkLocationMap;
+    }
+
+    @Override
+    public RingRange getWriteRange(NetworkLocation networkLocation) {
+        Preconditions.check(contains(networkLocation), "The location must be contained in the map");
+
+        final BigInteger networkLocationHash = hashingAlgorithm.hash(networkLocation);
+
+        if (size() < 2)
+            return new RingRangeImpl(networkLocationHash.add(BigInteger.ONE), networkLocationHash, hashingAlgorithm);
+
+        final BigInteger leftLocationHash = Optional.ofNullable(networkLocationMap.lowerKey(networkLocationHash))
+                .or(() -> Optional.ofNullable(networkLocationMap.lastKey()))
+                .orElseThrow(() -> new IllegalStateException("Could not find range start in ring with at least 2 " +
+                        "members"));
+        return new RingRangeImpl(leftLocationHash.add(BigInteger.ONE), networkLocationHash, hashingAlgorithm);
     }
 
 }

@@ -44,4 +44,9 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
         return new BigInteger(1, digest);
     }
 
+    @Override
+    public BigInteger getMax() {
+        return Constants.MD5_HASH_MAX_VALUE;
+    }
+
 }

@@ -76,4 +76,6 @@ public interface HashingAlgorithm {
         return hash(String.format("%s:%s", networkLocation.getAddress(), networkLocation.getPort()));
     }
 
+    BigInteger getMax();
+
 }
