@@ -1,6 +1,5 @@
 package de.tum.i13.ecs;
 
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -65,7 +64,7 @@ class ExternalConfigurationService {
         BigInteger upperBound = serverMap.getHashingAlgorithm().hash(newServer);
 
         //calculate the updated metadata and send it to both servers
-        TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
+        ConsistentHashRing copyMetadata = serverMap.copy();
         copyMetadata.addNetworkLocation(newServer);
         LOGGER.debug("Preparing to update metadata of '{}'", newServer);
         new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
@@ -120,7 +119,7 @@ class ExternalConfigurationService {
             BigInteger upperBound = serverMap.getHashingAlgorithm().hash(oldServer);
 
             //calculate the updated metadata and send it to both servers
-            TreeMapServerMetadata copyMetadata = new TreeMapServerMetadata(serverMap);
+            ConsistentHashRing copyMetadata = serverMap.copy();
             copyMetadata.removeNetworkLocation(oldServer);
             new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
 

@@ -210,4 +210,6 @@ public interface ConsistentHashRing {
 
     boolean isReplicationActive();
 
+    ConsistentHashRing copy();
+
 }

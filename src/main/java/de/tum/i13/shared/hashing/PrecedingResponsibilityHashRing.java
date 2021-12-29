@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +34,11 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                                               NavigableMap<BigInteger, NetworkLocation> networkLocationMap) {
         this.hashingAlgorithm = hashingAlgorithm;
         this.networkLocationMap = networkLocationMap;
+    }
+
+    protected PrecedingResponsibilityHashRing(PrecedingResponsibilityHashRing hashRingToCopy) {
+        this.hashingAlgorithm = hashRingToCopy.hashingAlgorithm;
+        this.networkLocationMap = new TreeMap<>(hashRingToCopy.networkLocationMap);
     }
 
     @Override
@@ -183,10 +189,6 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         return size() == 0;
     }
 
-    protected synchronized NavigableMap<BigInteger, NetworkLocation> getNetworkLocationMap() {
-        return this.networkLocationMap;
-    }
-
     @Override
     public synchronized boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
         checkPresence(networkLocation);
@@ -270,12 +272,12 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         if (!(o instanceof PrecedingResponsibilityHashRing)) return false;
         PrecedingResponsibilityHashRing that = (PrecedingResponsibilityHashRing) o;
         return Objects.equals(getHashingAlgorithm(), that.getHashingAlgorithm())
-                && Objects.equals(getNetworkLocationMap(), that.getNetworkLocationMap());
+                && Objects.equals(networkLocationMap, that.networkLocationMap);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getHashingAlgorithm(), getNetworkLocationMap());
+        return Objects.hash(getHashingAlgorithm(), networkLocationMap);
     }
 
 }

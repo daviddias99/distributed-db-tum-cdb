@@ -20,8 +20,13 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
         super(new MD5HashAlgorithm(), new TreeMap<>());
     }
 
-    // TODO Change copying
-    public TreeMapServerMetadata(TreeMapServerMetadata copy) {
-        super(copy.getHashingAlgorithm(), new TreeMap<>(copy.getNetworkLocationMap()));
+    private TreeMapServerMetadata(TreeMapServerMetadata hashRingToCopy) {
+        super(hashRingToCopy);
     }
+
+    @Override
+    public ConsistentHashRing copy() {
+        return new TreeMapServerMetadata(this);
+    }
+
 }
