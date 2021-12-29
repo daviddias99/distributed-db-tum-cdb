@@ -1,6 +1,9 @@
 package de.tum.i13.shared.hashing;
 
+import de.tum.i13.shared.Preconditions;
+
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Objects;
 
 class RingRangeImpl implements RingRange {
@@ -26,13 +29,60 @@ class RingRangeImpl implements RingRange {
     }
 
     @Override
+    public boolean wrapsAround() {
+        return startInclusive.compareTo(endInclusive) > 0;
+    }
+
+    @Override
     public BigInteger getNumberOfElements() {
-        return switch (startInclusive.compareTo(endInclusive)) {
-            case -1 -> endInclusive.subtract(startInclusive).add(BigInteger.ONE);
-            case 1 -> hashingAlgorithm.getMax().subtract(startInclusive).add(BigInteger.ONE)
+        if (startInclusive.compareTo(endInclusive) < 0)
+            return endInclusive.subtract(startInclusive).add(BigInteger.ONE);
+        else if (startInclusive.compareTo(endInclusive) > 0)
+            return hashingAlgorithm.getMax().subtract(startInclusive).add(BigInteger.ONE)
                     .add(endInclusive).add(BigInteger.ONE);
-            default -> BigInteger.ZERO;
-        };
+        return BigInteger.ZERO;
+    }
+
+    @Override
+    public boolean contains(BigInteger val) {
+        Preconditions.check(val.compareTo(hashingAlgorithm.getMax()) <= 0,
+                "The value must exceed the maximum possible value");
+        if (wrapsAround())
+            return startInclusive.compareTo(val) <= 0 || val.compareTo(endInclusive) <= 0;
+        else
+            return startInclusive.compareTo(val) <= 0 && val.compareTo(endInclusive) <= 0;
+    }
+
+    @Override
+    public List<RingRange> computeDifference(RingRange ringRange) {
+        // TODO Check that hashing algorithm is same
+
+        if (contains(ringRange.getStart()) && contains(ringRange.getEnd())) {
+            if (wrapsAround()) {
+                return List.of(
+                        new RingRangeImpl(
+                                ringRange.getEnd().add(BigInteger.ONE),
+                                ringRange.getStart().subtract(BigInteger.ONE),
+                                hashingAlgorithm
+                        ));
+            } else {
+                return List.of(
+                        new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                                hashingAlgorithm),
+                        new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+                );
+            }
+        } else if (contains(ringRange.getStart())) {
+            return List.of(
+                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
+            );
+        } else if (contains(ringRange.getEnd())) {
+            return List.of(
+                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+            );
+        } else {
+            return List.of();
+        }
     }
 
     @Override
