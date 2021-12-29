@@ -12,12 +12,6 @@ class RingRangeImpl implements RingRange {
     private final BigInteger endInclusive;
     private final HashingAlgorithm hashingAlgorithm;
 
-    // TODO Is the range actually empty than or only single element?
-    @Override
-    public boolean isEmpty() {
-        return startInclusive.compareTo(endInclusive) == 0;
-    }
-
     RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
@@ -41,9 +35,7 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public BigInteger getNumberOfElements() {
-        if (isEmpty()) {
-            return BigInteger.ZERO;
-        } else if (wrapsAround()) {
+        if (wrapsAround()) {
             return hashingAlgorithm.getMax().subtract(startInclusive).add(BigInteger.ONE)
                     .add(endInclusive).add(BigInteger.ONE);
         } else {

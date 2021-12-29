@@ -22,6 +22,4 @@ public interface RingRange {
      */
     List<RingRange> computeDifference(RingRange ringRange);
 
-    boolean isEmpty();
-
 }
