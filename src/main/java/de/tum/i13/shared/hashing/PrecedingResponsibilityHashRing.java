@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -244,11 +246,18 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         if (!isReplicationActive())
             return getWriteRange(networkLocation);
 
-        final BigInteger startHash = getReplicatedLocations(networkLocation)
-                .findFirst()
-                .map(location -> getPrecedingNetworkLocation(location)
-                        .orElseThrow(() -> new IllegalStateException("Could not get preceding location")))
-                .map(location -> hashingAlgorithm.hash(networkLocation))
+        final NetworkLocation firstReplicatedLocation = getReplicatedLocations(networkLocation)
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        list -> {
+                            Collections.reverse(list);
+                            return list;
+                        }
+                ))
+                .get(0);
+        final BigInteger startHash = getPrecedingNetworkLocation(firstReplicatedLocation)
+                .map(hashingAlgorithm::hash)
+                .map(hash -> hash.add(BigInteger.ONE))
                 .orElseThrow(() -> new IllegalStateException("Could not find start hash"));
 
         return new RingRangeImpl(startHash, hashingAlgorithm.hash(networkLocation), hashingAlgorithm);

@@ -20,12 +20,12 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public BigInteger getStart() {
-        return endInclusive;
+        return startInclusive;
     }
 
     @Override
     public BigInteger getEnd() {
-        return startInclusive;
+        return endInclusive;
     }
 
     @Override
