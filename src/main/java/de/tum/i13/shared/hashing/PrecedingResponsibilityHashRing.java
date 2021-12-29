@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
@@ -261,6 +262,20 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 String.format("The %s '%s' must be contained in the %s",
                         NetworkLocation.class.getSimpleName(), networkLocation,
                         ConsistentHashRing.class.getSimpleName()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PrecedingResponsibilityHashRing)) return false;
+        PrecedingResponsibilityHashRing that = (PrecedingResponsibilityHashRing) o;
+        return Objects.equals(getHashingAlgorithm(), that.getHashingAlgorithm())
+                && Objects.equals(getNetworkLocationMap(), that.getNetworkLocationMap());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getHashingAlgorithm(), getNetworkLocationMap());
     }
 
 }

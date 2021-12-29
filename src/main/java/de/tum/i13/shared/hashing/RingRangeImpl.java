@@ -1,6 +1,7 @@
 package de.tum.i13.shared.hashing;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 class RingRangeImpl implements RingRange {
 
@@ -32,6 +33,20 @@ class RingRangeImpl implements RingRange {
                     .add(rightInclusive).add(BigInteger.ONE);
             default -> BigInteger.ZERO;
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RingRangeImpl)) return false;
+        RingRangeImpl ringRange = (RingRangeImpl) o;
+        return Objects.equals(leftInclusive, ringRange.leftInclusive) && Objects.equals(rightInclusive,
+                ringRange.rightInclusive) && Objects.equals(hashingAlgorithm, ringRange.hashingAlgorithm);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(leftInclusive, rightInclusive, hashingAlgorithm);
     }
 
 }
