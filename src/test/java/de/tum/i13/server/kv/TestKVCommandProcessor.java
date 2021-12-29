@@ -10,19 +10,21 @@ import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.math.BigInteger;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TestKVCommandProcessor {
 
@@ -34,9 +36,11 @@ class TestKVCommandProcessor {
     static void createRing() {
         NetworkLocation server2Location = new NetworkLocationImpl("192.168.1.1", 25566);
 
-        ring = new TreeMapServerMetadata();
+        ring = spy(new TreeMapServerMetadata());
         ring.addNetworkLocation(new BigInteger("00000000000000000000000000000000", 16), server2Location);
         ring.addNetworkLocation(new BigInteger("80000000000000000000000000000000", 16), server1Location);
+        doReturn(true).when(ring)
+                .isWriteResponsible(any(NetworkLocation.class), anyString());
     }
 
     @BeforeEach
@@ -79,7 +83,7 @@ class TestKVCommandProcessor {
     }
 
     @Test
-    void respondstoHeatbeatFromEcs() throws PutException {
+    void respondsToHeartbeatFromEcs() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
