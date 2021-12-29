@@ -29,6 +29,11 @@ class RingRangeImpl implements RingRange {
     }
 
     @Override
+    public HashingAlgorithm getHashingAlgorithm() {
+        return hashingAlgorithm;
+    }
+
+    @Override
     public boolean wrapsAround() {
         return startInclusive.compareTo(endInclusive) > 0;
     }
@@ -55,7 +60,8 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public List<RingRange> computeDifference(RingRange ringRange) {
-        // TODO Check that hashing algorithm is same
+        Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
+                "hashing algorithm");
 
         if (contains(ringRange.getStart()) && contains(ringRange.getEnd())) {
             if (wrapsAround()) {
