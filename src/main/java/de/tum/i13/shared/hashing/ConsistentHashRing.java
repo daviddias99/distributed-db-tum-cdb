@@ -202,6 +202,8 @@ public interface ConsistentHashRing {
 
     RingRange getWriteRange(NetworkLocation networkLocation);
 
+    RingRange getReadRange(NetworkLocation networkLocation);
+
     boolean isWriteResponsible(NetworkLocation networkLocation, String key);
 
     boolean isReadResponsible(NetworkLocation networkLocation, String key);

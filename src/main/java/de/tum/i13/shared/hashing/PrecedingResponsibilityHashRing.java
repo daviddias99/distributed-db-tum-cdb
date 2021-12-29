@@ -195,7 +195,6 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .orElse(false);
     }
 
-    @SuppressWarnings("java:S2184")
     @Override
     public synchronized boolean isReadResponsible(NetworkLocation networkLocation, String key) {
         checkPresence(networkLocation);
@@ -206,12 +205,17 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
         // Check whether the key should be replicated on the location from one of the preceding locations
         // Or whether the location itself is write-responsible
+        return getReplicatedLocations(networkLocation)
+                .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
+    }
+
+    @SuppressWarnings("java:S2184")
+    private Stream<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
         return Stream.iterate(networkLocation,
                         iterLocation -> getPrecedingNetworkLocation(iterLocation)
                                 .orElseThrow(() -> new IllegalStateException("Could not get preceding location"))
                 )
-                .limit(Constants.NUMBER_OF_REPLICAS + 1)
-                .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
+                .limit(Constants.NUMBER_OF_REPLICAS + 1);
     }
 
     @Override
@@ -228,6 +232,23 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .orElseThrow(() -> new IllegalStateException("Could not find range start in ring with at least 2 " +
                         "members"));
         return new RingRangeImpl(leftLocationHash.add(BigInteger.ONE), networkLocationHash, hashingAlgorithm);
+    }
+
+    @Override
+    public RingRange getReadRange(NetworkLocation networkLocation) {
+        checkPresence(networkLocation);
+
+        if (!isReplicationActive())
+            return getWriteRange(networkLocation);
+
+        final BigInteger startHash = getReplicatedLocations(networkLocation)
+                .findFirst()
+                .map(location -> getPrecedingNetworkLocation(location)
+                        .orElseThrow(() -> new IllegalStateException("Could not get preceding location")))
+                .map(location -> hashingAlgorithm.hash(networkLocation))
+                .orElseThrow(() -> new IllegalStateException("Could not find start hash"));
+
+        return new RingRangeImpl(startHash, hashingAlgorithm.hash(networkLocation), hashingAlgorithm);
     }
 
     @Override
