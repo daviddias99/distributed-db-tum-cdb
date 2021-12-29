@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
     private static final Logger LOGGER = LogManager.getLogger(PrecedingResponsibilityHashRing.class);
-    public static final String REQUIRE_PRESENCE_STRING = String.format("The %s must be contained in the %s",
-            NetworkLocation.class.getSimpleName(), ConsistentHashRing.class.getSimpleName());
     private final HashingAlgorithm hashingAlgorithm;
     private final NavigableMap<BigInteger, NetworkLocation> networkLocationMap;
 
@@ -190,7 +188,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
-        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
+        checkPresence(networkLocation);
 
         return getWriteResponsibleNetworkLocation(key)
                 .map(responsibleLocation -> responsibleLocation.equals(networkLocation))
@@ -200,7 +198,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     @SuppressWarnings("java:S2184")
     @Override
     public synchronized boolean isReadResponsible(NetworkLocation networkLocation, String key) {
-        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
+        checkPresence(networkLocation);
 
         // If replication is not active, we do not have to check other network location, but the given one
         if (!isReplicationActive())
@@ -218,7 +216,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized RingRange getWriteRange(NetworkLocation networkLocation) {
-        Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
+        checkPresence(networkLocation);
 
         final BigInteger networkLocationHash = hashingAlgorithm.hash(networkLocation);
 
@@ -235,6 +233,13 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     @Override
     public boolean isReplicationActive() {
         return size() > Constants.NUMBER_OF_REPLICAS;
+    }
+
+    private void checkPresence(NetworkLocation networkLocation) {
+        Preconditions.check(contains(networkLocation),
+                String.format("The %s '%s' must be contained in the %s",
+                        NetworkLocation.class.getSimpleName(), networkLocation,
+                        ConsistentHashRing.class.getSimpleName()));
     }
 
 }
