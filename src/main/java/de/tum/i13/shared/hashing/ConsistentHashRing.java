@@ -91,6 +91,8 @@ public interface ConsistentHashRing {
      */
     Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key);
 
+    Optional<NetworkLocation> getReadResponsibleNetworkLocation(String key);
+
     /**
      * Adds a {@link NetworkLocation} to the ring by calculating its location using
      * {@link HashingAlgorithm#hash(NetworkLocation)}.
@@ -203,5 +205,7 @@ public interface ConsistentHashRing {
     boolean isWriteResponsible(NetworkLocation networkLocation, String key);
 
     boolean isReadResponsible(NetworkLocation networkLocation, String key);
+
+    boolean isReplicationActive();
 
 }

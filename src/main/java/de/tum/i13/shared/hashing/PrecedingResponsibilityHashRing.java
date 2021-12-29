@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -43,6 +44,26 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         return Optional.ofNullable(networkLocationMap.ceilingEntry(hash))
                 .or(() -> Optional.ofNullable(networkLocationMap.firstEntry()))
                 .map(Map.Entry::getValue);
+    }
+
+    @SuppressWarnings("java:S2184")
+    @Override
+    public Optional<NetworkLocation> getReadResponsibleNetworkLocation(String key) {
+        final Optional<NetworkLocation> writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
+        if (writeResponsibleNetworkLocation.isEmpty())
+            return Optional.empty();
+
+        if (!isReplicationActive())
+            return writeResponsibleNetworkLocation;
+
+
+        return Stream.iterate(writeResponsibleNetworkLocation.get(),
+                        iterLocation -> getSucceedingNetworkLocation(iterLocation)
+                                .orElseThrow(() -> new IllegalStateException("Could not get succeeding location"))
+                )
+                .limit(Constants.NUMBER_OF_REPLICAS + 1)
+                .skip(new Random().nextInt(Constants.NUMBER_OF_REPLICAS + 1))
+                .findFirst();
     }
 
     @Override
@@ -176,13 +197,13 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .orElse(false);
     }
 
+    @SuppressWarnings("java:S2184")
     @Override
     public synchronized boolean isReadResponsible(NetworkLocation networkLocation, String key) {
         Preconditions.check(contains(networkLocation), REQUIRE_PRESENCE_STRING);
 
-        // If the size is below or equal to the number of replicas we don't replicate
-        // Thus, we do not have to check other network location, but the given one
-        if (size() <= Constants.NUMBER_OF_REPLICAS)
+        // If replication is not active, we do not have to check other network location, but the given one
+        if (!isReplicationActive())
             return isWriteResponsible(networkLocation, key);
 
         // Check whether the key should be replicated on the location from one of the preceding locations
@@ -209,6 +230,11 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .orElseThrow(() -> new IllegalStateException("Could not find range start in ring with at least 2 " +
                         "members"));
         return new RingRangeImpl(leftLocationHash.add(BigInteger.ONE), networkLocationHash, hashingAlgorithm);
+    }
+
+    @Override
+    public boolean isReplicationActive() {
+        return size() > Constants.NUMBER_OF_REPLICAS;
     }
 
 }
