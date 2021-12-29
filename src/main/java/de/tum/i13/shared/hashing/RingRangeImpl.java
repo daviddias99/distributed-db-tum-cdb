@@ -5,32 +5,32 @@ import java.util.Objects;
 
 class RingRangeImpl implements RingRange {
 
-    private final BigInteger leftInclusive;
-    private final BigInteger rightInclusive;
+    private final BigInteger startInclusive;
+    private final BigInteger endInclusive;
     private final HashingAlgorithm hashingAlgorithm;
 
-    RingRangeImpl(BigInteger leftInclusive, BigInteger rightInclusive, HashingAlgorithm hashingAlgorithm) {
-        this.leftInclusive = leftInclusive;
-        this.rightInclusive = rightInclusive;
+    RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
+        this.startInclusive = startInclusive;
+        this.endInclusive = endInclusive;
         this.hashingAlgorithm = hashingAlgorithm;
     }
 
     @Override
-    public BigInteger getLeft() {
-        return rightInclusive;
+    public BigInteger getStart() {
+        return endInclusive;
     }
 
     @Override
-    public BigInteger getRight() {
-        return leftInclusive;
+    public BigInteger getEnd() {
+        return startInclusive;
     }
 
     @Override
     public BigInteger getNumberOfElements() {
-        return switch (leftInclusive.compareTo(rightInclusive)) {
-            case -1 -> rightInclusive.subtract(leftInclusive).add(BigInteger.ONE);
-            case 1 -> hashingAlgorithm.getMax().subtract(leftInclusive).add(BigInteger.ONE)
-                    .add(rightInclusive).add(BigInteger.ONE);
+        return switch (startInclusive.compareTo(endInclusive)) {
+            case -1 -> endInclusive.subtract(startInclusive).add(BigInteger.ONE);
+            case 1 -> hashingAlgorithm.getMax().subtract(startInclusive).add(BigInteger.ONE)
+                    .add(endInclusive).add(BigInteger.ONE);
             default -> BigInteger.ZERO;
         };
     }
@@ -40,13 +40,13 @@ class RingRangeImpl implements RingRange {
         if (this == o) return true;
         if (!(o instanceof RingRangeImpl)) return false;
         RingRangeImpl ringRange = (RingRangeImpl) o;
-        return Objects.equals(leftInclusive, ringRange.leftInclusive) && Objects.equals(rightInclusive,
-                ringRange.rightInclusive) && Objects.equals(hashingAlgorithm, ringRange.hashingAlgorithm);
+        return Objects.equals(startInclusive, ringRange.startInclusive) && Objects.equals(endInclusive,
+                ringRange.endInclusive) && Objects.equals(hashingAlgorithm, ringRange.hashingAlgorithm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(leftInclusive, rightInclusive, hashingAlgorithm);
+        return Objects.hash(startInclusive, endInclusive, hashingAlgorithm);
     }
 
 }

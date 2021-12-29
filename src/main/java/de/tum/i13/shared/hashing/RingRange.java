@@ -4,9 +4,9 @@ import java.math.BigInteger;
 
 public interface RingRange {
 
-    BigInteger getLeft();
+    BigInteger getStart();
 
-    BigInteger getRight();
+    BigInteger getEnd();
 
     BigInteger getNumberOfElements();
 
