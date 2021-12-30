@@ -67,11 +67,11 @@ class ExternalConfigurationService {
         ConsistentHashRing copyMetadata = serverMap.copy();
         copyMetadata.addNetworkLocation(newServer);
         LOGGER.debug("Preparing to update metadata of '{}'", newServer);
-        new ECSUpdateMetadataThread(newServer, copyMetadata.packMessage()).run();
+        new ECSUpdateMetadataThread(newServer, copyMetadata.packWriteRanges()).run();
         LOGGER.debug("Finished updagint metadata of '{}'", newServer);
         
         LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
-        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound, copyMetadata.packMessage(), false).run();
+        new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound, copyMetadata.packWriteRanges(), false).run();
         LOGGER.debug("Finished Handoff between '{}' and '{}'", newServer, nextInRing);
     }
 
@@ -121,10 +121,10 @@ class ExternalConfigurationService {
             //calculate the updated metadata and send it to both servers
             ConsistentHashRing copyMetadata = serverMap.copy();
             copyMetadata.removeNetworkLocation(oldServer);
-            new ECSUpdateMetadataThread(nextInRing, copyMetadata.packMessage()).run();
+            new ECSUpdateMetadataThread(nextInRing, copyMetadata.packWriteRanges()).run();
 
             LOGGER.debug("Initiating Handoff between from old server {} to successor {}", oldServer, nextInRing);
-            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound, copyMetadata.packMessage(), true).run();
+            new ECSHandoffThread(oldServer, nextInRing, lowerBound, upperBound, copyMetadata.packWriteRanges(), true).run();
 
             //actually update the metadata
             serverMap.removeNetworkLocation(new NetworkLocationImpl(listenAddress, port));
@@ -143,7 +143,7 @@ class ExternalConfigurationService {
             ExecutorService executor = Executors.newCachedThreadPool();
 
             //prepare the metadata information in String format
-            String metadata = serverMap.packMessage();
+            String metadata = serverMap.packWriteRanges();
 
             for (NetworkLocation location : serverMap.getAllNetworkLocations())
                 executor.submit(new ECSUpdateMetadataThread(location, metadata));

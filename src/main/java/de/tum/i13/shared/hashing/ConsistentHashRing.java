@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -91,6 +92,7 @@ public interface ConsistentHashRing {
      */
     Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key);
 
+    // TODO Add documentation
     Optional<NetworkLocation> getReadResponsibleNetworkLocation(String key);
 
     /**
@@ -130,12 +132,21 @@ public interface ConsistentHashRing {
 
     /**
      * Packs the metadata of this {@link ConsistentHashRing} into a {@link String}.
-     * The metadata format is specified in the specification document.
+     * The metadata format describes the write-ranges and is specified in the specification document.
      * The ranges from and to key range values are both inclusive.
      *
      * @return a {@link String} representation of this {@link ConsistentHashRing}
      */
-    String packMessage();
+    String packWriteRanges();
+
+    /**
+     * Packs the metadata of this {@link ConsistentHashRing} into a {@link String}.
+     * The metadata format describes the read-ranges and is specified in the specification document.
+     * The ranges from and to key range values are both inclusive.
+     *
+     * @return a {@link String} representation of this {@link ConsistentHashRing}
+     */
+    String packReadRanges();
 
     /**
      * Returns the {@link NetworkLocation} that succeeds the supplied {@link NetworkLocation} in the
@@ -183,7 +194,7 @@ public interface ConsistentHashRing {
      *
      * @return all the contained {@link NetworkLocation}s
      */
-    Set<NetworkLocation> getAllNetworkLocations();
+    List<NetworkLocation> getAllNetworkLocations();
 
 
     /**

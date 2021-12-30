@@ -95,6 +95,8 @@ class PrecedingResponsibilityHashRingTest {
                     .hasValue(location3);
         }
 
+        // TODO get read responsiblity test
+
         @Test
         void checksWriteResponsibility() {
             assertThat(hashRing.isWriteResponsible(location1, IGNORED_STRING))
@@ -244,7 +246,7 @@ class PrecedingResponsibilityHashRingTest {
 
         @Test
         void packsMetadata() {
-            assertThat(hashRing.packMessage())
+            assertThat(hashRing.packWriteRanges())
                     .isEqualTo(STRING_REPRESENTATION);
         }
 

@@ -202,9 +202,9 @@ class TestKVCommandProcessor {
                         KVMessage::getValue,
                         KVMessage::getStatus)
                 .containsExactly(
-                        state.getRingMetadata().packMessage(),
+                        state.getRingMetadata().packWriteRanges(),
                         null,
                         KVMessage.StatusType.KEYRANGE_SUCCESS);
-        assertThat(state.getRingMetadata().packMessage()).isEqualTo("80000000000000000000000000000001,0,192.168.1.1:25566;1,80000000000000000000000000000000,192.168.1.0:25565;");
+        assertThat(state.getRingMetadata().packWriteRanges()).isEqualTo("80000000000000000000000000000001,0,192.168.1.1:25566;1,80000000000000000000000000000000,192.168.1.0:25565;");
     }
 }

@@ -8,15 +8,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHex;
 
 /**
  * A partial implementation of {@link ConsistentHashRing} using a {@link NavigableMap} that provides helper methods
@@ -109,11 +111,11 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized String toString() {
-        return packMessage();
+        return packWriteRanges();
     }
 
     @Override
-    public synchronized String packMessage() {
+    public synchronized String packWriteRanges() {
         final NavigableMap<BigInteger, NetworkLocation> map = networkLocationMap;
         if (!map.isEmpty()) {
             final StringBuilder stringBuilder = new StringBuilder();
@@ -122,13 +124,13 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
             final BigInteger lastHash = lastEntry.getKey();
             final NetworkLocation lastNetworkLocation = lastEntry.getValue();
 
-            stringBuilder.append(HashingAlgorithm.convertHashToHex(lastHash.add(BigInteger.ONE)));
+            stringBuilder.append(convertHashToHex(lastHash.add(BigInteger.ONE)));
 
             for (Map.Entry<BigInteger, NetworkLocation> entry : map.headMap(lastHash).entrySet()) {
                 final BigInteger hash = entry.getKey();
                 final NetworkLocation networkLocation = entry.getValue();
                 appendNetworkLocation(stringBuilder, hash, networkLocation)
-                        .append(HashingAlgorithm.convertHashToHex(hash.add(BigInteger.ONE)));
+                        .append(convertHashToHex(hash.add(BigInteger.ONE)));
             }
 
             return appendNetworkLocation(stringBuilder, lastHash, lastNetworkLocation)
@@ -136,10 +138,26 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         } else return "";
     }
 
+    // TODO Synchronize all methods
+    @Override
+    public synchronized String packReadRanges() {
+        return getAllNetworkLocations().stream()
+                .map(networkLocation -> {
+                    final RingRange readRange = getReadRange(networkLocation);
+                    return String.format(
+                            "%s,%s,%s:%s;",
+                            convertHashToHex(readRange.getStart()), convertHashToHex(readRange.getEnd()),
+                            networkLocation.getAddress(),
+                            networkLocation.getPort()
+                    );
+                })
+                .collect(Collectors.joining(","));
+    }
+
     private StringBuilder appendNetworkLocation(StringBuilder stringBuilder, BigInteger hash,
                                                 NetworkLocation networkLocation) {
         return stringBuilder.append(",")
-                .append(HashingAlgorithm.convertHashToHex(hash))
+                .append(convertHashToHex(hash))
                 .append(",")
                 .append(networkLocation.getAddress())
                 .append(":")
@@ -153,8 +171,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public Set<NetworkLocation> getAllNetworkLocations() {
-        return Set.copyOf(networkLocationMap.values());
+    public List<NetworkLocation> getAllNetworkLocations() {
+        return List.copyOf(networkLocationMap.values());
     }
 
     @Override
