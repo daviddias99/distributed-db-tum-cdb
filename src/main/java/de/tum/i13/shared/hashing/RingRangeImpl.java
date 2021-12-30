@@ -115,4 +115,9 @@ class RingRangeImpl implements RingRange {
         return Objects.hash(startInclusive, endInclusive, hashingAlgorithm);
     }
 
+    @Override
+    public String toString() {
+        return String.format("RingRangeImpl{%s,%s}", startInclusive, endInclusive);
+    }
+
 }

@@ -49,4 +49,9 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
         return Constants.MD5_HASH_MAX_VALUE;
     }
 
+    @Override
+    public String toString() {
+        return "MD5HashAlgorithm";
+    }
+
 }
