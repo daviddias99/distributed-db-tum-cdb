@@ -6,12 +6,22 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A standard implementation of a {@link RingRange}
+ */
 class RingRangeImpl implements RingRange {
 
     private final BigInteger startInclusive;
     private final BigInteger endInclusive;
     private final HashingAlgorithm hashingAlgorithm;
 
+    /**
+     * Creates a new {@link RingRangeImpl} with the associated value
+     *
+     * @param startInclusive the start of {@link RingRange}
+     * @param endInclusive the end of the {@link RingRange}
+     * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
+     */
     RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
@@ -49,13 +59,13 @@ class RingRangeImpl implements RingRange {
     }
 
     @Override
-    public boolean contains(BigInteger val) {
-        Preconditions.check(val.compareTo(hashingAlgorithm.getMax()) <= 0,
+    public boolean contains(BigInteger value) {
+        Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
                 "The value must exceed the maximum possible value");
         if (wrapsAround())
-            return startInclusive.compareTo(val) <= 0 || val.compareTo(endInclusive) <= 0;
+            return startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0;
         else
-            return startInclusive.compareTo(val) <= 0 && val.compareTo(endInclusive) <= 0;
+            return startInclusive.compareTo(value) <= 0 && value.compareTo(endInclusive) <= 0;
     }
 
     @Override

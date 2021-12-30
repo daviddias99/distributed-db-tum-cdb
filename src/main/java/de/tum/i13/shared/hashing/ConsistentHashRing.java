@@ -200,16 +200,67 @@ public interface ConsistentHashRing {
      */
     boolean isEmpty();
 
+    /**
+     * Returns the {@link RingRange} in which the {@link NetworkLocation} is responsible for writing,
+     * i.e. the {@link RingRange} the {@link NetworkLocation} is the coordinator for.
+     *
+     * @param networkLocation the {@link NetworkLocation} to get the {@link RingRange} for
+     * @return the {@link RingRange} the supplied {@link NetworkLocation} is responsible for writing
+     * @see #isWriteResponsible(NetworkLocation, String)
+     */
     RingRange getWriteRange(NetworkLocation networkLocation);
 
+    /**
+     * Returns the {@link RingRange} in which the {@link NetworkLocation} is responsible for reading,
+     * i.e. the {@link RingRange} the {@link NetworkLocation} is the coordinator or a replica for.
+     *
+     * @param networkLocation the {@link NetworkLocation} to get the {@link RingRange} for
+     * @return the {@link RingRange} the supplied {@link NetworkLocation} is responsible for reading
+     * @see #isReadResponsible(NetworkLocation, String)
+     */
     RingRange getReadRange(NetworkLocation networkLocation);
 
+    /**
+     * Returns whether the supplied {@link NetworkLocation} is responsible for writing to the supplied key,
+     * i.e. it checks whether the {@link NetworkLocation} is the coordinator for that key.
+     *
+     * @param networkLocation the {@link NetworkLocation} to check for responsibility
+     * @param key             the key the responsibility for
+     * @return whether the {@link NetworkLocation} is responsible for writing to the key
+     * @see #getWriteRange(NetworkLocation)
+     */
     boolean isWriteResponsible(NetworkLocation networkLocation, String key);
 
+    /**
+     * Returns whether the supplied {@link NetworkLocation} is responsible for reading to the supplied key,
+     * i.e. it checks whether the {@link NetworkLocation} is a coordinator or a replica for that key.
+     *
+     * @param networkLocation the {@link NetworkLocation} to check for responsibility
+     * @param key             the key the responsibility for
+     * @return whether the {@link NetworkLocation} is responsible for reading to the key
+     * @see #getReadRange(NetworkLocation)
+     */
     boolean isReadResponsible(NetworkLocation networkLocation, String key);
 
+    /**
+     * Returns whether replication in the current configuration of the {@link ConsistentHashRing}.
+     * This is the case, when the number of {@link NetworkLocation}s in this {@link ConsistentHashRing} exceeds
+     * the number of replicas. I.e. if the number of replicas is 2, replication happens, when the
+     * {@link ConsistentHashRing}has a size of at least 3.
+     *
+     * @return whether the replication is active on this {@link ConsistentHashRing}
+     * @see Constants#NUMBER_OF_REPLICAS
+     */
     boolean isReplicationActive();
 
+
+    /**
+     * Makes a shallow copy of the {@link ConsistentHashRing},
+     * i.e. the datastructures of the {@link ConsistentHashRing} are copied, but not necessarily
+     * the {@link NetworkLocation}s that are contained in it.
+     *
+     * @return a copy of this {@link ConsistentHashRing}
+     */
     ConsistentHashRing copy();
 
 }
