@@ -253,7 +253,6 @@ public interface ConsistentHashRing {
      */
     boolean isReplicationActive();
 
-
     /**
      * Makes a shallow copy of the {@link ConsistentHashRing},
      * i.e. the datastructures of the {@link ConsistentHashRing} are copied, but not necessarily

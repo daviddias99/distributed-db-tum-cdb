@@ -75,18 +75,68 @@ class PrecedingResponsibilityHashRingTest {
                 .hasValue(location4);
     }
 
-    @Test
-    void returnsThreeDifferentResponsibleLocations() {
-        when(hashingAlgorithm.hash(anyString()))
-                .thenReturn(BigInteger.valueOf(1), BigInteger.valueOf(3), BigInteger.valueOf(6));
+    @Nested
+    class WithStubbedKeysTest {
 
-        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
-                .hasValue(location1);
-        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
-                .hasValue(location2);
-        assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
-                .hasValue(location3);
+        @BeforeEach
+        void stubKeyHashes() {
+            when(hashingAlgorithm.hash(anyString()))
+                    .thenReturn(BigInteger.valueOf(1), BigInteger.valueOf(3), BigInteger.valueOf(6),
+                            BigInteger.valueOf(1), BigInteger.valueOf(3), BigInteger.valueOf(6));
+        }
+
+        @Test
+        void returnsThreeDifferentResponsibleLocations() {
+            assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
+                    .hasValue(location1);
+            assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
+                    .hasValue(location2);
+            assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
+                    .hasValue(location3);
+        }
+
+        @Test
+        void checksWriteResponsibility() {
+            assertThat(hashRing.isWriteResponsible(location1, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isWriteResponsible(location1, IGNORED_STRING))
+                    .isFalse();
+            assertThat(hashRing.isWriteResponsible(location1, IGNORED_STRING))
+                    .isFalse();
+
+            assertThat(hashRing.isWriteResponsible(location1, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isWriteResponsible(location2, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isWriteResponsible(location3, IGNORED_STRING))
+                    .isTrue();
+        }
+
+        @Test
+        void checkReadResponsibility() {
+            when(hashingAlgorithm.hash(location4))
+                    .thenReturn(BigInteger.valueOf(10));
+            hashRing.addNetworkLocation(location4);
+            assumeThat(hashRing.isReplicationActive())
+                    .isTrue();
+
+            assertThat(hashRing.isReadResponsible(location1, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isReadResponsible(location1, IGNORED_STRING))
+                    .isFalse();
+            assertThat(hashRing.isReadResponsible(location1, IGNORED_STRING))
+                    .isTrue();
+
+            assertThat(hashRing.isReadResponsible(location3, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isReadResponsible(location4, IGNORED_STRING))
+                    .isTrue();
+            assertThat(hashRing.isReadResponsible(location1, IGNORED_STRING))
+                    .isTrue();
+        }
+
     }
+
 
     @Test
     void wrapsResponsibilityAround() {
@@ -178,8 +228,6 @@ class PrecedingResponsibilityHashRingTest {
         });
     }
 
-    // TODO Create a test for non replicated read range
-
     @Nested
     class WithLocationsStubbedTest {
 
@@ -261,6 +309,7 @@ class PrecedingResponsibilityHashRingTest {
                 .get()
                 .isEqualTo(location3);
     }
+
 
 
 }
