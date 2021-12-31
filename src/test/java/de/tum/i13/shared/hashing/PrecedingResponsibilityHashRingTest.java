@@ -86,7 +86,7 @@ class PrecedingResponsibilityHashRingTest {
         }
 
         @Test
-        void returnsThreeDifferentResponsibleLocations() {
+        void returnsWriteResponsibleLocations() {
             assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
                     .hasValue(location1);
             assertThat(hashRing.getWriteResponsibleNetworkLocation(IGNORED_STRING))
@@ -95,7 +95,21 @@ class PrecedingResponsibilityHashRingTest {
                     .hasValue(location3);
         }
 
-        // TODO get read responsiblity test
+        @Test
+        void returnsReadResponsibleLocations() {
+            when(hashingAlgorithm.hash(location4))
+                    .thenReturn(BigInteger.valueOf(10));
+            hashRing.addNetworkLocation(location4);
+            assumeThat(hashRing.isReplicationActive())
+                    .isTrue();
+
+            assertThat(hashRing.getReadResponsibleNetworkLocation(IGNORED_STRING))
+                    .containsOnly(location1, location2, location3);
+            assertThat(hashRing.getReadResponsibleNetworkLocation(IGNORED_STRING))
+                    .containsOnly(location2, location3, location4);
+            assertThat(hashRing.getReadResponsibleNetworkLocation(IGNORED_STRING))
+                    .containsOnly(location3, location4, location1);
+        }
 
         @Test
         void checksWriteResponsibility() {

@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,8 +24,13 @@ import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHex;
  * to minimize the effort to implement the {@link ConsistentHashRing} interface. All methods in this class are
  * synchronized. Thus, it can be used in a concurrent context.
  * <p>
- * In this implementation a {@link NetworkLocation} is responsible for all keys between its position (inclusive) and
- * the position of its predecessor (exclusive) in the ring.
+ * In this implementation a {@link NetworkLocation} is write-responsible for all keys between its position
+ * (inclusive) and the position of its predecessor (exclusive) in the ring.
+ * <p>
+ * A {@link NetworkLocation} is read-responsible for all keys between its position (inclusive) and the position of its
+ * third predecessor (exclusive) through the process of replication.
+ *
+ * @see Constants#NUMBER_OF_REPLICAS
  */
 public abstract class PrecedingResponsibilityHashRing implements ConsistentHashRing {
 
@@ -45,6 +49,12 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         this.networkLocationMap = new TreeMap<>(hashRingToCopy.networkLocationMap);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The responsibility in this {@link ConsistentHashRing} is described in the class documentation of
+     * the {@link PrecedingResponsibilityHashRing}.
+     */
     @Override
     public synchronized Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key) {
         LOGGER.info("Getting write responsible {} for key '{}'", NetworkLocation.class.getSimpleName(), key);
@@ -55,15 +65,21 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                 .map(Map.Entry::getValue);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The responsibility in this {@link ConsistentHashRing} is described in the class documentation of
+     * the {@link PrecedingResponsibilityHashRing}.
+     */
     @SuppressWarnings("java:S2184")
     @Override
-    public Optional<NetworkLocation> getReadResponsibleNetworkLocation(String key) {
+    public synchronized List<NetworkLocation> getReadResponsibleNetworkLocation(String key) {
         final Optional<NetworkLocation> writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
         if (writeResponsibleNetworkLocation.isEmpty())
-            return Optional.empty();
+            return Collections.emptyList();
 
         if (!isReplicationActive())
-            return writeResponsibleNetworkLocation;
+            return List.of(writeResponsibleNetworkLocation.get());
 
 
         return Stream.iterate(writeResponsibleNetworkLocation.get(),
@@ -71,8 +87,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                                 .orElseThrow(() -> new IllegalStateException("Could not get succeeding location"))
                 )
                 .limit(Constants.NUMBER_OF_REPLICAS + 1)
-                .skip(new Random().nextInt(Constants.NUMBER_OF_REPLICAS + 1))
-                .findFirst();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -138,7 +153,6 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         } else return "";
     }
 
-    // TODO Synchronize all methods
     @Override
     public synchronized String packReadRanges() {
         return getAllNetworkLocations().stream()
@@ -171,7 +185,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public List<NetworkLocation> getAllNetworkLocations() {
+    public synchronized List<NetworkLocation> getAllNetworkLocations() {
         return List.copyOf(networkLocationMap.values());
     }
 
@@ -258,7 +272,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public RingRange getReadRange(NetworkLocation networkLocation) {
+    public synchronized RingRange getReadRange(NetworkLocation networkLocation) {
         checkPresence(networkLocation);
 
         if (!isReplicationActive())
@@ -282,7 +296,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public boolean isReplicationActive() {
+    public synchronized boolean isReplicationActive() {
         return size() > Constants.NUMBER_OF_REPLICAS;
     }
 
@@ -294,7 +308,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public boolean equals(Object o) {
+    public synchronized boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof PrecedingResponsibilityHashRing)) return false;
         PrecedingResponsibilityHashRing that = (PrecedingResponsibilityHashRing) o;
@@ -303,7 +317,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         return Objects.hash(getHashingAlgorithm(), networkLocationMap);
     }
 

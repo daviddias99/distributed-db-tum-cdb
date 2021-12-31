@@ -82,18 +82,27 @@ public interface ConsistentHashRing {
     }
 
     /**
-     * Returns the {@link NetworkLocation} responsible for this key in this {@link ConsistentHashRing}.
-     * Which {@link NetworkLocation} is responsible for a given key can be determined in an implementing class.
+     * Returns the {@link NetworkLocation} responsible for writing this key in this {@link ConsistentHashRing}.
+     * Which {@link NetworkLocation} is responsible for writing a given key can be determined in an implementing class.
      * Examples include the preceding or the succeeding {@link NetworkLocation}.
      *
      * @param key the key of a key value pair
-     * @return an {@link Optional} containing the {@link NetworkLocation} responsible for that key.
+     * @return an {@link Optional} containing the {@link NetworkLocation} responsible for writing that key.
      * Empty if the {@link ConsistentHashRing} is empty
      */
     Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key);
 
-    // TODO Add documentation
-    Optional<NetworkLocation> getReadResponsibleNetworkLocation(String key);
+    /**
+     * Returns the {@link NetworkLocation}s responsible for reading this key in this {@link ConsistentHashRing}.
+     * Which {@link NetworkLocation}s are responsible for reading a given key can be determined in an implementing class.
+     * Examples include the succeeding {@link NetworkLocation} and two if its successors. If there are multiple
+     * {@link NetworkLocation}s responsible for reading all of them are returned.
+     *
+     * @param key the key of a key value pair
+     * @return a {@link List} containing the {@link NetworkLocation}s responsible for reading that key.
+     * Empty if the {@link ConsistentHashRing} is empty
+     */
+    List<NetworkLocation> getReadResponsibleNetworkLocation(String key);
 
     /**
      * Adds a {@link NetworkLocation} to the ring by calculating its location using
