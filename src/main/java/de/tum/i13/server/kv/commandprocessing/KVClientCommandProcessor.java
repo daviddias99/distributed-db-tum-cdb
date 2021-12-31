@@ -39,6 +39,7 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
       case DELETE -> this.delete(command.getKey());
       case GET -> this.get(command.getKey());
       case KEYRANGE -> this.keyRange();
+      case KEYRANGE_READ -> this.keyRangeRead();
       default -> null;
     };
   }
@@ -106,8 +107,14 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
   }
 
   private KVMessage keyRange() {
-    LOGGER.info("Sending key-range to client: {}", this.serverState.getRingMetadata().packMessage());
+    LOGGER.info("Sending key-range to client: {}", this.serverState.getRingMetadata().packWriteRanges());
 
-    return new KVMessageImpl(this.serverState.getRingMetadata().packMessage(), KVMessage.StatusType.KEYRANGE_SUCCESS);
+    return new KVMessageImpl(this.serverState.getRingMetadata().packWriteRanges(), KVMessage.StatusType.KEYRANGE_SUCCESS);
+  }
+
+  private KVMessage keyRangeRead() {
+    LOGGER.info("Sending reading key-range to client: {}", this.serverState.getRingMetadata().packReadRanges());
+
+    return new KVMessageImpl(this.serverState.getRingMetadata().packWriteRanges(), KVMessage.StatusType.KEYRANGE_READ_SUCCESS);
   }
 }

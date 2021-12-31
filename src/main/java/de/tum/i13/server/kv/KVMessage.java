@@ -105,9 +105,14 @@ public interface KVMessage {
         SERVER_WRITE_UNLOCK(false, false),
 
         /**
-         * Message sent by client to request keyrange metadata
+         * Message sent by client to request keyrange metadata (writting)
          */
         KEYRANGE(false, false),
+
+        /**
+         * Message sent by client to request keyrange metadata (reading)
+         */
+        KEYRANGE_READ(false, false),
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for the ranges
@@ -146,9 +151,15 @@ public interface KVMessage {
 
         /**
          * Indicates the return of the key ranges and which KVStores are responsible for
-         * the ranges
+         * the ranges (writting)
          */
-        KEYRANGE_SUCCESS(true, false);
+        KEYRANGE_SUCCESS(true, false),
+
+        /**
+         * Indicates the return of the key ranges and which KVStores are responsible for
+         * the ranges (reading)
+         */
+        KEYRANGE_READ_SUCCESS(true, false);
         
 
         private final boolean needsKey;
