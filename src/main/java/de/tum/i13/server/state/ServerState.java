@@ -44,8 +44,9 @@ public class ServerState {
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
+   * 
    * @param curNetworkLocation location of the current server
-   * @param ecsLocation location of the ecs
+   * @param ecsLocation        location of the ecs
    */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
     this(curNetworkLocation, ecsLocation, State.STOPPED);
@@ -53,9 +54,10 @@ public class ServerState {
 
   /**
    * Creates a new server state, intialized with the given state.
+   * 
    * @param curNetworkLocation location of the current server
-   * @param ecsLocation location of the ecs
-   * @param startState starting state
+   * @param ecsLocation        location of the ecs
+   * @param startState         starting state
    */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, State startState) {
     this(curNetworkLocation, ecsLocation, null, startState);
@@ -63,10 +65,11 @@ public class ServerState {
 
   /**
    * Create a new server state, initialized with a given state and ring data.
+   * 
    * @param curNetworkLocation location of the current server
-   * @param ecsLocation location of the ecs
-   * @param ringMetadata initial ring data
-   * @param startState starting state
+   * @param ecsLocation        location of the ecs
+   * @param ringMetadata       initial ring data
+   * @param startState         starting state
    */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata,
       State startState) {
@@ -78,6 +81,7 @@ public class ServerState {
 
   /**
    * Get the server's current state
+   * 
    * @return current state
    */
   public synchronized State getState() {
@@ -86,6 +90,7 @@ public class ServerState {
 
   /**
    * Check if the server is stopped
+   * 
    * @return true if the server is stopped
    */
   public synchronized boolean isStopped() {
@@ -94,6 +99,7 @@ public class ServerState {
 
   /**
    * Check if the server is on shutdown mode
+   * 
    * @return true if the server is on shutdown mode
    */
   public synchronized boolean isShutdown() {
@@ -102,6 +108,7 @@ public class ServerState {
 
   /**
    * Check if the server is active
+   * 
    * @return true if the server is currently active
    */
   public synchronized boolean isActive() {
@@ -110,6 +117,7 @@ public class ServerState {
 
   /**
    * Check if the server is not write locked
+   * 
    * @return true if the server is not write locked
    */
   public synchronized boolean canWrite() {
@@ -146,6 +154,7 @@ public class ServerState {
 
   /**
    * Get the network location of the ECS
+   * 
    * @return network location of the ECS
    */
   public NetworkLocation getEcsLocation() {
@@ -153,7 +162,17 @@ public class ServerState {
   }
 
   /**
+   * Get the network location of the current node
+   * 
+   * @return network location of the current node
+   */
+  public NetworkLocation getCurNetworkLocation() {
+    return curNetworkLocation;
+  }
+
+  /**
    * Get the ring metadata
+   * 
    * @return ring metadata
    */
   public synchronized ConsistentHashRing getRingMetadata() {
@@ -161,7 +180,8 @@ public class ServerState {
   }
 
   /**
-   * Set the ring metadata 
+   * Set the ring metadata
+   * 
    * @param ringMetadata new ring metadata
    */
   public synchronized void setRingMetadata(ConsistentHashRing ringMetadata) {
@@ -169,15 +189,27 @@ public class ServerState {
   }
 
   /**
-   * Check if a given key is the responsability of the current server
+   * Check if a given key is the responsability of the current server (i.e.
+   * writting)
+   * 
    * @param key key to check
    * @return true if the server is responsible for the key
    */
-  public synchronized boolean responsibleForKey(String key) {
-    Optional<NetworkLocation> opt = this.ringMetadata.getResponsibleNetworkLocation(key);
-    return opt
-        .map(curNetworkLocation::equals)
-        .orElseGet(() -> false);
+  public synchronized boolean isWriteResponsibleForKey(String key) {
+    return ringMetadata.isWriteResponsible(curNetworkLocation, key);
+  }
+
+  /**
+   * Check if a given key is the responsability of the current server (i.e.
+   * reading). This method extends {@code writeResponsibleForKey} by considering
+   * responsibility through replication.
+   * 
+   * @param key key to check
+   * @return true if the server is responsible for the key
+   */
+  public synchronized boolean isReadResponsibleForKey(String key) {
+    return ringMetadata.isReadResponsible(curNetworkLocation, key);
+
   }
 
   private synchronized void setState(State state) {

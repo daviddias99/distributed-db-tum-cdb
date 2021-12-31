@@ -98,7 +98,8 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage deleteKey(String key) throws PutException {
         LOGGER.debug("Trying to delete key '{}'", key);
-        final KVMessage deleteMessage = new KVMessageImpl(key, KVMessage.StatusType.DELETE);
+        KVMessage.StatusType status = this.useServerMessaging ? StatusType.DELETE_SERVER : KVMessage.StatusType.DELETE;
+        final KVMessage deleteMessage = new KVMessageImpl(key, status);
         return sendPutOrDeleteMessage(deleteMessage);
     }
 
