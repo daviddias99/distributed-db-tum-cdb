@@ -75,6 +75,18 @@ class PrecedingResponsibilityHashRingTest {
                 .hasValue(location4);
     }
 
+    @Test
+    void returnsAllLocations() {
+        assertThat(hashRing.getAllNetworkLocations())
+                .containsOnly(location1, location2, location3);
+    }
+
+    @Test
+    void getsSize() {
+        assertThat(hashRing.size())
+                .isEqualTo(3);
+    }
+
     @Nested
     class WithStubbedKeysTest {
 
@@ -233,11 +245,11 @@ class PrecedingResponsibilityHashRingTest {
     @Nested
     class WithLocationsStubbedTest {
 
-        static final String STRING_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
+        static final String WRITE_RANGES_REPRESENTATION = "8,2,location1:1;3,4,location2:2;5,7,location3:3;";
 
         @BeforeEach
         void stubLocations() {
-            Map.of(location1, 1, location2, 2, location3, 3)
+            Map.of(location1, 1, location3, 3)
                     .forEach((location, number) -> {
                         when(location.getAddress()).thenReturn("location" + number);
                         when(location.getPort()).thenReturn(number);
@@ -245,15 +257,57 @@ class PrecedingResponsibilityHashRingTest {
         }
 
         @Test
-        void packsMetadata() {
-            assertThat(hashRing.packWriteRanges())
-                    .isEqualTo(STRING_REPRESENTATION);
+        void packsReadRangesTwoLocations() {
+            hashRing.removeNetworkLocation(location2);
+            assumeThat(hashRing.isReplicationActive())
+                    .isFalse();
+            assumeThat(hashRing.packReadRanges())
+                    .isEqualTo("8,2,location1:1;3,7,location3:3;");
         }
 
-        @Test
-        void packsOnToString() {
-            assertThat(hashRing)
-                    .hasToString(STRING_REPRESENTATION);
+        @Nested
+        class StubThirdLocationTest {
+
+            @BeforeEach
+            void stubLocation() {
+                when(location2.getAddress()).thenReturn("location2");
+                when(location2.getPort()).thenReturn(2);
+            }
+
+            @Test
+            void packsWriteRanges() {
+                assertThat(hashRing.packWriteRanges())
+                        .isEqualTo(WRITE_RANGES_REPRESENTATION);
+            }
+
+            @Test
+            void packsReadRangesThreeLocations() {
+                assumeThat(hashRing.isReplicationActive())
+                        .isTrue();
+                assertThat(hashRing.packReadRanges())
+                        .isEqualTo("3,2,location1:1;5,4,location2:2;8,7,location3:3;");
+            }
+
+            @Test
+            void packsReadRangesFourLocations() {
+                when(hashingAlgorithm.hash(location4))
+                        .thenReturn(BigInteger.valueOf(10));
+                when(location4.getAddress()).thenReturn("location4");
+                when(location4.getPort()).thenReturn(4);
+                hashRing.addNetworkLocation(location4);
+                assumeThat(hashRing.isReplicationActive())
+                        .isTrue();
+
+                assertThat(hashRing.packReadRanges())
+                        .isEqualTo("5,2,location1:1;8,4,location2:2;b,7,location3:3;3,a,location4:4;");
+            }
+
+            @Test
+            void packsOnToString() {
+                assertThat(hashRing)
+                        .hasToString(WRITE_RANGES_REPRESENTATION);
+            }
+
         }
 
     }
@@ -311,7 +365,6 @@ class PrecedingResponsibilityHashRingTest {
                 .get()
                 .isEqualTo(location3);
     }
-
 
 
 }

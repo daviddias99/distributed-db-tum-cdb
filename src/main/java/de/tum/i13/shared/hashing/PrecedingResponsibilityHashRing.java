@@ -165,7 +165,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
                             networkLocation.getPort()
                     );
                 })
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining());
     }
 
     private StringBuilder appendNetworkLocation(StringBuilder stringBuilder, BigInteger hash,
