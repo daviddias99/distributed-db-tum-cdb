@@ -18,8 +18,8 @@ class RingRangeImpl implements RingRange {
     /**
      * Creates a new {@link RingRangeImpl} with the associated value
      *
-     * @param startInclusive the start of {@link RingRange}
-     * @param endInclusive the end of the {@link RingRange}
+     * @param startInclusive   the start of {@link RingRange}
+     * @param endInclusive     the end of the {@link RingRange}
      * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
      */
     RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
@@ -61,7 +61,7 @@ class RingRangeImpl implements RingRange {
     @Override
     public boolean contains(BigInteger value) {
         Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
-                "The value must exceed the maximum possible value");
+                "The value must not exceed the maximum possible value");
         if (wrapsAround())
             return startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0;
         else
@@ -73,21 +73,19 @@ class RingRangeImpl implements RingRange {
         Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
                 "hashing algorithm");
 
-        if (contains(ringRange.getStart()) && contains(ringRange.getEnd())) {
-            if (wrapsAround()) {
-                return List.of(
-                        new RingRangeImpl(
-                                ringRange.getEnd().add(BigInteger.ONE),
-                                ringRange.getStart().subtract(BigInteger.ONE),
-                                hashingAlgorithm
-                        ));
-            } else {
-                return List.of(
-                        new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
-                                hashingAlgorithm),
-                        new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
-                );
-            }
+        if (contains(ringRange)) {
+            return List.of(
+                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                            hashingAlgorithm),
+                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+            );
+        } else if (overlapsLeftAndRight(ringRange)) {
+            return List.of(
+                    new RingRangeImpl(
+                            ringRange.getEnd().add(BigInteger.ONE),
+                            ringRange.getStart().subtract(BigInteger.ONE),
+                            hashingAlgorithm
+                    ));
         } else if (contains(ringRange.getStart())) {
             return List.of(
                     new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
@@ -98,6 +96,29 @@ class RingRangeImpl implements RingRange {
             );
         } else {
             return List.of();
+        }
+    }
+
+    private boolean contains(RingRange ringRange) {
+        return contains(ringRange.getStart()) && contains(ringRange.getEnd()) &&
+                indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
+    }
+
+    private boolean overlapsLeftAndRight(RingRange ringRange) {
+        return contains(ringRange.getStart()) && contains(ringRange.getEnd())
+                && indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) > 0;
+    }
+
+    private BigInteger indexOf(BigInteger value) {
+        Preconditions.check(contains(value), () -> String.format("The value %s must be contained in the range %s",
+                value, this));
+        if (wrapsAround() && value.compareTo(endInclusive) <= 0) {
+            return hashingAlgorithm.getMax()
+                    .subtract(startInclusive)
+                    .add(BigInteger.ONE)
+                    .add(value);
+        } else {
+            return value.subtract(startInclusive);
         }
     }
 

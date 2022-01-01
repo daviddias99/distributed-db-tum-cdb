@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import static de.tum.i13.TestUtils.checkRange;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -191,9 +191,9 @@ class PrecedingResponsibilityHashRingTest {
 
     @Test
     void getsWriteRanges() {
-        checkRange(hashRing.getWriteRange(location1), BigInteger.valueOf(8), BigInteger.valueOf(2), hashingAlgorithm);
-        checkRange(hashRing.getWriteRange(location2), BigInteger.valueOf(3), BigInteger.valueOf(4), hashingAlgorithm);
-        checkRange(hashRing.getWriteRange(location3), BigInteger.valueOf(5), BigInteger.valueOf(7), hashingAlgorithm);
+        checkRange(hashRing.getWriteRange(location1), 8, 2, hashingAlgorithm);
+        checkRange(hashRing.getWriteRange(location2), 3, 4, hashingAlgorithm);
+        checkRange(hashRing.getWriteRange(location3), 5, 7, hashingAlgorithm);
     }
 
     @Test
@@ -201,9 +201,9 @@ class PrecedingResponsibilityHashRingTest {
         assumeThat(hashRing.isReplicationActive())
                 .isTrue();
 
-        checkRange(hashRing.getReadRange(location1), BigInteger.valueOf(3), BigInteger.valueOf(2), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location2), BigInteger.valueOf(5), BigInteger.valueOf(4), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location3), BigInteger.valueOf(8), BigInteger.valueOf(7), hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location1), 3, 2, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location2), 5, 4, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location3), 8, 7, hashingAlgorithm);
     }
 
     @Test
@@ -214,10 +214,10 @@ class PrecedingResponsibilityHashRingTest {
         assumeThat(hashRing.isReplicationActive())
                 .isTrue();
 
-        checkRange(hashRing.getReadRange(location1), BigInteger.valueOf(5), BigInteger.valueOf(2), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location2), BigInteger.valueOf(8), BigInteger.valueOf(4), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location3), BigInteger.valueOf(11), BigInteger.valueOf(7), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location4), BigInteger.valueOf(3), BigInteger.valueOf(10), hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location1), 5, 2, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location2), 8, 4, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location3), 11, 7, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location4), 3, 10, hashingAlgorithm);
     }
 
     @Test
@@ -226,22 +226,8 @@ class PrecedingResponsibilityHashRingTest {
         assumeThat(hashRing.isReplicationActive())
                 .isFalse();
 
-        checkRange(hashRing.getReadRange(location1), BigInteger.valueOf(8), BigInteger.valueOf(2), hashingAlgorithm);
-        checkRange(hashRing.getReadRange(location3), BigInteger.valueOf(3), BigInteger.valueOf(7), hashingAlgorithm);
-    }
-
-    static void checkRange(RingRange ringRange, BigInteger start, BigInteger end, HashingAlgorithm hashingAlgorithm) {
-        assertSoftly(softly -> {
-            softly.assertThat(ringRange.getStart())
-                    .as("Checking ring range start")
-                    .isEqualTo(start);
-            softly.assertThat(ringRange.getEnd())
-                    .as("Checking ring range end")
-                    .isEqualTo(end);
-            softly.assertThat(ringRange.getHashingAlgorithm())
-                    .as("Checking hashing algorithm")
-                    .isEqualTo(hashingAlgorithm);
-        });
+        checkRange(hashRing.getReadRange(location1), 8, 2, hashingAlgorithm);
+        checkRange(hashRing.getReadRange(location3), 3, 7, hashingAlgorithm);
     }
 
     @Nested
