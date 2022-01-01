@@ -61,6 +61,7 @@ public class HandoffHandler implements Runnable {
       netPeerStorage.connectAndReceive(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
+      return;
     }
 
     List<Pair<String>> itemsToSend = new LinkedList<>();

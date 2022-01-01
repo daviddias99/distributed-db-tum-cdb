@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.commandprocessing.handlers.HandoffHandler;
+import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
@@ -28,6 +29,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private ServerCommunicator ecsCommunicator;
   private boolean asyncHandoff;
   private List<String> nodesToDelete = new LinkedList<>();
+  private ReplicationOrchestrator replicationOrchestrator;
 
   /**
    * Create a new ECS KVMessage processor
@@ -44,6 +46,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     this.storage = storage;
     this.asyncHandoff = asyncHandoff;
     this.ecsCommunicator = ecsCommunicator;
+    this.replicationOrchestrator = new ReplicationOrchestrator(serverState, storage);
   }
 
   /**
@@ -89,7 +92,11 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
   private KVMessage setKeyRange(KVMessage command) {
     LOGGER.info("Trying set server metadata");
+
+    ConsistentHashRing newMetadata = ConsistentHashRing.unpackMetadata(command.getKey());
+    ConsistentHashRing oldMetadata = this.serverState.getRingMetadata();
     this.serverState.setRingMetadata(ConsistentHashRing.unpackMetadata(command.getKey()));
+    this.replicationOrchestrator.handleKeyRangeChange(oldMetadata, newMetadata);
 
     if (this.serverState.isStopped()) {
       LOGGER.info("Trying to set server state to ACTIVE");
