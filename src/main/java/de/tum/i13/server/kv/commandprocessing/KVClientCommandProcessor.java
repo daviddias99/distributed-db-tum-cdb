@@ -129,6 +129,6 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage keyRangeRead() {
     LOGGER.info("Sending reading key-range to client: {}", this.serverState.getRingMetadata().packReadRanges());
 
-    return new KVMessageImpl(this.serverState.getRingMetadata().packWriteRanges(), KVMessage.StatusType.KEYRANGE_READ_SUCCESS);
+    return new KVMessageImpl(this.serverState.getRingMetadata().packReadRanges(), KVMessage.StatusType.KEYRANGE_READ_SUCCESS);
   }
 }

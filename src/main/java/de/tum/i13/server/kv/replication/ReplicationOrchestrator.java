@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import de.tum.i13.server.kv.commandprocessing.handlers.BulkReplicationHandler;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.state.ServerState;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.RingRange;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -143,9 +144,9 @@ public class ReplicationOrchestrator {
 
     // Check if successors changed
     // If new one, send new one all chunks
-    List<NetworkLocation> oldReplicators = oldRing.getSuccessors(this.serverState.getCurNetworkLocation(), 2);
-    List<NetworkLocation> newReplicators = oldRing.getSuccessors(this.serverState.getCurNetworkLocation(), 2);
-
+    List<NetworkLocation> oldReplicators = oldRing.getSucceedingNetworkLocations(this.serverState.getCurNetworkLocation(), Constants.NUMBER_OF_REPLICAS);
+    List<NetworkLocation> newReplicators = oldRing.getSucceedingNetworkLocations(this.serverState.getCurNetworkLocation(), Constants.NUMBER_OF_REPLICAS);
+    int newReplicaCount = newReplicators.size();
     List<NetworkLocation> newSuccessors = newReplicators.stream()
         .filter(replicator -> !oldReplicators.contains(replicator))
         .collect(Collectors.toList());
@@ -156,8 +157,8 @@ public class ReplicationOrchestrator {
     // If succ(2) still the same
     // Send Inc(range) to succ(2)
 
-    if (oldReplicators.get(newReplicators.size()-1).equals(newReplicators.get(newReplicators.size()-1))) {
-      this.updateSuccessorReplication(newReplicators.get(newReplicators.size()-1));
+    if (oldReplicators.get(newReplicaCount-1).equals(newReplicators.get(newReplicaCount-1))) {
+      this.updateSuccessorReplication(newReplicators.get(newReplicaCount-1));
     }
 
     // Get read range changes

@@ -3,6 +3,7 @@ package de.tum.i13.shared;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.RetryConfig;
 
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -38,6 +39,8 @@ public class Constants {
     public static final String SENDING_AND_EXPECTING_MESSAGE = "Sending '{}' message to successor and expecting '{}' " +
             "message as response";
     public static final int METADATA_UPDATE_TIMEOUT = 5;
+    public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    public static final int NUMBER_OF_REPLICAS = 2;
 
     private Constants() {
     }

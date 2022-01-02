@@ -3,8 +3,6 @@ package de.tum.i13.server.state;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 
-import java.util.Optional;
-
 /**
  * Class that represents the server's state. It contains the actual state, the
  * ring metadata and the location of the ECS.
