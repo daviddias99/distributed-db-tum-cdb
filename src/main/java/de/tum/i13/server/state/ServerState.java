@@ -25,11 +25,6 @@ public class ServerState {
     STOPPED,
 
     /**
-     * Server is doing shutdown
-     */
-    SHUTDOWN,
-
-    /**
      * Server is write locked
      */
     WRITE_LOCK
@@ -39,6 +34,7 @@ public class ServerState {
   private ConsistentHashRing ringMetadata;
   private NetworkLocation curNetworkLocation;
   private NetworkLocation ecsLocation;
+  private boolean isShuttingDown;
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
@@ -75,6 +71,7 @@ public class ServerState {
     this.setRingMetadata(ringMetadata);
     this.curNetworkLocation = curNetworkLocation;
     this.ecsLocation = ecsLocation;
+    this.isShuttingDown = false;
   }
 
   /**
@@ -101,7 +98,7 @@ public class ServerState {
    * @return true if the server is on shutdown mode
    */
   public synchronized boolean isShutdown() {
-    return this.currentState == State.SHUTDOWN;
+    return this.isShuttingDown;
   }
 
   /**
@@ -140,7 +137,7 @@ public class ServerState {
    * Set the server to shutdown mode
    */
   public void shutdown() {
-    this.setState(State.SHUTDOWN);
+    this.isShuttingDown = true;
   }
 
   /**

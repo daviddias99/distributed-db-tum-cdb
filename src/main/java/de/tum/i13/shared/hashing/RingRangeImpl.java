@@ -90,7 +90,7 @@ class RingRangeImpl implements RingRange {
         Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
                 "hashing algorithm");
 
-        if (equals(ringRange)) return List.of();
+        if (equals(ringRange) || ringRange.contains(this)) return List.of();
         else if (contains(ringRange)) return computeDifferenceContainedRange(ringRange);
         else if (overlapsLeftAndRight(ringRange)) return computeDifferenceOverlapLeftAndRight(ringRange);
         else if (contains(ringRange.getStart())) return computeDifferenceOverlapRight(ringRange);
@@ -142,7 +142,7 @@ class RingRangeImpl implements RingRange {
         }
     }
 
-    private boolean contains(RingRange ringRange) {
+    public boolean contains(RingRange ringRange) {
         return contains(ringRange.getStart()) && contains(ringRange.getEnd())
                 && indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
     }

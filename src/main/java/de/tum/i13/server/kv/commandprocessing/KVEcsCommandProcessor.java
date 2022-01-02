@@ -47,6 +47,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     this.asyncHandoff = asyncHandoff;
     this.ecsCommunicator = ecsCommunicator;
     this.replicationOrchestrator = new ReplicationOrchestrator(serverState, storage);
+
   }
 
   /**
@@ -103,19 +104,21 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       this.serverState.start();
     }
 
-    (new Thread(() -> {
-      for (String key : nodesToDelete) {
-        try {
-          LOGGER.info("Trying to delete item with key {}.", key);
-          storage.put(key, null);
-        } catch (PutException e) {
-          LOGGER.error("Could not delete item with key {} after keyrange change.", key);
-        }
-      }
-      nodesToDelete = new LinkedList<>();
-    })).start();
+    (new Thread(this::executeStoredDeletes)).start();
 
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
+  }
+
+  public void executeStoredDeletes() {
+    for (String key : nodesToDelete) {
+      try {
+        LOGGER.info("Trying to delete item with key {}.", key);
+        storage.put(key, null);
+      } catch (PutException e) {
+        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+      }
+    }
+    nodesToDelete = new LinkedList<>();
   }
 
   private KVMessage handoff(KVMessage command) {
@@ -132,7 +135,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
     Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage,
-        asyncHandoff, nodesToDelete);
+        asyncHandoff, nodesToDelete, this.serverState.isShutdown());
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

@@ -74,7 +74,7 @@ public class Main {
             // Listen for messages
             final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread)));
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state)));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(500);

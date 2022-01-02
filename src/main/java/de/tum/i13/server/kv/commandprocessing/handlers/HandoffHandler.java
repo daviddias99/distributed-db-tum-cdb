@@ -23,7 +23,6 @@ import de.tum.i13.shared.persistentstorage.PutException;
  */
 public class HandoffHandler implements Runnable {
 
-  private static final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
 
   private PersistentStorage storage;
   private ServerCommunicator ecs;
@@ -31,6 +30,7 @@ public class HandoffHandler implements Runnable {
   private String lowerBound;
   private String upperBound;
   private boolean async;
+  private boolean isShutdown;
   private List<String> nodesToDelete;
 
   /**
@@ -50,10 +50,25 @@ public class HandoffHandler implements Runnable {
     this.upperBound = upperBound;
     this.async = async;
     this.nodesToDelete = nodesToDelete;  
+    this.isShutdown = false;
+  }
+
+  public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
+      PersistentStorage storage, boolean async, List<String> nodesToDelete, boolean isShutdown) {
+    this.storage = storage;
+    this.peer = peer;
+    this.ecs = ecs;
+    this.lowerBound = lowerBound;
+    this.upperBound = upperBound;
+    this.async = async;
+    this.nodesToDelete = nodesToDelete;  
+    this.isShutdown = true;
   }
 
   @Override
   public void run() {
+    final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
+
     NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
 
     try {
@@ -91,15 +106,17 @@ public class HandoffHandler implements Runnable {
       }
     }
 
-    // // Delete items after sending (only sucessful ones)
-    // for (String key : nodesToDelete) {
-    //   try {
-    //     LOGGER.info("Trying to delete item with key {}.", key);
-    //     storage.put(key, null);
-    //   } catch (PutException e) {
-    //     LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
-    //   }
-    // }
+    // Delete items after sending (only sucessful ones)
+    if(this.isShutdown) {
+      for (String key : nodesToDelete) {
+        try {
+          LOGGER.info("Trying to delete item with key {}.", key);
+          storage.put(key, null);
+        } catch (PutException e) {
+          LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
+        }
+      }
+    }
 
     if(this.async) {
       try {

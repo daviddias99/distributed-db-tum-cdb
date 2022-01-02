@@ -7,6 +7,7 @@ import de.tum.i13.server.Config;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
+import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.net.CommunicationClientException;
 
 /**
@@ -14,11 +15,11 @@ import de.tum.i13.shared.net.CommunicationClientException;
  */
 public class ShutdownHandler implements Runnable {
 
-  private static final Logger LOGGER = LogManager.getLogger(ShutdownHandler.class);
   private ServerCommunicator ecsComms;
   private KVEcsCommandProcessor processor;
   private Config config;
   private Thread listeningThread;
+  private ServerState state;
 
   /**
    * Create a new shutdown handler
@@ -27,15 +28,17 @@ public class ShutdownHandler implements Runnable {
    * @param processor processor of commands from the ECS
    */
   public ShutdownHandler(ServerCommunicator ecsComms, KVEcsCommandProcessor processor, Config config,
-      Thread listeningThread) {
+      Thread listeningThread, ServerState state) {
     this.ecsComms = ecsComms;
     this.processor = processor;
     this.config = config;
     this.listeningThread = listeningThread;
+    this.state = state;
   }
 
   @Override
   public void run() {
+    Logger LOGGER = LogManager.getLogger(ShutdownHandler.class);
     LOGGER.info("Starting server shutdown procedure");
 
     // Check if comms are connected
@@ -50,6 +53,7 @@ public class ShutdownHandler implements Runnable {
     }
 
     try {
+      this.state.shutdown();
       KVMessage ecsResponse = ecsComms.sendShutdown(config.listenAddress, config.port);
       KVMessage message;
 

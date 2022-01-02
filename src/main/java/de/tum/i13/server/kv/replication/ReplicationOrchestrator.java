@@ -44,8 +44,7 @@ public class ReplicationOrchestrator {
             .collect(Collectors.toList());
         toDelete.addAll(keys);
       } catch (GetException e) {
-        LOGGER.error("Could not fetch range for deletion.");
-        e.printStackTrace();
+        LOGGER.error("Could not fetch range for deletion.", e);
       }
     }
 
@@ -57,7 +56,7 @@ public class ReplicationOrchestrator {
 
   private void deleteReplicatedRanges() {
     LOGGER.info("Deleting all replicated ranges");
-    RingRange readRange = newRing.getReadRange(serverState.getCurNetworkLocation());
+    RingRange readRange = oldRing.getReadRange(serverState.getCurNetworkLocation());
     RingRange writeRange = newRing.getWriteRange(serverState.getCurNetworkLocation());
     LOGGER.info("Replicated ranges {} - {}", readRange, writeRange);
 
@@ -82,7 +81,7 @@ public class ReplicationOrchestrator {
       try {
         toAdd.addAll(this.getRingRangeFromStorage(splitRange));
       } catch (GetException e) {
-        LOGGER.error("Could not fetch range for replication.");
+        LOGGER.error("Could not fetch range for replication.", e);
       }
     }
 
@@ -96,8 +95,8 @@ public class ReplicationOrchestrator {
   }
 
   private List<Pair<String>> getRingRangeFromStorage(RingRange range) throws GetException {
-    String lowerBound = padLeftZeros(range.getStart().toString(16), 16);
-    String upperBound = padLeftZeros(range.getEnd().toString(16), 16);
+    String lowerBound = padLeftZeros(range.getStart().toString(16), Constants.MD5_HASH_HEX_STRING_SIZE);
+    String upperBound = padLeftZeros(range.getEnd().toString(16), Constants.MD5_HASH_HEX_STRING_SIZE);
 
     // TODO: this won't work for real-life data situations (whole range can't
     // probably fit in memory)
@@ -146,40 +145,36 @@ public class ReplicationOrchestrator {
     }
 
     // If no more replication, delete all chunks in read range
-    if (oldRing.isReplicationActive() && !newRing.isReplicationActive()) {
-      this.deleteReplicatedRanges();
+    if (!newRing.isReplicationActive()) {
+      if(oldRing.isReplicationActive()) 
+        this.deleteReplicatedRanges();
       return;
     }
-
 
     int oldReplicatorCount = Math.min(Constants.NUMBER_OF_REPLICAS, oldRing.size() - 1);
     int newReplicatorCount = Math.min(Constants.NUMBER_OF_REPLICAS, newRing.size() - 1);
     NetworkLocation currentLocation = this.serverState.getCurNetworkLocation();
     List<NetworkLocation> oldReplicators = oldRing.getSucceedingNetworkLocations(currentLocation, oldReplicatorCount);
     List<NetworkLocation> newReplicators = newRing.getSucceedingNetworkLocations(currentLocation, newReplicatorCount);
-    
-    // Check if successors changed
-    // If new one, send new one all chunks
-    List<NetworkLocation> newSuccessors = newReplicators
+
+    // Replicate whole range to new successors (if any)
+    List<NetworkLocation> newSuccessors = oldRing.isReplicationActive() ? newReplicators
         .stream()
         .filter(replicator -> !oldReplicators.contains(replicator))
-        .collect(Collectors.toList());
+        .collect(Collectors.toList()) : newReplicators;
 
     this.replicateToNewSuccessors(newSuccessors, newRing.getWriteRange(currentLocation));
 
-    // Get write range changes
-    // If succ(2) still the same
-    // Send Inc(range) to succ(2)
-    NetworkLocation oldLastSuccessor = oldReplicators.get(oldReplicatorCount - 1);
-    NetworkLocation newLastSuccessor = newReplicators.get(newReplicatorCount - 1);
-    boolean lastSuccessorChanged =  !oldLastSuccessor.equals(newLastSuccessor);
-
-    if (oldReplicatorCount > 0 && !lastSuccessorChanged) {
-      this.updateSuccessorReplication(newLastSuccessor);
+    // If old replicator, update only with new range
+    if (oldReplicatorCount > 0 && oldRing.isReplicationActive()) {
+      for (int i = Constants.NUMBER_OF_REPLICAS - 1; i < newReplicators.size(); i++) {
+        if(oldReplicators.contains(newReplicators.get(i))) {
+          this.updateSuccessorReplication(newReplicators.get(i));
+        }
+      }
     }
 
-    // Get read range changes
-    // Delete Dec(range) from self
+    // Delete ranges that are no longer replicated
     this.deleteStaleRanges();
   }
 

@@ -35,6 +35,8 @@ public interface RingRange {
      */
     boolean contains(BigInteger value);
 
+    boolean contains(RingRange value);
+
     /**
      * Returns whether the {@link RingRange} wraps around the connection of the highest and lowest value in the
      * {@link ConsistentHashRing}.
