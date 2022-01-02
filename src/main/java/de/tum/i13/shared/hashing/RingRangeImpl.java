@@ -48,6 +48,15 @@ class RingRangeImpl implements RingRange {
     }
 
     @Override
+    public List<RingRange> getAsNonWrapping() {
+        return wrapsAround()
+                ? List.of(
+                new RingRangeImpl(getStart(), hashingAlgorithm.getMax(), hashingAlgorithm),
+                new RingRangeImpl(BigInteger.ZERO, getEnd(), hashingAlgorithm)
+        ) : List.of(this);
+    }
+
+    @Override
     public boolean wrapsAround() {
         LOGGER.trace("Checking wrapping behavior of {}", this);
         return startInclusive.compareTo(endInclusive) > 0;

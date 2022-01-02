@@ -73,4 +73,18 @@ public interface RingRange {
      */
     HashingAlgorithm getHashingAlgorithm();
 
+    /**
+     * Returns the range as a {@link List} of non-wrapping {@link RingRange}s.
+     * <p>
+     * If this range is non-wrapping the list only contains this range.
+     * If this range is wrapping the list contains a range from the start of this {@link RingRange} to the maximum
+     * value of the {@link ConsistentHashRing} and from the start/origin of the {@link ConsistentHashRing} to the end
+     * of this {@link RingRange}.
+     *
+     * @return the range as a {@link List} of non-wrapping {@link RingRange}s
+     * @see #wrapsAround()
+     * @see HashingAlgorithm#getMax()
+     */
+    List<RingRange> getAsNonWrapping();
+
 }

@@ -136,6 +136,14 @@ class RingRangeImplTest {
                     .isTrue();
         }
 
+        @Test
+        void doesNotSplitGettingNonWrapping() {
+            assertThat(ringRange.getAsNonWrapping())
+                    .satisfiesExactly(
+                            range -> checkRange(range, 9, 66, hashingAlgorithm)
+                    );
+        }
+
     }
 
     @Nested
@@ -149,6 +157,15 @@ class RingRangeImplTest {
 
         @Nested
         class WrappingRangeTest extends WrappingRange {
+
+            @Test
+            void splitsIntoNonWrapping() {
+                assertThat(ringRange.getAsNonWrapping())
+                        .satisfiesExactly(
+                                range -> checkRange(range, 77, 100, hashingAlgorithm),
+                                range -> checkRange(range, 0, 11, hashingAlgorithm)
+                        );
+            }
 
             @Test
             void failsOnValueExceedingMax() {
