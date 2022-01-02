@@ -76,4 +76,11 @@ public interface HashingAlgorithm {
         return hash(String.format("%s:%s", networkLocation.getAddress(), networkLocation.getPort()));
     }
 
+    /**
+     * Returns the maximum value this {@link HashingAlgorithm} can map to.
+     *
+     * @return the maximum value this {@link HashingAlgorithm} can map to
+     */
+    BigInteger getMax();
+
 }

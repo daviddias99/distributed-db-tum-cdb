@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -81,15 +82,28 @@ public interface ConsistentHashRing {
     }
 
     /**
-     * Returns the {@link NetworkLocation} responsible for this key in this {@link ConsistentHashRing}.
-     * Which {@link NetworkLocation} is responsible for a given key can be determined in an implementing class.
+     * Returns the {@link NetworkLocation} responsible for writing this key in this {@link ConsistentHashRing}.
+     * Which {@link NetworkLocation} is responsible for writing a given key can be determined in an implementing class.
      * Examples include the preceding or the succeeding {@link NetworkLocation}.
      *
      * @param key the key of a key value pair
-     * @return an {@link Optional} containing the {@link NetworkLocation} responsible for that key.
+     * @return an {@link Optional} containing the {@link NetworkLocation} responsible for writing that key.
      * Empty if the {@link ConsistentHashRing} is empty
      */
-    Optional<NetworkLocation> getResponsibleNetworkLocation(String key);
+    Optional<NetworkLocation> getWriteResponsibleNetworkLocation(String key);
+
+    /**
+     * Returns the {@link NetworkLocation}s responsible for reading this key in this {@link ConsistentHashRing}.
+     * Which {@link NetworkLocation}s are responsible for reading a given key can be determined in an implementing
+     * class.
+     * Examples include the succeeding {@link NetworkLocation} and two if its successors. If there are multiple
+     * {@link NetworkLocation}s responsible for reading all of them are returned.
+     *
+     * @param key the key of a key value pair
+     * @return a {@link List} containing the {@link NetworkLocation}s responsible for reading that key.
+     * Empty if the {@link ConsistentHashRing} is empty
+     */
+    List<NetworkLocation> getReadResponsibleNetworkLocation(String key);
 
     /**
      * Adds a {@link NetworkLocation} to the ring by calculating its location using
@@ -128,12 +142,21 @@ public interface ConsistentHashRing {
 
     /**
      * Packs the metadata of this {@link ConsistentHashRing} into a {@link String}.
-     * The metadata format is specified in the specification document.
+     * The metadata format describes the write-ranges and is specified in the specification document.
      * The ranges from and to key range values are both inclusive.
      *
      * @return a {@link String} representation of this {@link ConsistentHashRing}
      */
-    String packMessage();
+    String packWriteRanges();
+
+    /**
+     * Packs the metadata of this {@link ConsistentHashRing} into a {@link String}.
+     * The metadata format describes the read-ranges and is specified in the specification document.
+     * The ranges from and to key range values are both inclusive.
+     *
+     * @return a {@link String} representation of this {@link ConsistentHashRing}
+     */
+    String packReadRanges();
 
     /**
      * Returns the {@link NetworkLocation} that succeeds the supplied {@link NetworkLocation} in the
@@ -169,6 +192,48 @@ public interface ConsistentHashRing {
     Optional<NetworkLocation> getPrecedingNetworkLocation(NetworkLocation location);
 
     /**
+     * Returns a number of {@link NetworkLocation}s that succeed the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}. The successors are returned in clockwise direction of the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link List} is returned.
+     * If the supplied {@link NetworkLocation} is already contained in the {@link ConsistentHashRing} and the only
+     * element in that {@link ConsistentHashRing} also an empty {@link List} is returned. If the supplied
+     * {@link NetworkLocation} is already contained in the {@link ConsistentHashRing}, the number of locations
+     * searched must be lower than the size of the {@link ConsistentHashRing}. Otherwise, it can be less or equal to
+     * the size.
+     *
+     * @param networkLocation   the {@link NetworkLocation} whose successors are to be determined
+     * @param numberOfLocations the number of successors to return. Restricted according to the description
+     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @see #getSucceedingNetworkLocations(NetworkLocation, int)
+     * @see #getPrecedingNetworkLocation(NetworkLocation)
+     */
+    List<NetworkLocation> getSucceedingNetworkLocations(NetworkLocation networkLocation, int numberOfLocations);
+
+    /**
+     * Returns a number of {@link NetworkLocation}s that precede the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}. The predecessors are returned in clockwise direction of the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link List} is returned.
+     * If the supplied {@link NetworkLocation} is already contained in the {@link ConsistentHashRing} and the only
+     * element in that {@link ConsistentHashRing} also an empty {@link List} is returned. If the supplied
+     * {@link NetworkLocation} is already contained in the {@link ConsistentHashRing}, the number of locations
+     * searched must be lower than the size of the {@link ConsistentHashRing}. Otherwise, it can be less or equal to
+     * the size.
+     *
+     * @param networkLocation   the {@link NetworkLocation} whose predecessors are to be determined
+     * @param numberOfLocations the number of predecessors to return. Restricted according to the description
+     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @see #getSucceedingNetworkLocations(NetworkLocation, int)
+     * @see #getPrecedingNetworkLocation(NetworkLocation)
+     */
+    List<NetworkLocation> getPrecedingNetworkLocations(NetworkLocation networkLocation, int numberOfLocations);
+
+    /**
      * Returns whether the supplied {@link NetworkLocation} is contained in the given {@link ConsistentHashRing}.
      *
      * @param location the {@link NetworkLocation} to check for in the {@link ConsistentHashRing}
@@ -181,7 +246,7 @@ public interface ConsistentHashRing {
      *
      * @return all the contained {@link NetworkLocation}s
      */
-    Set<NetworkLocation> getAllNetworkLocations();
+    List<NetworkLocation> getAllNetworkLocations();
 
 
     /**
@@ -197,4 +262,67 @@ public interface ConsistentHashRing {
      * @return if this {@link ConsistentHashRing} contains no {@link NetworkLocation}s
      */
     boolean isEmpty();
+
+    /**
+     * Returns the {@link RingRange} in which the {@link NetworkLocation} is responsible for writing,
+     * i.e. the {@link RingRange} the {@link NetworkLocation} is the coordinator for.
+     *
+     * @param networkLocation the {@link NetworkLocation} to get the {@link RingRange} for
+     * @return the {@link RingRange} the supplied {@link NetworkLocation} is responsible for writing
+     * @see #isWriteResponsible(NetworkLocation, String)
+     */
+    RingRange getWriteRange(NetworkLocation networkLocation);
+
+    /**
+     * Returns the {@link RingRange} in which the {@link NetworkLocation} is responsible for reading,
+     * i.e. the {@link RingRange} the {@link NetworkLocation} is the coordinator or a replica for.
+     *
+     * @param networkLocation the {@link NetworkLocation} to get the {@link RingRange} for
+     * @return the {@link RingRange} the supplied {@link NetworkLocation} is responsible for reading
+     * @see #isReadResponsible(NetworkLocation, String)
+     */
+    RingRange getReadRange(NetworkLocation networkLocation);
+
+    /**
+     * Returns whether the supplied {@link NetworkLocation} is responsible for writing to the supplied key,
+     * i.e. it checks whether the {@link NetworkLocation} is the coordinator for that key.
+     *
+     * @param networkLocation the {@link NetworkLocation} to check for responsibility
+     * @param key             the key the responsibility for
+     * @return whether the {@link NetworkLocation} is responsible for writing to the key
+     * @see #getWriteRange(NetworkLocation)
+     */
+    boolean isWriteResponsible(NetworkLocation networkLocation, String key);
+
+    /**
+     * Returns whether the supplied {@link NetworkLocation} is responsible for reading to the supplied key,
+     * i.e. it checks whether the {@link NetworkLocation} is a coordinator or a replica for that key.
+     *
+     * @param networkLocation the {@link NetworkLocation} to check for responsibility
+     * @param key             the key the responsibility for
+     * @return whether the {@link NetworkLocation} is responsible for reading to the key
+     * @see #getReadRange(NetworkLocation)
+     */
+    boolean isReadResponsible(NetworkLocation networkLocation, String key);
+
+    /**
+     * Returns whether replication in the current configuration of the {@link ConsistentHashRing}.
+     * This is the case, when the number of {@link NetworkLocation}s in this {@link ConsistentHashRing} exceeds
+     * the number of replicas. I.e. if the number of replicas is 2, replication happens, when the
+     * {@link ConsistentHashRing}has a size of at least 3.
+     *
+     * @return whether the replication is active on this {@link ConsistentHashRing}
+     * @see Constants#NUMBER_OF_REPLICAS
+     */
+    boolean isReplicationActive();
+
+    /**
+     * Makes a shallow copy of the {@link ConsistentHashRing},
+     * i.e. the datastructures of the {@link ConsistentHashRing} are copied, but not necessarily
+     * the {@link NetworkLocation}s that are contained in it.
+     *
+     * @return a copy of this {@link ConsistentHashRing}
+     */
+    ConsistentHashRing copy();
+
 }

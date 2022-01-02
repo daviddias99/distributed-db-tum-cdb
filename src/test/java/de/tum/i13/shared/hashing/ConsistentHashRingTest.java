@@ -23,25 +23,25 @@ class ConsistentHashRingTest {
                 .isInstanceOf(MD5HashAlgorithm.class);
 
         // MD5 hash of "qwerty" is d8578edf8458ce06fbc5bb76a58c5ca4
-        assertThat(hashRing.getResponsibleNetworkLocation("qwerty"))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation("qwerty"))
                 .get()
                 .extracting(NetworkLocation::getAddress, NetworkLocation::getPort)
                 .containsExactly("location1", 42);
 
         // MD5 hash of "hello" is 5d41402abc4b2a76b9719d911017c592
-        assertThat(hashRing.getResponsibleNetworkLocation("hello"))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation("hello"))
                 .get()
                 .extracting(NetworkLocation::getAddress, NetworkLocation::getPort)
                 .containsExactly("location2", 3);
 
         // MD5 hash of "asdf" is 912ec803b2ce49e4a541068d495ab570
-        assertThat(hashRing.getResponsibleNetworkLocation("asdf"))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation("asdf"))
                 .get()
                 .extracting(NetworkLocation::getAddress, NetworkLocation::getPort)
                 .containsExactly("location3", 4);
 
         // MD5 hash of "4" is a87ff679a2f3e71d9181a67b7542122c
-        assertThat(hashRing.getResponsibleNetworkLocation("4"))
+        assertThat(hashRing.getWriteResponsibleNetworkLocation("4"))
                 .get()
                 .extracting(NetworkLocation::getAddress, NetworkLocation::getPort)
                 .containsExactly("location4", 15);

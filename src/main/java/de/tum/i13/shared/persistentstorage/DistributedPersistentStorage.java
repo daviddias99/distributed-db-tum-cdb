@@ -144,7 +144,7 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         LOGGER.debug("Requesting new metadata from server");
         updateHashRing();
 
-        NetworkLocation responsibleNetLocation = hashRing.getResponsibleNetworkLocation(key)
+        NetworkLocation responsibleNetLocation = hashRing.getWriteResponsibleNetworkLocation(key)
                 .orElseThrow(() -> {
                     var exception = new CommunicationClientException("Could not find server responsible for data");
                     LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);

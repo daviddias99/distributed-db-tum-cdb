@@ -1,8 +1,8 @@
 package de.tum.i13.shared.hashing;
 
-import java.util.TreeMap;
-
 import de.tum.i13.shared.net.NetworkLocation;
+
+import java.util.TreeMap;
 
 /**
  * A {@link ConsistentHashRing} that wraps around a {@link TreeMap}
@@ -20,7 +20,13 @@ public class TreeMapServerMetadata extends PrecedingResponsibilityHashRing {
         super(new MD5HashAlgorithm(), new TreeMap<>());
     }
 
-    public TreeMapServerMetadata(TreeMapServerMetadata copy) {
-        super(copy.getHashingAlgorithm(), new TreeMap<>(copy.getNetworkLocationMap()));
+    private TreeMapServerMetadata(TreeMapServerMetadata hashRingToCopy) {
+        super(hashRingToCopy);
     }
+
+    @Override
+    public ConsistentHashRing copy() {
+        return new TreeMapServerMetadata(this);
+    }
+
 }
