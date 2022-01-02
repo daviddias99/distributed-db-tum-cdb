@@ -5,13 +5,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * A standard implementation of a {@link RingRange}
  */
-class RingRangeImpl implements RingRange {
+
+//TODO remove public after adding splitting
+public class RingRangeImpl implements RingRange {
 
     private static final Logger LOGGER = LogManager.getLogger(RingRangeImpl.class);
 
@@ -26,7 +29,8 @@ class RingRangeImpl implements RingRange {
      * @param endInclusive     the end of the {@link RingRange}
      * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
      */
-    RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
+    //TODO remove public after adding splitting
+    public RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
         this.hashingAlgorithm = hashingAlgorithm;
@@ -82,11 +86,17 @@ class RingRangeImpl implements RingRange {
 
         if (contains(ringRange)) {
             LOGGER.trace("{} contains {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
-                            hashingAlgorithm),
-                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
-            );
+            List<RingRange> results = new LinkedList<>();
+
+            if(!this.startInclusive.equals(ringRange.getStart())) {
+                results.add(new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                hashingAlgorithm));
+            }
+
+            if(!this.endInclusive.equals(ringRange.getEnd())) {
+                results.add(new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm));
+            }
+            return results;
         } else if (overlapsLeftAndRight(ringRange)) {
             LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
             return List.of(
@@ -97,14 +107,22 @@ class RingRangeImpl implements RingRange {
                     ));
         } else if (contains(ringRange.getStart())) {
             LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
-            );
+            List<RingRange> results = new LinkedList<>();
+
+            if(!this.startInclusive.equals(ringRange.getStart())) {
+                results.add(new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm));
+            }
+            return results;
         } else if (contains(ringRange.getEnd())) {
             LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
-            );
+
+            List<RingRange> results = new LinkedList<>();
+
+            if(!this.endInclusive.equals(ringRange.getEnd())) {
+                results.add(new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm));
+            }
+
+            return results;
         } else {
             LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
             return List.of();
@@ -150,7 +168,7 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public String toString() {
-        return String.format("RingRangeImpl{%s,%s}", startInclusive, endInclusive);
+        return String.format("RingRangeImpl{%s,%s}", startInclusive.toString(16), endInclusive.toString(16));
     }
 
 }
