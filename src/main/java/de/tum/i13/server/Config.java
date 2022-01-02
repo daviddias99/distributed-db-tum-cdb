@@ -1,6 +1,7 @@
 package de.tum.i13.server;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.spi.StandardLevel;
@@ -148,11 +149,13 @@ public class Config {
 
         @Override
         public StandardLevel convert(String levelString) {
+            Preconditions.notNull(levelString, "Log level must not be null");
+            final String capitalizedLevelString = levelString.toUpperCase();
             try {
-                return StandardLevel.valueOf(levelString);
-            } catch (IllegalArgumentException | NullPointerException ex) {
+                return StandardLevel.valueOf(capitalizedLevelString);
+            } catch (IllegalArgumentException ex) {
                 LOGGER.warn("Could not convert '{}' to standard log4j log level", levelString);
-                return switch (levelString) {
+                return switch (capitalizedLevelString) {
                     case "ALL", "FINEST" -> StandardLevel.TRACE;
                     case "FINER", "FINE" -> StandardLevel.DEBUG;
                     case "CONFIG", "INFO" -> StandardLevel.INFO;
@@ -160,7 +163,7 @@ public class Config {
                     case "SEVERE" -> StandardLevel.ERROR;
                     case "OFF" -> StandardLevel.OFF;
                     default -> {
-                        LOGGER.warn("Could not find standard util log level '{}'", levelString);
+                        LOGGER.warn("Could not match '{}' to standard util log level", levelString);
                         yield StandardLevel.ALL;
                     }
                 };
