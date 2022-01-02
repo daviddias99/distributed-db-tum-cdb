@@ -165,6 +165,12 @@ class RingRangeImplTest {
                         );
             }
 
+            @Test
+            void computesDifferenceWithBeingContained() {
+                assertThat(ringRange.computeDifference(new RingRangeImpl(BigInteger.valueOf(70), BigInteger.valueOf(20), hashingAlgorithm)))
+                        .isEmpty();
+            }
+
         }
 
         @Nested
@@ -217,6 +223,12 @@ class RingRangeImplTest {
                         .satisfiesExactly(
                                 range -> checkRange(range, 22, 43, hashingAlgorithm)
                         );
+            }
+
+            @Test
+            void computesDifferenceWithBeingContained() {
+                assertThat(ringRange.computeDifference(new RingRangeImpl(BigInteger.valueOf(5), BigInteger.valueOf(70), hashingAlgorithm)))
+                        .isEmpty();
             }
 
         }

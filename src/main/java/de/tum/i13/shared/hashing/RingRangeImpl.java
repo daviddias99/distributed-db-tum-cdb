@@ -106,7 +106,7 @@ class RingRangeImpl implements RingRange {
                     new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
             );
         } else {
-            LOGGER.trace("{} does not overlap with {}", this, ringRange);
+            LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
             return List.of();
         }
     }
