@@ -94,7 +94,8 @@ public interface ConsistentHashRing {
 
     /**
      * Returns the {@link NetworkLocation}s responsible for reading this key in this {@link ConsistentHashRing}.
-     * Which {@link NetworkLocation}s are responsible for reading a given key can be determined in an implementing class.
+     * Which {@link NetworkLocation}s are responsible for reading a given key can be determined in an implementing
+     * class.
      * Examples include the succeeding {@link NetworkLocation} and two if its successors. If there are multiple
      * {@link NetworkLocation}s responsible for reading all of them are returned.
      *
@@ -189,6 +190,48 @@ public interface ConsistentHashRing {
      * @see #getSucceedingNetworkLocation(NetworkLocation)
      */
     Optional<NetworkLocation> getPrecedingNetworkLocation(NetworkLocation location);
+
+    /**
+     * Returns a number of {@link NetworkLocation}s that succeed the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}. The successors are returned in clockwise direction of the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link List} is returned.
+     * If the supplied {@link NetworkLocation} is already contained in the {@link ConsistentHashRing} and the only
+     * element in that {@link ConsistentHashRing} also an empty {@link List} is returned. If the supplied
+     * {@link NetworkLocation} is already contained in the {@link ConsistentHashRing}, the number of locations
+     * searched must be lower than the size of the {@link ConsistentHashRing}. Otherwise, it can be less or equal to
+     * the size.
+     *
+     * @param networkLocation   the {@link NetworkLocation} whose successors are to be determined
+     * @param numberOfLocations the number of successors to return. Restricted according to the description
+     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @see #getSucceedingNetworkLocations(NetworkLocation, int)
+     * @see #getPrecedingNetworkLocation(NetworkLocation)
+     */
+    List<NetworkLocation> getSucceedingNetworkLocations(NetworkLocation networkLocation, int numberOfLocations);
+
+    /**
+     * Returns a number of {@link NetworkLocation}s that precede the supplied {@link NetworkLocation} in the
+     * {@link ConsistentHashRing}. The supplied {@link NetworkLocation} does not have to be contained in the
+     * {@link ConsistentHashRing}. The predecessors are returned in clockwise direction of the
+     * {@link ConsistentHashRing}.
+     * <p>
+     * If the {@link ConsistentHashRing} is empty, an empty {@link List} is returned.
+     * If the supplied {@link NetworkLocation} is already contained in the {@link ConsistentHashRing} and the only
+     * element in that {@link ConsistentHashRing} also an empty {@link List} is returned. If the supplied
+     * {@link NetworkLocation} is already contained in the {@link ConsistentHashRing}, the number of locations
+     * searched must be lower than the size of the {@link ConsistentHashRing}. Otherwise, it can be less or equal to
+     * the size.
+     *
+     * @param networkLocation   the {@link NetworkLocation} whose predecessors are to be determined
+     * @param numberOfLocations the number of predecessors to return. Restricted according to the description
+     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @see #getSucceedingNetworkLocations(NetworkLocation, int)
+     * @see #getPrecedingNetworkLocation(NetworkLocation)
+     */
+    List<NetworkLocation> getPrecedingNetworkLocations(NetworkLocation networkLocation, int numberOfLocations);
 
     /**
      * Returns whether the supplied {@link NetworkLocation} is contained in the given {@link ConsistentHashRing}.

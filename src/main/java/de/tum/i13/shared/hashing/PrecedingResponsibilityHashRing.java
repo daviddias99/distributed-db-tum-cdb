@@ -192,6 +192,58 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     }
 
     @Override
+    public synchronized List<NetworkLocation> getSucceedingNetworkLocations(NetworkLocation networkLocation,
+                                                                            int numberOfLocations) {
+        LOGGER.info("Getting succeeding {}s for {} '{}'", NetworkLocation.class.getSimpleName(),
+                NetworkLocation.class.getSimpleName(), networkLocation);
+        return getNeighbors(networkLocation, numberOfLocations, true);
+    }
+
+    @Override
+    public synchronized List<NetworkLocation> getPrecedingNetworkLocations(NetworkLocation networkLocation,
+                                                                           int numberOfLocations) {
+        LOGGER.info("Getting preceding {}s for {} '{}'", NetworkLocation.class.getSimpleName(),
+                NetworkLocation.class.getSimpleName(), networkLocation);
+        final List<NetworkLocation> precedingNetworkLocations = getNeighbors(networkLocation, numberOfLocations, false);
+        Collections.reverse(precedingNetworkLocations);
+        return precedingNetworkLocations;
+    }
+
+    private List<NetworkLocation> getNeighbors(NetworkLocation networkLocation, int numberOfLocations,
+                                               boolean successorDirection) {
+        if (contains(networkLocation)) {
+            if (size() == 1) {
+                return Collections.emptyList();
+            } else {
+                Preconditions.check(numberOfLocations < size(),
+                        () -> String.format("The number of %s '%s' must be lower than the size of the %s '%s' if " +
+                                        "the %s '%s' is already contained",
+                                successorDirection ? "successors" : "predecessors", numberOfLocations,
+                                ConsistentHashRing.class.getSimpleName(), size(),
+                                NetworkLocation.class.getSimpleName(), networkLocation));
+            }
+        } else {
+            Preconditions.check(numberOfLocations <= size(),
+                    () -> String.format("The number of %s '%s' must be lower or equal to the size of the %s '%s' if " +
+                                    "the %s '%s' is not already contained",
+                            successorDirection ? "successors" : "predecessors", numberOfLocations,
+                            ConsistentHashRing.class.getSimpleName(), size(),
+                            NetworkLocation.class.getSimpleName(), networkLocation));
+        }
+
+        return Stream.iterate(networkLocation,
+                        iterLocation -> (successorDirection ? getSucceedingNetworkLocation(iterLocation) :
+                                getPrecedingNetworkLocation(iterLocation))
+                                .orElseThrow(() -> new IllegalStateException(
+                                        String.format("Could not get preceding location for %s '%s'",
+                                                NetworkLocation.class.getSimpleName(), networkLocation))
+                                ))
+                .skip(1)
+                .limit(numberOfLocations)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public synchronized int size() {
         return networkLocationMap.size();
     }
@@ -224,18 +276,16 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
         // Check whether the key should be replicated on the location from one of the preceding locations
         // Or whether the location itself is write-responsible
-        return getReplicatedLocations(networkLocation)
+        return getReplicatedLocations(networkLocation).stream()
                 .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
     }
 
     @SuppressWarnings("java:S2184")
-    private Stream<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
-        return Stream.iterate(networkLocation,
-                        iterLocation -> getPrecedingNetworkLocation(iterLocation)
-                                .orElseThrow(() -> new IllegalStateException(
-                                        String.format("Could not get preceding location for %s", networkLocation))
-                                ))
-                .limit(Constants.NUMBER_OF_REPLICAS + 1);
+    private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
+        final List<NetworkLocation> precedingNetworkLocations = getPrecedingNetworkLocations(networkLocation,
+                Constants.NUMBER_OF_REPLICAS);
+        precedingNetworkLocations.add(networkLocation);
+        return precedingNetworkLocations;
     }
 
     @Override
@@ -263,15 +313,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         if (!isReplicationActive())
             return getWriteRange(networkLocation);
 
-        final NetworkLocation firstReplicatedLocation = getReplicatedLocations(networkLocation)
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toList(),
-                        list -> {
-                            Collections.reverse(list);
-                            return list;
-                        }
-                ))
-                .get(0);
+        final NetworkLocation firstReplicatedLocation = getReplicatedLocations(networkLocation).get(0);
         final BigInteger startHash = getPrecedingNetworkLocation(firstReplicatedLocation)
                 .map(hashingAlgorithm::hash)
                 .map(hash -> hash.add(BigInteger.ONE))
