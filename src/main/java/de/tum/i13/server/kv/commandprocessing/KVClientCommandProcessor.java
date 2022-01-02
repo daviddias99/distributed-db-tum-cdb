@@ -69,6 +69,19 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
     }
   }
 
+  private void replicateOperation(String key, String value) {
+    List<NetworkLocation> readResponsible = this.serverState.getRingMetadata().getReadResponsibleNetworkLocation(key);
+
+    // No need to replicate on self
+    readResponsible.remove(this.serverState.getCurNetworkLocation());
+    
+    // Replicate on each successor
+    for (NetworkLocation networkLocation : readResponsible) {
+      LOGGER.info("Replicating '{}' to {}", key, networkLocation);
+      (new Thread(new PutDeleteReplicationHandler(networkLocation, key, value))).start();
+    }
+  }
+
   private KVMessage put(String key, String value) {
     synchronized (this.kvStore) {
       if (!this.serverState.isWriteResponsibleForKey(key)) {
@@ -88,17 +101,8 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
           KVMessage result = kvStore.put(key, value);
 
           // If successful, replicate command in successors
-          if (result.getStatus() == StatusType.PUT_SUCCESS || result.getStatus() == StatusType.DELETE_SUCCESS) {
-
-            List<NetworkLocation> readResponsible = this.serverState.getRingMetadata().getReadResponsibleNetworkLocation(key);
-
-            // No need to replicate on self
-            readResponsible.remove(this.serverState.getCurNetworkLocation());
-            
-            // Replicate on each successor
-            for (NetworkLocation networkLocation : readResponsible) {
-              (new Thread(new PutDeleteReplicationHandler(networkLocation, key, value))).start();
-            }
+          if (this.serverState.getRingMetadata().isReplicationActive() && (result.getStatus() == StatusType.PUT_SUCCESS || result.getStatus() == StatusType.DELETE_SUCCESS)) {
+            this.replicateOperation(key, value);
           }
 
           return result;

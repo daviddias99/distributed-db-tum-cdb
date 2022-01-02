@@ -34,7 +34,7 @@ public class Constants {
     public static final int CORE_POOL_SIZE = 3;
     public static final int SERVER_POOL_SIZE = 3;
     public static final int HEARTBEAT_TIMEOUT_MILLISECONDS = 700;
-    public static final int SECONDS_PER_PING = 1;
+    public static final int SECONDS_PER_PING = 10;
     public static final String EXIT_LOG_MESSAGE_FORMAT = "Returning message {}";
     public static final String SENDING_AND_EXPECTING_MESSAGE = "Sending '{}' message to successor and expecting '{}' " +
             "message as response";

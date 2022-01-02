@@ -31,10 +31,10 @@ public class BulkReplicationHandler implements Runnable{
     NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
 
     try {
-      LOGGER.info("Trying to connect to peer {} for handhoff", peer);
+      LOGGER.info("Trying to connect to peer {} for bulk replication", peer);
       netPeerStorage.connectAndReceive(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
-      LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
+      LOGGER.error("Could not connect to peer {} for bulk replication.", peer, e);
       return;
     }
 

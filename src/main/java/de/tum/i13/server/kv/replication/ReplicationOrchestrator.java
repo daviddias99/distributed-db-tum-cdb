@@ -80,6 +80,7 @@ public class ReplicationOrchestrator {
   }
 
   private void deleteReplicatedRanges() {
+    LOGGER.info("Deleting all replicated ranges") ;
     RingRange readRange = newRing.getReadRange(serverState.getCurNetworkLocation());
     RingRange writeRange = newRing.getWriteRange(serverState.getCurNetworkLocation());
 
@@ -89,6 +90,7 @@ public class ReplicationOrchestrator {
   
 
   private void deleteStaleRanges() {
+    LOGGER.info("Deleting stale ranges") ;
     RingRange newReadRange = newRing.getReadRange(serverState.getCurNetworkLocation());
     RingRange oldReadRange = oldRing.getReadRange(serverState.getCurNetworkLocation());
 
@@ -102,7 +104,7 @@ public class ReplicationOrchestrator {
     try {
       // TODO: this won't work for real-life data situations (whole range can't probably fit in memory)
       List<Pair<String>> toAdd = this.storage.getRange(lowerBound, upperBound);
-
+      LOGGER.info("Sending {} keys to peers", toAdd.size()) ;
       for (NetworkLocation peer : newSuccessors) {
         (new Thread(new BulkReplicationHandler(peer, toAdd))).start();
       }
@@ -113,6 +115,7 @@ public class ReplicationOrchestrator {
   }
 
   private void updateSuccessorReplication(NetworkLocation peer) {
+    LOGGER.info("Updating {} replication.", peer) ;
     RingRange newWriteRange = newRing.getWriteRange(serverState.getCurNetworkLocation());
     RingRange oldWriteRange = oldRing.getWriteRange(serverState.getCurNetworkLocation());
 
@@ -125,6 +128,8 @@ public class ReplicationOrchestrator {
       try {
         // TODO: this won't work for real-life data situations (whole range can't probably fit in memory)
         List<Pair<String>> toAdd = this.storage.getRange(lowerBound, upperBound);
+        LOGGER.info("Sending {} keys to peers", toAdd.size()) ;
+
         (new Thread(new BulkReplicationHandler(peer, toAdd))).start();
       } catch (GetException e) {
         LOGGER.error("Could not fetch range for replication.");
