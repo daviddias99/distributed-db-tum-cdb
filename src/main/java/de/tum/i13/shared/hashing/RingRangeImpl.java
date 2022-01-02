@@ -1,6 +1,8 @@
 package de.tum.i13.shared.hashing;
 
 import de.tum.i13.shared.Preconditions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.Objects;
  * A standard implementation of a {@link RingRange}
  */
 class RingRangeImpl implements RingRange {
+
+    private static final Logger LOGGER = LogManager.getLogger(RingRangeImpl.class);
 
     private final BigInteger startInclusive;
     private final BigInteger endInclusive;
@@ -45,11 +49,13 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public boolean wrapsAround() {
+        LOGGER.trace("Checking wrapping behavior of {}", this);
         return startInclusive.compareTo(endInclusive) > 0;
     }
 
     @Override
     public BigInteger getNumberOfElements() {
+        LOGGER.debug("Getting the number of elements of {}", this);
         if (wrapsAround()) {
             return hashingAlgorithm.getMax().subtract(startInclusive).add(BigInteger.ONE)
                     .add(endInclusive).add(BigInteger.ONE);
@@ -60,26 +66,29 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public boolean contains(BigInteger value) {
+        LOGGER.debug("Checking presence of value {} in {}", value, this);
         Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
-                "The value must not exceed the maximum possible value");
-        if (wrapsAround())
-            return startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0;
-        else
-            return startInclusive.compareTo(value) <= 0 && value.compareTo(endInclusive) <= 0;
+                () -> String.format("The value %s must not exceed the maximum possible value %s",
+                        value, hashingAlgorithm.getMax()));
+        return wrapsAround() && (startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0)
+                || startInclusive.compareTo(value) <= 0 && value.compareTo(endInclusive) <= 0;
     }
 
     @Override
     public List<RingRange> computeDifference(RingRange ringRange) {
+        LOGGER.debug("Computing the difference of {} without {}", this, ringRange);
         Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
                 "hashing algorithm");
 
         if (contains(ringRange)) {
+            LOGGER.trace("{} contains {}", this, ringRange);
             return List.of(
                     new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
                             hashingAlgorithm),
                     new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
             );
         } else if (overlapsLeftAndRight(ringRange)) {
+            LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
             return List.of(
                     new RingRangeImpl(
                             ringRange.getEnd().add(BigInteger.ONE),
@@ -87,14 +96,17 @@ class RingRangeImpl implements RingRange {
                             hashingAlgorithm
                     ));
         } else if (contains(ringRange.getStart())) {
+            LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
             return List.of(
                     new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
             );
         } else if (contains(ringRange.getEnd())) {
+            LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
             return List.of(
                     new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
             );
         } else {
+            LOGGER.trace("{} does not overlap with {}", this, ringRange);
             return List.of();
         }
     }

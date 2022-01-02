@@ -74,6 +74,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     @SuppressWarnings("java:S2184")
     @Override
     public synchronized List<NetworkLocation> getReadResponsibleNetworkLocation(String key) {
+        LOGGER.debug("Getting the read responsible network locations for key '{}'", key);
         final Optional<NetworkLocation> writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
         if (writeResponsibleNetworkLocation.isEmpty())
             return Collections.emptyList();
@@ -100,7 +101,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized void addNetworkLocation(BigInteger hash, NetworkLocation networkLocation) {
-        LOGGER.info("Adding {} {} at hash {}", NetworkLocation.class.getSimpleName(), networkLocation, hash);
+        LOGGER.info("Adding {} '{}' at hash {}", NetworkLocation.class.getSimpleName(), networkLocation, hash);
         Optional.ofNullable(networkLocationMap.put(hash, networkLocation))
                 .ifPresent(previousValue -> {
                     throw new IllegalStateException(
@@ -131,6 +132,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized String packWriteRanges() {
+        LOGGER.debug("Packing write ranges");
         final NavigableMap<BigInteger, NetworkLocation> map = networkLocationMap;
         if (!map.isEmpty()) {
             final StringBuilder stringBuilder = new StringBuilder();
@@ -155,6 +157,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized String packReadRanges() {
+        LOGGER.debug("Packing read ranges");
         return getAllNetworkLocations().stream()
                 .map(networkLocation -> {
                     final RingRange readRange = getReadRange(networkLocation);
@@ -225,6 +228,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
+        LOGGER.debug("Checking whether {} '{}' is write responsible for '{}'",
+                NetworkLocation.class.getSimpleName(), networkLocation, key);
         checkPresence(networkLocation);
 
         return getWriteResponsibleNetworkLocation(key)
@@ -234,6 +239,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized boolean isReadResponsible(NetworkLocation networkLocation, String key) {
+        LOGGER.debug("Checking whether {} '{}' is read responsible for '{}'",
+                NetworkLocation.class.getSimpleName(), networkLocation, key);
         checkPresence(networkLocation);
 
         // If replication is not active, we do not have to check other network location, but the given one
@@ -250,13 +257,15 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     private Stream<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
         return Stream.iterate(networkLocation,
                         iterLocation -> getPrecedingNetworkLocation(iterLocation)
-                                .orElseThrow(() -> new IllegalStateException("Could not get preceding location"))
-                )
+                                .orElseThrow(() -> new IllegalStateException(
+                                        String.format("Could not get preceding location for %s", networkLocation))
+                                ))
                 .limit(Constants.NUMBER_OF_REPLICAS + 1);
     }
 
     @Override
     public synchronized RingRange getWriteRange(NetworkLocation networkLocation) {
+        LOGGER.debug("Getting the write range of {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
         checkPresence(networkLocation);
 
         final BigInteger networkLocationHash = hashingAlgorithm.hash(networkLocation);
@@ -266,13 +275,14 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
         final BigInteger leftLocationHash = Optional.ofNullable(networkLocationMap.lowerKey(networkLocationHash))
                 .or(() -> Optional.ofNullable(networkLocationMap.lastKey()))
-                .orElseThrow(() -> new IllegalStateException("Could not find range start in ring with at least 2 " +
-                        "members"));
+                .orElseThrow(() -> new IllegalStateException(String.format("Could not find range start in ring with " +
+                        "at least 2 members for %s", networkLocation)));
         return new RingRangeImpl(leftLocationHash.add(BigInteger.ONE), networkLocationHash, hashingAlgorithm);
     }
 
     @Override
     public synchronized RingRange getReadRange(NetworkLocation networkLocation) {
+        LOGGER.debug("Getting the read range of {} '{}'", NetworkLocation.class.getSimpleName(), networkLocation);
         checkPresence(networkLocation);
 
         if (!isReplicationActive())
@@ -290,7 +300,9 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
         final BigInteger startHash = getPrecedingNetworkLocation(firstReplicatedLocation)
                 .map(hashingAlgorithm::hash)
                 .map(hash -> hash.add(BigInteger.ONE))
-                .orElseThrow(() -> new IllegalStateException("Could not find start hash"));
+                .orElseThrow(() -> new IllegalStateException(
+                        String.format("Could not find start hash for read range of %s", networkLocation))
+                );
 
         return new RingRangeImpl(startHash, hashingAlgorithm.hash(networkLocation), hashingAlgorithm);
     }
