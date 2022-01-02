@@ -90,6 +90,17 @@ class RingRangeImplTest {
                     .isEmpty();
         }
 
+        @Test
+        void checksAttributesForEquality() {
+            // This does not use the factory method on purpose to explicitly create a new hashing algorithm object
+            final RingRangeImpl range1 = new RingRangeImpl(BigInteger.valueOf(77), BigInteger.valueOf(11),
+                    new MD5HashAlgorithm());
+            final RingRangeImpl range2 = new RingRangeImpl(BigInteger.valueOf(77), BigInteger.valueOf(11),
+                    new MD5HashAlgorithm());
+            assertThat(range1.equals(range2))
+                    .isTrue();
+        }
+
     }
 
 
@@ -112,6 +123,17 @@ class RingRangeImplTest {
         void computesDifferenceWithSameRange() {
             assertThat(ringRange.computeDifference(rangeFactory.createInstance(9, 66)))
                     .isEmpty();
+        }
+
+        @Test
+        void checksAttributesForEquality() {
+            // This does not use the factory method on purpose to explicitly create a new hashing algorithm object
+            final RingRangeImpl range1 = new RingRangeImpl(BigInteger.valueOf(9), BigInteger.valueOf(66),
+                    new MD5HashAlgorithm());
+            final RingRangeImpl range2 = new RingRangeImpl(BigInteger.valueOf(9), BigInteger.valueOf(66),
+                    new MD5HashAlgorithm());
+            assertThat(range1.equals(range2))
+                    .isTrue();
         }
 
     }
