@@ -4,47 +4,63 @@ import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
-import de.tum.i13.shared.hashing.TreeMapServerMetadata;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.hashing.PrecedingResponsibilityHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigInteger;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
+@ExtendWith(MockitoExtension.class)
 class TestKVCommandProcessor {
 
-    static NetworkLocation server1Location = new NetworkLocationImpl("192.168.1.0", 25565);
-    static ConsistentHashRing ring;
-    static ServerState state;
+    NetworkLocation server1Location = new NetworkLocationImpl("192.168.1.0", 25565);
+    ConsistentHashRing ring;
+    ServerState state;
 
-    @BeforeAll
-    static void createRing() {
-        NetworkLocation server2Location = new NetworkLocationImpl("192.168.1.1", 25566);
-
-        ring = spy(new TreeMapServerMetadata());
-        ring.addNetworkLocation(new BigInteger("00000000000000000000000000000000", 16), server2Location);
-        ring.addNetworkLocation(new BigInteger("80000000000000000000000000000000", 16), server1Location);
-        doReturn(true).when(ring)
-                .isWriteResponsible(any(NetworkLocation.class), anyString());
-    }
+    @Mock
+    HashingAlgorithm hashingAlgorithm;
 
     @BeforeEach
-    void setState() {
+    void setupData() {
+        final NavigableMap<BigInteger, NetworkLocation> networkLocationMap = new TreeMap<>();
+        ring = mock(PrecedingResponsibilityHashRing.class,
+                withSettings()
+                        .useConstructor(hashingAlgorithm, networkLocationMap)
+                        .defaultAnswer(Mockito.CALLS_REAL_METHODS)
+        );
+        NetworkLocation server2Location = new NetworkLocationImpl("192.168.1.1", 25566);
+        when(hashingAlgorithm.hash(server2Location))
+                .thenReturn(new BigInteger("00000000000000000000000000000000", 16));
+        when(hashingAlgorithm.hash(server1Location))
+                .thenReturn(new BigInteger("80000000000000000000000000000000", 16));
+
+        ring.addNetworkLocation(server2Location);
+        ring.addNetworkLocation(server1Location);
+        lenient().doReturn(true).when(ring)
+                .isWriteResponsible(any(NetworkLocation.class), anyString());
+
         state = new ServerState(server1Location, new NetworkLocationImpl("127.0.0.1", 25566));
         state.setRingMetadata(ring);
     }
@@ -65,7 +81,7 @@ class TestKVCommandProcessor {
     void commandNotExecutedWhenStopped() throws PutException {
 
         PersistentStorage kv = mock(PersistentStorage.class);
-        when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
+        lenient().when(kv.put("key", "hello")).thenReturn(new KVMessageImpl(KVMessage.StatusType.ERROR));
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
         String response = kvcp.process("put key hello");
         assertThat(KVMessage
