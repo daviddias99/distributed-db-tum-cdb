@@ -45,4 +45,10 @@ class MD5HashAlgorithmTest {
                 .isEqualTo("a75f2192bae11cb76cdcdada9332bab6");
     }
 
+    @Test
+    void everyMD5IsEqual() {
+        assertThat(algorithm.equals(new MD5HashAlgorithm()))
+                .isTrue();
+    }
+
 }

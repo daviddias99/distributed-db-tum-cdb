@@ -5,7 +5,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,8 +12,7 @@ import java.util.Objects;
  * A standard implementation of a {@link RingRange}
  */
 
-//TODO remove public after adding splitting
-public class RingRangeImpl implements RingRange {
+class RingRangeImpl implements RingRange {
 
     private static final Logger LOGGER = LogManager.getLogger(RingRangeImpl.class);
 
@@ -29,8 +27,7 @@ public class RingRangeImpl implements RingRange {
      * @param endInclusive     the end of the {@link RingRange}
      * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
      */
-    //TODO remove public after adding splitting
-    public RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
+    RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
         this.hashingAlgorithm = hashingAlgorithm;
@@ -49,6 +46,15 @@ public class RingRangeImpl implements RingRange {
     @Override
     public HashingAlgorithm getHashingAlgorithm() {
         return hashingAlgorithm;
+    }
+
+    @Override
+    public List<RingRange> getAsNonWrapping() {
+        return wrapsAround()
+                ? List.of(
+                new RingRangeImpl(getStart(), hashingAlgorithm.getMax(), hashingAlgorithm),
+                new RingRangeImpl(BigInteger.ZERO, getEnd(), hashingAlgorithm)
+        ) : List.of(this);
     }
 
     @Override
@@ -84,54 +90,61 @@ public class RingRangeImpl implements RingRange {
         Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
                 "hashing algorithm");
 
-        if (contains(ringRange)) {
-            LOGGER.trace("{} contains {}", this, ringRange);
-            List<RingRange> results = new LinkedList<>();
+        if (equals(ringRange)) return List.of();
+        else if (contains(ringRange)) return computeDifferenceContainedRange(ringRange);
+        else if (overlapsLeftAndRight(ringRange)) return computeDifferenceOverlapLeftAndRight(ringRange);
+        else if (contains(ringRange.getStart())) return computeDifferenceOverlapRight(ringRange);
+        else if (contains(ringRange.getEnd())) return computeDifferenceOverlapLeft(ringRange);
+        else return computerDifferenceNoOverlapOrContainment(ringRange);
+    }
 
-            if(!this.startInclusive.equals(ringRange.getStart())) {
-                results.add(new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
-                hashingAlgorithm));
-            }
+    private List<RingRange> computerDifferenceNoOverlapOrContainment(RingRange ringRange) {
+        LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
+        return List.of();
+    }
 
-            if(!this.endInclusive.equals(ringRange.getEnd())) {
-                results.add(new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm));
-            }
-            return results;
-        } else if (overlapsLeftAndRight(ringRange)) {
-            LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(
-                            ringRange.getEnd().add(BigInteger.ONE),
-                            ringRange.getStart().subtract(BigInteger.ONE),
-                            hashingAlgorithm
-                    ));
-        } else if (contains(ringRange.getStart())) {
-            LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
-            List<RingRange> results = new LinkedList<>();
+    private List<RingRange> computeDifferenceOverlapLeft(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+        );
+    }
 
-            if(!this.startInclusive.equals(ringRange.getStart())) {
-                results.add(new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm));
-            }
-            return results;
-        } else if (contains(ringRange.getEnd())) {
-            LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
+    private List<RingRange> computeDifferenceOverlapRight(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
+        );
+    }
 
-            List<RingRange> results = new LinkedList<>();
+    private List<RingRange> computeDifferenceOverlapLeftAndRight(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(
+                        ringRange.getEnd().add(BigInteger.ONE),
+                        ringRange.getStart().subtract(BigInteger.ONE),
+                        hashingAlgorithm
+                ));
+    }
 
-            if(!this.endInclusive.equals(ringRange.getEnd())) {
-                results.add(new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm));
-            }
-
-            return results;
+    private List<RingRange> computeDifferenceContainedRange(RingRange ringRange) {
+        LOGGER.trace("{} contains {}", this, ringRange);
+        if (getStart().equals(ringRange.getStart())) {
+            return computeDifferenceOverlapLeft(ringRange);
+        } else if (getEnd().equals(ringRange.getEnd())) {
+            return computeDifferenceOverlapRight(ringRange);
         } else {
-            LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
-            return List.of();
+            return List.of(
+                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                            hashingAlgorithm),
+                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+            );
         }
     }
 
     private boolean contains(RingRange ringRange) {
-        return contains(ringRange.getStart()) && contains(ringRange.getEnd()) &&
-                indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
+        return contains(ringRange.getStart()) && contains(ringRange.getEnd())
+                && indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
     }
 
     private boolean overlapsLeftAndRight(RingRange ringRange) {
