@@ -80,40 +80,61 @@ class RingRangeImpl implements RingRange {
         Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
                 "hashing algorithm");
 
-        if (contains(ringRange)) {
-            LOGGER.trace("{} contains {}", this, ringRange);
+        if (equals(ringRange)) return List.of();
+        else if (contains(ringRange)) return computeDifferenceContainedRange(ringRange);
+        else if (overlapsLeftAndRight(ringRange)) return computeDifferenceOverlapLeftAndRight(ringRange);
+        else if (contains(ringRange.getStart())) return computeDifferenceOverlapRight(ringRange);
+        else if (contains(ringRange.getEnd())) return computeDifferenceOverlapLeft(ringRange);
+        else return computerDifferenceNoOverlapOrContainment(ringRange);
+    }
+
+    private List<RingRange> computerDifferenceNoOverlapOrContainment(RingRange ringRange) {
+        LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
+        return List.of();
+    }
+
+    private List<RingRange> computeDifferenceOverlapLeft(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+        );
+    }
+
+    private List<RingRange> computeDifferenceOverlapRight(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
+        );
+    }
+
+    private List<RingRange> computeDifferenceOverlapLeftAndRight(RingRange ringRange) {
+        LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
+        return List.of(
+                new RingRangeImpl(
+                        ringRange.getEnd().add(BigInteger.ONE),
+                        ringRange.getStart().subtract(BigInteger.ONE),
+                        hashingAlgorithm
+                ));
+    }
+
+    private List<RingRange> computeDifferenceContainedRange(RingRange ringRange) {
+        LOGGER.trace("{} contains {}", this, ringRange);
+        if (getStart().equals(ringRange.getStart())) {
+            return computeDifferenceOverlapLeft(ringRange);
+        } else if (getEnd().equals(ringRange.getEnd())) {
+            return computeDifferenceOverlapRight(ringRange);
+        } else {
             return List.of(
                     new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
                             hashingAlgorithm),
                     new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
             );
-        } else if (overlapsLeftAndRight(ringRange)) {
-            LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(
-                            ringRange.getEnd().add(BigInteger.ONE),
-                            ringRange.getStart().subtract(BigInteger.ONE),
-                            hashingAlgorithm
-                    ));
-        } else if (contains(ringRange.getStart())) {
-            LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
-            );
-        } else if (contains(ringRange.getEnd())) {
-            LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
-            return List.of(
-                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
-            );
-        } else {
-            LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
-            return List.of();
         }
     }
 
     private boolean contains(RingRange ringRange) {
-        return contains(ringRange.getStart()) && contains(ringRange.getEnd()) &&
-                indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
+        return contains(ringRange.getStart()) && contains(ringRange.getEnd())
+                && indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
     }
 
     private boolean overlapsLeftAndRight(RingRange ringRange) {
