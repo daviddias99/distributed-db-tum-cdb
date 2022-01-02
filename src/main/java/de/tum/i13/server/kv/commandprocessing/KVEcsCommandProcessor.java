@@ -90,7 +90,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_UNLOCK);
   }
 
-  private KVMessage setKeyRange(KVMessage command) {
+  private synchronized KVMessage setKeyRange(KVMessage command) {
     LOGGER.info("Trying set server metadata");
 
     ConsistentHashRing newMetadata = ConsistentHashRing.unpackMetadata(command.getKey());
