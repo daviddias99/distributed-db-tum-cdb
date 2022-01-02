@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 /**
  * A {@link HashingAlgorithm} that implements the MD5 hashing algorithm using a {@link MessageDigest}.
@@ -52,6 +53,16 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
     @Override
     public String toString() {
         return "MD5HashAlgorithm";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MD5HashAlgorithm;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash();
     }
 
 }
