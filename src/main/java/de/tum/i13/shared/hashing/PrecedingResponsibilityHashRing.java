@@ -133,53 +133,28 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     @Override
     public synchronized String packWriteRanges() {
         LOGGER.debug("Packing write ranges");
-        final NavigableMap<BigInteger, NetworkLocation> map = networkLocationMap;
-        if (!map.isEmpty()) {
-            final StringBuilder stringBuilder = new StringBuilder();
-
-            final Map.Entry<BigInteger, NetworkLocation> lastEntry = map.lastEntry();
-            final BigInteger lastHash = lastEntry.getKey();
-            final NetworkLocation lastNetworkLocation = lastEntry.getValue();
-
-            stringBuilder.append(convertHashToHex(lastHash.add(BigInteger.ONE)));
-
-            for (Map.Entry<BigInteger, NetworkLocation> entry : map.headMap(lastHash).entrySet()) {
-                final BigInteger hash = entry.getKey();
-                final NetworkLocation networkLocation = entry.getValue();
-                appendNetworkLocation(stringBuilder, hash, networkLocation)
-                        .append(convertHashToHex(hash.add(BigInteger.ONE)));
-            }
-
-            return appendNetworkLocation(stringBuilder, lastHash, lastNetworkLocation)
-                    .toString();
-        } else return "";
+        return packRanges(false);
     }
 
     @Override
     public synchronized String packReadRanges() {
         LOGGER.debug("Packing read ranges");
+        return packRanges(true);
+    }
+
+    private String packRanges(boolean packReadRanges) {
         return getAllNetworkLocations().stream()
                 .map(networkLocation -> {
-                    final RingRange readRange = getReadRange(networkLocation);
+                    final RingRange range = packReadRanges ? getReadRange(networkLocation) :
+                            getWriteRange(networkLocation);
                     return String.format(
-                            "%s,%s,%s:%s;",
-                            convertHashToHex(readRange.getStart()), convertHashToHex(readRange.getEnd()),
+                            "%s,%s,%s:%s",
+                            convertHashToHex(range.getStart()), convertHashToHex(range.getEnd()),
                             networkLocation.getAddress(),
                             networkLocation.getPort()
                     );
                 })
-                .collect(Collectors.joining());
-    }
-
-    private StringBuilder appendNetworkLocation(StringBuilder stringBuilder, BigInteger hash,
-                                                NetworkLocation networkLocation) {
-        return stringBuilder.append(",")
-                .append(convertHashToHex(hash))
-                .append(",")
-                .append(networkLocation.getAddress())
-                .append(":")
-                .append(networkLocation.getPort())
-                .append(";");
+                .collect(Collectors.joining(";", "", ";"));
     }
 
     @Override
@@ -314,7 +289,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     private void checkPresence(NetworkLocation networkLocation) {
         Preconditions.check(contains(networkLocation),
-                String.format("The %s '%s' must be contained in the %s",
+                () -> String.format("The %s '%s' must be contained in the %s",
                         NetworkLocation.class.getSimpleName(), networkLocation,
                         ConsistentHashRing.class.getSimpleName()));
     }
