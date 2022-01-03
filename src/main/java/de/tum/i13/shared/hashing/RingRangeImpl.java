@@ -111,16 +111,16 @@ class RingRangeImpl implements RingRange {
         else if (overlapsLeftAndRight(ringRange)) return computeDifferenceOverlapLeftAndRight(ringRange);
         else if (contains(ringRange.getStart())) return computeDifferenceOverlapRight(ringRange);
         else if (contains(ringRange.getEnd())) return computeDifferenceOverlapLeft(ringRange);
-        else return computerDifferenceNoOverlapOrContainment(ringRange);
+        else return computeDifferenceNoOverlap(ringRange);
     }
 
     private boolean coversWholeRing(RingRange ringRange) {
         return decrement(ringRange.getStart()).equals(ringRange.getEnd());
     }
 
-    private List<RingRange> computerDifferenceNoOverlapOrContainment(RingRange ringRange) {
-        LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
-        return List.of();
+    private List<RingRange> computeDifferenceNoOverlap(RingRange ringRange) {
+        LOGGER.trace("{} does not overlap at all with {}", this, ringRange);
+        return List.of(this);
     }
 
     private List<RingRange> computeDifferenceOverlapLeft(RingRange ringRange) {
