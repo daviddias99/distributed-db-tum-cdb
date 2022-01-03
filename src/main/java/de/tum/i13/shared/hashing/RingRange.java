@@ -35,8 +35,6 @@ public interface RingRange {
      */
     boolean contains(BigInteger value);
 
-    boolean contains(RingRange value);
-
     /**
      * Returns whether the supplied {@link RingRange} is contained in this {@link RingRange}.
      *
