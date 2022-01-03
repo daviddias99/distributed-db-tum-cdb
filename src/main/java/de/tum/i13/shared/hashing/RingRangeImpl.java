@@ -29,6 +29,21 @@ class RingRangeImpl implements RingRange {
      * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
      */
     RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
+        Preconditions.notNull(startInclusive, "The start must not be null");
+        Preconditions.notNull(endInclusive, "The end must not be null");
+        Preconditions.notNull(hashingAlgorithm, "The hashing algorithm must not be null");
+
+        Preconditions.check(startInclusive.compareTo(BigInteger.ZERO) >= 0,
+                () -> String.format("The start %s must be greater or equal to 0", startInclusive));
+        Preconditions.check(endInclusive.compareTo(BigInteger.ZERO) >= 0,
+                () -> String.format("The end %s must be greater or equal to 0", endInclusive));
+        Preconditions.check(startInclusive.compareTo(hashingAlgorithm.getMax()) <= 0,
+                () -> String.format("The start %s must be less or equal to the max %s", startInclusive,
+                        hashingAlgorithm.getMax()));
+        Preconditions.check(endInclusive.compareTo(hashingAlgorithm.getMax()) <= 0,
+                () -> String.format("The end %s must be less or equal to the max %s", endInclusive,
+                        hashingAlgorithm.getMax()));
+
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
         this.hashingAlgorithm = hashingAlgorithm;
@@ -100,8 +115,7 @@ class RingRangeImpl implements RingRange {
     }
 
     private boolean coversWholeRing(RingRange ringRange) {
-        return getStart().equals(BigInteger.ZERO) && ringRange.getEnd().equals(ringRange.getHashingAlgorithm().getMax())
-                || getStart().subtract(BigInteger.ONE).equals(getEnd());
+        return decrement(ringRange.getStart()).equals(ringRange.getEnd());
     }
 
     private List<RingRange> computerDifferenceNoOverlapOrContainment(RingRange ringRange) {
@@ -112,14 +126,14 @@ class RingRangeImpl implements RingRange {
     private List<RingRange> computeDifferenceOverlapLeft(RingRange ringRange) {
         LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
         return List.of(
-                new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+                new RingRangeImpl(increment(ringRange.getEnd()), endInclusive, hashingAlgorithm)
         );
     }
 
     private List<RingRange> computeDifferenceOverlapRight(RingRange ringRange) {
         LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
         return List.of(
-                new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
+                new RingRangeImpl(startInclusive, decrement(ringRange.getStart()), hashingAlgorithm)
         );
     }
 
@@ -127,8 +141,8 @@ class RingRangeImpl implements RingRange {
         LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
         return List.of(
                 new RingRangeImpl(
-                        ringRange.getEnd().add(BigInteger.ONE),
-                        ringRange.getStart().subtract(BigInteger.ONE),
+                        increment(ringRange.getEnd()),
+                        decrement(ringRange.getStart()),
                         hashingAlgorithm
                 ));
     }
@@ -141,11 +155,21 @@ class RingRangeImpl implements RingRange {
             return computeDifferenceOverlapRight(ringRange);
         } else {
             return List.of(
-                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                    new RingRangeImpl(startInclusive, decrement(ringRange.getStart()),
                             hashingAlgorithm),
-                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+                    new RingRangeImpl(increment(ringRange.getEnd()), endInclusive, hashingAlgorithm)
             );
         }
+    }
+
+    private BigInteger decrement(BigInteger value) {
+        if (value.equals(BigInteger.ZERO)) return hashingAlgorithm.getMax();
+        else return value.subtract(BigInteger.ONE);
+    }
+
+    private BigInteger increment(BigInteger value) {
+        if (value.equals(hashingAlgorithm.getMax())) return BigInteger.ZERO;
+        else return value.add(BigInteger.ONE);
     }
 
     @Override
