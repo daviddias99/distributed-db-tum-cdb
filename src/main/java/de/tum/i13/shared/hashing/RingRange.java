@@ -31,11 +31,19 @@ public interface RingRange {
      * Returns whether the supplied value is contained in the {@link RingRange}.
      *
      * @param value the value to check for
-     * @return whether the value is in contained in the {@link RingRange}
+     * @return whether the value is contained in the {@link RingRange}
      */
     boolean contains(BigInteger value);
 
     boolean contains(RingRange value);
+
+    /**
+     * Returns whether the supplied {@link RingRange} is contained in this {@link RingRange}.
+     *
+     * @param ringRange the {@link RingRange} to check for
+     * @return whether the supplied {@link RingRange} is contained in this {@link RingRange}
+     */
+    boolean contains(RingRange ringRange);
 
     /**
      * Returns whether the {@link RingRange} wraps around the connection of the highest and lowest value in the
