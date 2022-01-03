@@ -33,20 +33,21 @@ class RingRangeImpl implements RingRange {
         Preconditions.notNull(endInclusive, "The end must not be null");
         Preconditions.notNull(hashingAlgorithm, "The hashing algorithm must not be null");
 
-        Preconditions.check(startInclusive.compareTo(BigInteger.ZERO) >= 0,
-                () -> String.format("The start %s must be greater or equal to 0", startInclusive));
-        Preconditions.check(endInclusive.compareTo(BigInteger.ZERO) >= 0,
-                () -> String.format("The end %s must be greater or equal to 0", endInclusive));
-        Preconditions.check(startInclusive.compareTo(hashingAlgorithm.getMax()) <= 0,
-                () -> String.format("The start %s must be less or equal to the max %s", startInclusive,
-                        hashingAlgorithm.getMax()));
-        Preconditions.check(endInclusive.compareTo(hashingAlgorithm.getMax()) <= 0,
-                () -> String.format("The end %s must be less or equal to the max %s", endInclusive,
-                        hashingAlgorithm.getMax()));
+        this.hashingAlgorithm = hashingAlgorithm;
+
+        checkInBounds(startInclusive, "start");
+        checkInBounds(endInclusive, "end");
 
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
-        this.hashingAlgorithm = hashingAlgorithm;
+    }
+
+    private void checkInBounds(BigInteger value, String parameterName) {
+        Preconditions.check(value.compareTo(BigInteger.ZERO) >= 0,
+                () -> String.format("The %s %s must be greater or equal to 0", parameterName, convertHashToHex(value)));
+        Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
+                () -> String.format("The %s %s must be less or equal to the max %s", parameterName,
+                        convertHashToHex(value), convertHashToHex(hashingAlgorithm.getMax())));
     }
 
     @Override
@@ -93,9 +94,7 @@ class RingRangeImpl implements RingRange {
     @Override
     public boolean contains(BigInteger value) {
         LOGGER.debug("Checking presence of value {} in {}", () -> convertHashToHex(value), () -> this);
-        Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
-                () -> String.format("The value %s must not exceed the maximum possible value %s",
-                        convertHashToHex(value), convertHashToHex(hashingAlgorithm.getMax())));
+        checkInBounds(value, "value");
         return wrapsAround() && (startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0)
                 || startInclusive.compareTo(value) <= 0 && value.compareTo(endInclusive) <= 0;
     }
