@@ -18,19 +18,11 @@ import static org.mockito.Mockito.when;
 class RingRangeImplTest {
 
     RingRange ringRange;
-    RingRangeFactory rangeFactory;
     @Mock
     HashingAlgorithm hashingAlgorithm;
 
-    class RingRangeFactory {
-
-        RingRangeFactory() {
-        }
-
-        RingRange createInstance(int start, int end) {
-            return new RingRangeImpl(BigInteger.valueOf(start), BigInteger.valueOf(end), hashingAlgorithm);
-        }
-
+    RingRange createRange(int start, int end) {
+        return new RingRangeImpl(BigInteger.valueOf(start), BigInteger.valueOf(end), hashingAlgorithm);
     }
 
     @Nested
@@ -38,7 +30,7 @@ class RingRangeImplTest {
 
         @BeforeEach
         void setupDifferentRange() {
-            ringRange = rangeFactory.createInstance(9, 66);
+            ringRange = createRange(9, 66);
         }
 
         @Test
@@ -86,7 +78,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithContainedRange() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(11, 21)))
+            assertThat(ringRange.computeDifference(createRange(11, 21)))
                     .satisfiesExactly(
                             range -> checkRange(range, 9, 10, hashingAlgorithm),
                             range -> checkRange(range, 22, 66, hashingAlgorithm)
@@ -95,7 +87,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceContainedRangeLeftBorder() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(9, 55)))
+            assertThat(ringRange.computeDifference(createRange(9, 55)))
                     .satisfiesExactly(
                             range -> checkRange(range, 56, 66, hashingAlgorithm)
                     );
@@ -103,7 +95,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceContainedRangeRightBorder() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(50, 66)))
+            assertThat(ringRange.computeDifference(createRange(50, 66)))
                     .satisfiesExactly(
                             range -> checkRange(range, 9, 49, hashingAlgorithm)
                     );
@@ -111,7 +103,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(50, 3)))
+            assertThat(ringRange.computeDifference(createRange(50, 3)))
                     .satisfiesExactly(
                             range -> checkRange(range, 9, 49, hashingAlgorithm)
                     );
@@ -119,13 +111,13 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceCompleteOverlapRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(9, 70)))
+            assertThat(ringRange.computeDifference(createRange(9, 70)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceOverlapLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(90, 15)))
+            assertThat(ringRange.computeDifference(createRange(90, 15)))
                     .satisfiesExactly(
                             range -> checkRange(range, 16, 66, hashingAlgorithm)
                     );
@@ -133,13 +125,13 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceCompleteOverlapLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(3, 66)))
+            assertThat(ringRange.computeDifference(createRange(3, 66)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceOverlapLeftAndRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(44, 21)))
+            assertThat(ringRange.computeDifference(createRange(44, 21)))
                     .satisfiesExactly(
                             range -> checkRange(range, 22, 43, hashingAlgorithm)
                     );
@@ -147,7 +139,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightBorderRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(66, 21)))
+            assertThat(ringRange.computeDifference(createRange(66, 21)))
                     .satisfiesExactly(
                             range -> checkRange(range, 22, 65, hashingAlgorithm)
                     );
@@ -155,7 +147,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightBorderLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(44, 9)))
+            assertThat(ringRange.computeDifference(createRange(44, 9)))
                     .satisfiesExactly(
                             range -> checkRange(range, 10, 43, hashingAlgorithm)
                     );
@@ -163,7 +155,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithSingularRangeBorderLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(9, 9)))
+            assertThat(ringRange.computeDifference(createRange(9, 9)))
                     .satisfiesExactly(
                             range -> checkRange(range, 10, 66, hashingAlgorithm)
                     );
@@ -171,7 +163,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithSingularRangeBorderRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(66, 66)))
+            assertThat(ringRange.computeDifference(createRange(66, 66)))
                     .satisfiesExactly(
                             range -> checkRange(range, 9, 65, hashingAlgorithm)
                     );
@@ -179,64 +171,59 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceNoOverlap() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(70, 90)))
+            assertThat(ringRange.computeDifference(createRange(70, 90)))
                     .singleElement()
                     .isEqualTo(ringRange);
         }
 
         @Test
         void computesDifferenceWithBeingContained() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(5, 70)))
+            assertThat(ringRange.computeDifference(createRange(5, 70)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceWithSameRange() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(9, 66)))
+            assertThat(ringRange.computeDifference(createRange(9, 66)))
                     .isEmpty();
         }
 
         @Test
         void containsRangeNotBordered() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(10, 60)))
+            assertThat(ringRange.contains(createRange(10, 60)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedLeft() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(9, 60)))
+            assertThat(ringRange.contains(createRange(9, 60)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(11, 66)))
+            assertThat(ringRange.contains(createRange(11, 66)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedLeftAndRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(9, 66)))
+            assertThat(ringRange.contains(createRange(9, 66)))
                     .isTrue();
         }
 
         @Test
         void doesNotContainRangeOverflowingLeft() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(3, 60)))
+            assertThat(ringRange.contains(createRange(3, 60)))
                     .isFalse();
         }
 
         @Test
         void doesNotContainRangeOverflowingRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(9, 70)))
+            assertThat(ringRange.contains(createRange(9, 70)))
                     .isFalse();
         }
 
-    }
-
-    @BeforeEach
-    void setupFactory() {
-        rangeFactory = new RingRangeFactory();
     }
 
     @BeforeEach
@@ -250,7 +237,7 @@ class RingRangeImplTest {
 
         @BeforeEach
         void createRingRange() {
-            ringRange = rangeFactory.createInstance(77, 11);
+            ringRange = createRange(77, 11);
         }
 
         @Test
@@ -294,7 +281,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithContainedRange() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(90, 3)))
+            assertThat(ringRange.computeDifference(createRange(90, 3)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 89, hashingAlgorithm),
                             range -> checkRange(range, 4, 11, hashingAlgorithm)
@@ -303,7 +290,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithContainedRangeEndOnMax() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(90, 100)))
+            assertThat(ringRange.computeDifference(createRange(90, 100)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 89, hashingAlgorithm),
                             range -> checkRange(range, 0, 11, hashingAlgorithm)
@@ -312,7 +299,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithContainedRangeStartOnMin() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(0, 3)))
+            assertThat(ringRange.computeDifference(createRange(0, 3)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 100, hashingAlgorithm),
                             range -> checkRange(range, 4, 11, hashingAlgorithm)
@@ -321,7 +308,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceContainedRangeLeftBorder() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(77, 90)))
+            assertThat(ringRange.computeDifference(createRange(77, 90)))
                     .satisfiesExactly(
                             range -> checkRange(range, 91, 11, hashingAlgorithm)
                     );
@@ -329,7 +316,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceContainedRangeRightBorder() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(95, 11)))
+            assertThat(ringRange.computeDifference(createRange(95, 11)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 94, hashingAlgorithm)
                     );
@@ -337,7 +324,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(95, 15)))
+            assertThat(ringRange.computeDifference(createRange(95, 15)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 94, hashingAlgorithm)
                     );
@@ -345,7 +332,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapRightStartOnMin() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(0, 15)))
+            assertThat(ringRange.computeDifference(createRange(0, 15)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 100, hashingAlgorithm)
                     );
@@ -353,13 +340,13 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceCompleteOverlapRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(77, 15)))
+            assertThat(ringRange.computeDifference(createRange(77, 15)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceOverlapLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(50, 85)))
+            assertThat(ringRange.computeDifference(createRange(50, 85)))
                     .satisfiesExactly(
                             range -> checkRange(range, 86, 11, hashingAlgorithm)
                     );
@@ -367,7 +354,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftEndOnMax() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(50, 100)))
+            assertThat(ringRange.computeDifference(createRange(50, 100)))
                     .satisfiesExactly(
                             range -> checkRange(range, 0, 11, hashingAlgorithm)
                     );
@@ -375,13 +362,13 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceCompleteOverlapLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(70, 11)))
+            assertThat(ringRange.computeDifference(createRange(70, 11)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceOverlapLeftAndRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(95, 80)))
+            assertThat(ringRange.computeDifference(createRange(95, 80)))
                     .satisfiesExactly(
                             range -> checkRange(range, 81, 94, hashingAlgorithm)
                     );
@@ -389,7 +376,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightStartOnMin() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(0, 80)))
+            assertThat(ringRange.computeDifference(createRange(0, 80)))
                     .satisfiesExactly(
                             range -> checkRange(range, 81, 100, hashingAlgorithm)
                     );
@@ -397,7 +384,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightEndOnMax() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(5, 100)))
+            assertThat(ringRange.computeDifference(createRange(5, 100)))
                     .satisfiesExactly(
                             range -> checkRange(range, 0, 4, hashingAlgorithm)
                     );
@@ -405,7 +392,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightBorderRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(11, 80)))
+            assertThat(ringRange.computeDifference(createRange(11, 80)))
                     .satisfiesExactly(
                             range -> checkRange(range, 81, 10, hashingAlgorithm)
                     );
@@ -413,7 +400,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceOverlapLeftAndRightBorderLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(8, 77)))
+            assertThat(ringRange.computeDifference(createRange(8, 77)))
                     .satisfiesExactly(
                             range -> checkRange(range, 78, 7, hashingAlgorithm)
                     );
@@ -421,43 +408,43 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithBeingContained() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(70, 20)))
+            assertThat(ringRange.computeDifference(createRange(70, 20)))
                     .isEmpty();
         }
 
         @Test
         void computesDifferenceWithSameRange() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(77, 11)))
+            assertThat(ringRange.computeDifference(createRange(77, 11)))
                     .isEmpty();
         }
 
         @Test
         void containsRangeNotBordered() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(80, 5)))
+            assertThat(ringRange.contains(createRange(80, 5)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedLeft() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(77, 8)))
+            assertThat(ringRange.contains(createRange(77, 8)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(81, 11)))
+            assertThat(ringRange.contains(createRange(81, 11)))
                     .isTrue();
         }
 
         @Test
         void containsRangeBorderedLeftAndRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(77, 11)))
+            assertThat(ringRange.contains(createRange(77, 11)))
                     .isTrue();
         }
 
         @Test
         void computesDifferenceWithSingularRangeBorderLeft() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(77, 77)))
+            assertThat(ringRange.computeDifference(createRange(77, 77)))
                     .satisfiesExactly(
                             range -> checkRange(range, 78, 11, hashingAlgorithm)
                     );
@@ -465,7 +452,7 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceWithSingularRangeBorderRight() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(11, 11)))
+            assertThat(ringRange.computeDifference(createRange(11, 11)))
                     .satisfiesExactly(
                             range -> checkRange(range, 77, 10, hashingAlgorithm)
                     );
@@ -473,20 +460,20 @@ class RingRangeImplTest {
 
         @Test
         void computesDifferenceNoOverlap() {
-            assertThat(ringRange.computeDifference(rangeFactory.createInstance(20, 50)))
+            assertThat(ringRange.computeDifference(createRange(20, 50)))
                     .singleElement()
                     .isEqualTo(ringRange);
         }
 
         @Test
         void doesNotContainRangeOverflowingLeft() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(90, 15)))
+            assertThat(ringRange.contains(createRange(90, 15)))
                     .isFalse();
         }
 
         @Test
         void doesNotContainRangeOverflowingRight() {
-            assertThat(ringRange.contains(rangeFactory.createInstance(60, 3)))
+            assertThat(ringRange.contains(createRange(60, 3)))
                     .isFalse();
         }
 
