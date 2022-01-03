@@ -3,6 +3,7 @@ package de.tum.i13.server.kv;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.state.ServerState;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.hashing.PrecedingResponsibilityHashRing;
@@ -99,7 +100,7 @@ class TestKVCommandProcessor {
     }
 
     @Test
-    void respondsToHeartbeatFromEcs() throws PutException {
+    void respondsToHeartbeatFromEcs() {
 
         PersistentStorage kv = mock(PersistentStorage.class);
         KVCommandProcessor kvcp = new KVCommandProcessor(kv, state, new ServerCommunicator(null));
@@ -205,7 +206,10 @@ class TestKVCommandProcessor {
     }
 
     @Test
-    void getsKeyRange() throws GetException {
+    void getsKeyRange() {
+        when(hashingAlgorithm.getMax())
+                .thenReturn(Constants.MD5_HASH_MAX_VALUE);
+
 
         PersistentStorage kv = mock(PersistentStorage.class);
         state.start();

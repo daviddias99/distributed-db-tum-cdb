@@ -8,6 +8,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 
+import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHex;
+
 /**
  * A standard implementation of a {@link RingRange}
  */
@@ -27,9 +29,25 @@ class RingRangeImpl implements RingRange {
      * @param hashingAlgorithm the {@link HashingAlgorithm} associated with the {@link RingRange}
      */
     RingRangeImpl(BigInteger startInclusive, BigInteger endInclusive, HashingAlgorithm hashingAlgorithm) {
+        Preconditions.notNull(startInclusive, "The start must not be null");
+        Preconditions.notNull(endInclusive, "The end must not be null");
+        Preconditions.notNull(hashingAlgorithm, "The hashing algorithm must not be null");
+
+        this.hashingAlgorithm = hashingAlgorithm;
+
+        checkInBounds(startInclusive, "start");
+        checkInBounds(endInclusive, "end");
+
         this.startInclusive = startInclusive;
         this.endInclusive = endInclusive;
-        this.hashingAlgorithm = hashingAlgorithm;
+    }
+
+    private void checkInBounds(BigInteger value, String parameterName) {
+        Preconditions.check(value.compareTo(BigInteger.ZERO) >= 0,
+                () -> String.format("The %s %s must be greater or equal to 0", parameterName, convertHashToHex(value)));
+        Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
+                () -> String.format("The %s %s must be less or equal to the max %s", parameterName,
+                        convertHashToHex(value), convertHashToHex(hashingAlgorithm.getMax())));
     }
 
     @Override
@@ -75,10 +93,8 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public boolean contains(BigInteger value) {
-        LOGGER.debug("Checking presence of value {} in {}", value, this);
-        Preconditions.check(value.compareTo(hashingAlgorithm.getMax()) <= 0,
-                () -> String.format("The value %s must not exceed the maximum possible value %s",
-                        value, hashingAlgorithm.getMax()));
+        LOGGER.debug("Checking presence of value {} in {}", () -> convertHashToHex(value), () -> this);
+        checkInBounds(value, "value");
         return wrapsAround() && (startInclusive.compareTo(value) <= 0 || value.compareTo(endInclusive) <= 0)
                 || startInclusive.compareTo(value) <= 0 && value.compareTo(endInclusive) <= 0;
     }
@@ -86,33 +102,37 @@ class RingRangeImpl implements RingRange {
     @Override
     public List<RingRange> computeDifference(RingRange ringRange) {
         LOGGER.debug("Computing the difference of {} without {}", this, ringRange);
-        Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()), "Ranges have to use same " +
-                "hashing algorithm");
+        Preconditions.check(hashingAlgorithm.equals(ringRange.getHashingAlgorithm()),
+                String.format("Ranges %s and %s have to use the same hashing algorithm", this, ringRange));
 
-        if (equals(ringRange)) return List.of();
+        if (coversWholeRing(ringRange) || ringRange.contains(this)) return List.of();
         else if (contains(ringRange)) return computeDifferenceContainedRange(ringRange);
         else if (overlapsLeftAndRight(ringRange)) return computeDifferenceOverlapLeftAndRight(ringRange);
         else if (contains(ringRange.getStart())) return computeDifferenceOverlapRight(ringRange);
         else if (contains(ringRange.getEnd())) return computeDifferenceOverlapLeft(ringRange);
-        else return computerDifferenceNoOverlapOrContainment(ringRange);
+        else return computeDifferenceNoOverlap(ringRange);
     }
 
-    private List<RingRange> computerDifferenceNoOverlapOrContainment(RingRange ringRange) {
-        LOGGER.trace("{} does not overlap with or is being contained by {}", this, ringRange);
-        return List.of();
+    private boolean coversWholeRing(RingRange ringRange) {
+        return decrement(ringRange.getStart()).equals(ringRange.getEnd());
+    }
+
+    private List<RingRange> computeDifferenceNoOverlap(RingRange ringRange) {
+        LOGGER.trace("{} does not overlap at all with {}", this, ringRange);
+        return List.of(this);
     }
 
     private List<RingRange> computeDifferenceOverlapLeft(RingRange ringRange) {
         LOGGER.trace("{} overlaps on the left with {}", this, ringRange);
         return List.of(
-                new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+                new RingRangeImpl(increment(ringRange.getEnd()), endInclusive, hashingAlgorithm)
         );
     }
 
     private List<RingRange> computeDifferenceOverlapRight(RingRange ringRange) {
         LOGGER.trace("{} overlaps on the right with {}", this, ringRange);
         return List.of(
-                new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE), hashingAlgorithm)
+                new RingRangeImpl(startInclusive, decrement(ringRange.getStart()), hashingAlgorithm)
         );
     }
 
@@ -120,8 +140,8 @@ class RingRangeImpl implements RingRange {
         LOGGER.trace("{} overlaps on the left and right with {}", this, ringRange);
         return List.of(
                 new RingRangeImpl(
-                        ringRange.getEnd().add(BigInteger.ONE),
-                        ringRange.getStart().subtract(BigInteger.ONE),
+                        increment(ringRange.getEnd()),
+                        decrement(ringRange.getStart()),
                         hashingAlgorithm
                 ));
     }
@@ -134,14 +154,25 @@ class RingRangeImpl implements RingRange {
             return computeDifferenceOverlapRight(ringRange);
         } else {
             return List.of(
-                    new RingRangeImpl(startInclusive, ringRange.getStart().subtract(BigInteger.ONE),
+                    new RingRangeImpl(startInclusive, decrement(ringRange.getStart()),
                             hashingAlgorithm),
-                    new RingRangeImpl(ringRange.getEnd().add(BigInteger.ONE), endInclusive, hashingAlgorithm)
+                    new RingRangeImpl(increment(ringRange.getEnd()), endInclusive, hashingAlgorithm)
             );
         }
     }
 
-    private boolean contains(RingRange ringRange) {
+    private BigInteger decrement(BigInteger value) {
+        if (value.equals(BigInteger.ZERO)) return hashingAlgorithm.getMax();
+        else return value.subtract(BigInteger.ONE);
+    }
+
+    private BigInteger increment(BigInteger value) {
+        if (value.equals(hashingAlgorithm.getMax())) return BigInteger.ZERO;
+        else return value.add(BigInteger.ONE);
+    }
+
+    @Override
+    public boolean contains(RingRange ringRange) {
         return contains(ringRange.getStart()) && contains(ringRange.getEnd())
                 && indexOf(ringRange.getStart()).compareTo(indexOf(ringRange.getEnd())) <= 0;
     }
@@ -153,7 +184,7 @@ class RingRangeImpl implements RingRange {
 
     private BigInteger indexOf(BigInteger value) {
         Preconditions.check(contains(value), () -> String.format("The value %s must be contained in the range %s",
-                value, this));
+                convertHashToHex(value), this));
         if (wrapsAround() && value.compareTo(endInclusive) <= 0) {
             return hashingAlgorithm.getMax()
                     .subtract(startInclusive)
@@ -180,7 +211,11 @@ class RingRangeImpl implements RingRange {
 
     @Override
     public String toString() {
-        return String.format("RingRangeImpl{%s,%s}", startInclusive, endInclusive);
+        return String.format(
+                "RingRangeImpl{%s,%s}",
+                convertHashToHex(startInclusive),
+                convertHashToHex(endInclusive)
+        );
     }
 
 }
