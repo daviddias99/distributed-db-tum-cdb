@@ -1,13 +1,23 @@
 package de.tum.i13.server.state;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 
 /**
  * Class that represents the server's state. It contains the actual state, the
  * ring metadata and the location of the ECS.
  */
 public class ServerState {
+  private static final Logger LOGGER = LogManager.getLogger(ServerState.class);
 
   /**
    * Enum that represents the server's state
@@ -35,6 +45,8 @@ public class ServerState {
   private NetworkLocation curNetworkLocation;
   private NetworkLocation ecsLocation;
   private boolean isShuttingDown;
+  private List<String> nodesToDelete = new LinkedList<>();
+  private ReplicationOrchestrator replicationOrchestrator;
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
@@ -43,18 +55,17 @@ public class ServerState {
    * @param ecsLocation        location of the ecs
    */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
-    this(curNetworkLocation, ecsLocation, State.STOPPED);
+    this(curNetworkLocation, ecsLocation, null);
   }
 
   /**
-   * Creates a new server state, intialized with the given state.
+   * Create a new server state. The server is started in a STOPPED state.
    * 
    * @param curNetworkLocation location of the current server
    * @param ecsLocation        location of the ecs
-   * @param startState         starting state
    */
-  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, State startState) {
-    this(curNetworkLocation, ecsLocation, null, startState);
+  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ReplicationOrchestrator replicationOrchestrator) {
+    this(curNetworkLocation, ecsLocation, null, State.STOPPED, replicationOrchestrator);
   }
 
   /**
@@ -66,12 +77,13 @@ public class ServerState {
    * @param startState         starting state
    */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata,
-      State startState) {
+      State startState, ReplicationOrchestrator replicationOrchestrator) {
     this.currentState = startState;
     this.setRingMetadata(ringMetadata);
     this.curNetworkLocation = curNetworkLocation;
     this.ecsLocation = ecsLocation;
     this.isShuttingDown = false;
+    this.replicationOrchestrator = replicationOrchestrator;
   }
 
   /**
@@ -209,5 +221,37 @@ public class ServerState {
 
   private synchronized void setState(State state) {
     this.currentState = state;
+  }
+
+  public synchronized void executeStoredDeletes(PersistentStorage storage) {
+    for (String key : nodesToDelete) {
+      try {
+        LOGGER.info("Trying to delete item with key {}.", key);
+        storage.put(key, null);
+      } catch (PutException e) {
+        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+      }
+    }
+    nodesToDelete = new LinkedList<>();
+  }
+
+  public synchronized List<String> getDeleteQueue() {
+    return this.nodesToDelete;
+  }
+
+  public synchronized void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {
+    if (this.replicationOrchestrator == null) {
+      return;
+    }
+    
+    this.replicationOrchestrator.handleKeyRangeChange(oldMetadata, newMetadata);
+  }
+
+  public synchronized void deleteReplicatedRanges() {
+    if (this.replicationOrchestrator == null) {
+      return;
+    }
+    
+    this.replicationOrchestrator.deleteReplicatedRangesWithoutUpdate();
   }
 }

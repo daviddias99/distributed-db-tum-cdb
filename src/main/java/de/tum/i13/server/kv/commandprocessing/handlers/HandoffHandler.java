@@ -10,6 +10,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -32,6 +33,7 @@ public class HandoffHandler implements Runnable {
   private boolean async;
   private boolean isShutdown;
   private List<String> nodesToDelete;
+  private ServerState state;
 
   /**
    * Create a new handoff handler
@@ -42,27 +44,16 @@ public class HandoffHandler implements Runnable {
    * @param storage current server storage
    */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage, boolean async, List<String> nodesToDelete) {
+      PersistentStorage storage, boolean async, ServerState state) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
     this.async = async;
-    this.nodesToDelete = nodesToDelete;  
-    this.isShutdown = false;
-  }
-
-  public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage, boolean async, List<String> nodesToDelete, boolean isShutdown) {
-    this.storage = storage;
-    this.peer = peer;
-    this.ecs = ecs;
-    this.lowerBound = lowerBound;
-    this.upperBound = upperBound;
-    this.async = async;
-    this.nodesToDelete = nodesToDelete;  
-    this.isShutdown = true;
+    this.state = state;
+    this.nodesToDelete = state.getDeleteQueue(); 
+    this.isShutdown = state.isShutdown();
   }
 
   @Override
@@ -108,14 +99,8 @@ public class HandoffHandler implements Runnable {
 
     // Delete items after sending (only sucessful ones)
     if(this.isShutdown) {
-      for (String key : nodesToDelete) {
-        try {
-          LOGGER.info("Trying to delete item with key {}.", key);
-          storage.put(key, null);
-        } catch (PutException e) {
-          LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
-        }
-      }
+      this.state.executeStoredDeletes(storage);
+      this.state.deleteReplicatedRanges();
     }
 
     if(this.async) {

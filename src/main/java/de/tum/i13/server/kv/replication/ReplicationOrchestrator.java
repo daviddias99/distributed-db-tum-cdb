@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import de.tum.i13.server.kv.commandprocessing.handlers.AsyncDeleteHandler;
 import de.tum.i13.server.kv.commandprocessing.handlers.BulkReplicationHandler;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.RingRange;
@@ -22,13 +21,13 @@ public class ReplicationOrchestrator {
 
   private static final Logger LOGGER = LogManager.getLogger(ReplicationOrchestrator.class);
 
-  private final ServerState serverState;
+  private final NetworkLocation curNetworkLocation;
   private final PersistentStorage storage;
   private ConsistentHashRing oldRing;
   private ConsistentHashRing newRing;
 
-  public ReplicationOrchestrator(ServerState serverState, PersistentStorage storage) {
-    this.serverState = serverState;
+  public ReplicationOrchestrator(NetworkLocation curNetworkLocation, PersistentStorage storage) {
+    this.curNetworkLocation = curNetworkLocation;
     this.storage = storage;
   }
 
@@ -56,8 +55,18 @@ public class ReplicationOrchestrator {
 
   private void deleteReplicatedRanges() {
     LOGGER.info("Deleting all replicated ranges");
-    RingRange readRange = oldRing.getReadRange(serverState.getCurNetworkLocation());
-    RingRange writeRange = newRing.getWriteRange(serverState.getCurNetworkLocation());
+    RingRange readRange = oldRing.getReadRange(curNetworkLocation);
+    RingRange writeRange = newRing.getWriteRange(curNetworkLocation);
+    LOGGER.info("Replicated ranges {} - {}", readRange, writeRange);
+
+    List<RingRange> replicationRanges = readRange.computeDifference(writeRange);
+    this.deleteRanges(this.splitWrapping(replicationRanges));
+  }
+
+  public void deleteReplicatedRangesWithoutUpdate() {
+    LOGGER.info("Deleting all replicated ranges");
+    RingRange readRange = newRing.getReadRange(curNetworkLocation);
+    RingRange writeRange = newRing.getWriteRange(curNetworkLocation);
     LOGGER.info("Replicated ranges {} - {}", readRange, writeRange);
 
     List<RingRange> replicationRanges = readRange.computeDifference(writeRange);
@@ -66,8 +75,8 @@ public class ReplicationOrchestrator {
 
   private void deleteStaleRanges() {
     LOGGER.info("Deleting stale ranges");
-    RingRange newReadRange = newRing.getReadRange(serverState.getCurNetworkLocation());
-    RingRange oldReadRange = oldRing.getReadRange(serverState.getCurNetworkLocation());
+    RingRange newReadRange = newRing.getReadRange(curNetworkLocation);
+    RingRange oldReadRange = oldRing.getReadRange(curNetworkLocation);
     LOGGER.info("Stale ranges {} - {}", oldReadRange, newReadRange);
 
     List<RingRange> staleReplicationRanges = oldReadRange.computeDifference(newReadRange);
@@ -115,8 +124,8 @@ public class ReplicationOrchestrator {
 
   private void updateSuccessorReplication(NetworkLocation peer) {
     LOGGER.info("Updating {} replication.", peer);
-    RingRange newWriteRange = newRing.getWriteRange(serverState.getCurNetworkLocation());
-    RingRange oldWriteRange = oldRing.getWriteRange(serverState.getCurNetworkLocation());
+    RingRange newWriteRange = newRing.getWriteRange(curNetworkLocation);
+    RingRange oldWriteRange = oldRing.getWriteRange(curNetworkLocation);
 
     List<RingRange> newRangeToReplicate = this.splitWrapping(oldWriteRange.computeDifference(newWriteRange));
 
@@ -146,16 +155,17 @@ public class ReplicationOrchestrator {
 
     // If no more replication, delete all chunks in read range
     if (!newRing.isReplicationActive()) {
-      if(oldRing.isReplicationActive()) 
+      if (oldRing.isReplicationActive())
         this.deleteReplicatedRanges();
       return;
     }
 
     int oldReplicatorCount = Math.min(Constants.NUMBER_OF_REPLICAS, oldRing.size() - 1);
     int newReplicatorCount = Math.min(Constants.NUMBER_OF_REPLICAS, newRing.size() - 1);
-    NetworkLocation currentLocation = this.serverState.getCurNetworkLocation();
-    List<NetworkLocation> oldReplicators = oldRing.getSucceedingNetworkLocations(currentLocation, oldReplicatorCount);
-    List<NetworkLocation> newReplicators = newRing.getSucceedingNetworkLocations(currentLocation, newReplicatorCount);
+    List<NetworkLocation> oldReplicators = oldRing.getSucceedingNetworkLocations(curNetworkLocation,
+        oldReplicatorCount);
+    List<NetworkLocation> newReplicators = newRing.getSucceedingNetworkLocations(curNetworkLocation,
+        newReplicatorCount);
 
     // Replicate whole range to new successors (if any)
     List<NetworkLocation> newSuccessors = oldRing.isReplicationActive() ? newReplicators
@@ -163,12 +173,12 @@ public class ReplicationOrchestrator {
         .filter(replicator -> !oldReplicators.contains(replicator))
         .collect(Collectors.toList()) : newReplicators;
 
-    this.replicateToNewSuccessors(newSuccessors, newRing.getWriteRange(currentLocation));
+    this.replicateToNewSuccessors(newSuccessors, newRing.getWriteRange(curNetworkLocation));
 
     // If old replicator, update only with new range
     if (oldReplicatorCount > 0 && oldRing.isReplicationActive()) {
       for (int i = Constants.NUMBER_OF_REPLICAS - 1; i < newReplicators.size(); i++) {
-        if(oldReplicators.contains(newReplicators.get(i))) {
+        if (oldReplicators.contains(newReplicators.get(i))) {
           this.updateSuccessorReplication(newReplicators.get(i));
         }
       }
