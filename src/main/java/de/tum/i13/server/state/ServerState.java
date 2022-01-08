@@ -1,16 +1,15 @@
 package de.tum.i13.server.state;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Class that represents the server's state. It contains the actual state, the
@@ -134,28 +133,28 @@ public class ServerState {
   /**
    * Set the server state to stopped
    */
-  public void stop() {
+  public synchronized void stop() {
     this.setState(State.STOPPED);
   }
 
   /**
    * Write lock the server
    */
-  public void writeLock() {
+  public synchronized void writeLock() {
     this.setState(State.WRITE_LOCK);
   }
 
   /**
    * Set the server to shutdown mode
    */
-  public void shutdown() {
+  public synchronized void shutdown() {
     this.isShuttingDown = true;
   }
 
   /**
    * Set the server to active mode
    */
-  public void start() {
+  public synchronized void start() {
     this.setState(State.ACTIVE);
   }
 
@@ -164,7 +163,7 @@ public class ServerState {
    * 
    * @return network location of the ECS
    */
-  public NetworkLocation getEcsLocation() {
+  public synchronized NetworkLocation getEcsLocation() {
     return ecsLocation;
   }
 
@@ -173,7 +172,7 @@ public class ServerState {
    * 
    * @return network location of the current node
    */
-  public NetworkLocation getCurNetworkLocation() {
+  public synchronized NetworkLocation getCurNetworkLocation() {
     return curNetworkLocation;
   }
 
