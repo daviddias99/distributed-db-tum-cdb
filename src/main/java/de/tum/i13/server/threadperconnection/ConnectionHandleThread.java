@@ -47,7 +47,7 @@ public class ConnectionHandleThread implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Handling connection to {} in new thread", serverAddress);
+        LOGGER.info("Handling connection to {} in new thread", clientSocket);
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
@@ -57,7 +57,7 @@ public class ConnectionHandleThread implements Runnable {
             ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
             // Send a confirmation message to peer upon connection if he needs the greet
 
-            LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
+            LOGGER.info("Sending greet to peer");
 
             String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                     (InetSocketAddress) clientSocket.getRemoteSocketAddress());
@@ -69,14 +69,13 @@ public class ConnectionHandleThread implements Runnable {
                 String response = cp.process(firstLine);
 
                 if (!response.startsWith("server_heart_beat")) {
-                    LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(),
-                            firstLine, response);
+                    LOGGER.info("Peer message exchange in: {} out: {}", firstLine, response);
                 }
 
                 activeConnection.send(response);
             }
 
-            LOGGER.info("({}) Closing connection", Thread.currentThread().getName());
+            LOGGER.info("Closing connection");
             activeConnection.close();
             connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
