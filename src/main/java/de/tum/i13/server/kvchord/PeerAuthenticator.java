@@ -1,4 +1,4 @@
-package de.tum.i13.server.kv;
+package de.tum.i13.server.kvchord;
 
 /**
  * A peer authenticator is used to translate a {@link KVMessage.StatusType} to a
@@ -114,16 +114,6 @@ public class PeerAuthenticator {
         return PeerType.SERVER;
       case SERVER_HEART_BEAT:
         return PeerType.SERVER;
-      case ECS_WRITE_LOCK:
-        return PeerType.ECS;
-      case ECS_WRITE_UNLOCK:
-        return PeerType.ECS;
-      case ECS_HANDOFF:
-        return PeerType.ECS;
-      case ECS_SET_KEYRANGE:
-        return PeerType.ECS;
-      case ECS_HEART_BEAT:
-        return PeerType.ECS;
       case KEYRANGE:
         return PeerType.CLIENT;
       case KEYRANGE_SUCCESS:
