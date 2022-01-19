@@ -68,4 +68,24 @@ public class ChordMessaging {
         LOGGER.debug("Closest preceeding of {} is {}", key, result);
         return result;
     }
+
+    public NetworkLocation getPredecessor(NetworkLocation peer) {
+
+        LOGGER.debug("Asking {} for it's predecessor (getPredecessor)", peer);
+        KVMessage outgoingMessage = new KVMessageImpl(KVMessage.StatusType.CHORD_GET_PREDECESSOR);
+        KVMessage response = this.connectSendAndReceive(peer, outgoingMessage, KVMessage.StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
+        NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getKey());
+
+        LOGGER.debug("Perceived predecessor of {} is {}", peer, result);
+
+        return result;
+    }
+
+    public void notify(NetworkLocation peer) {
+        LOGGER.debug("Notifying {} (notify", peer);
+        KVMessage outgoingMessage = new KVMessageImpl(chordInstance.getLocation().toString(), KVMessage.StatusType.CHORD_NOTIFY);
+        
+        // TODO: do something if it fails
+        this.connectSendAndReceive(peer, outgoingMessage, KVMessage.StatusType.CHORD_NOTIFY_ACK);
+    }
 }

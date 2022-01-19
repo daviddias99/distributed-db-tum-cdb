@@ -159,6 +159,10 @@ public interface KVMessage {
         CHORD_CLOSEST_PRECEDING_FINGER(true, false),
 
         CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE(true, true),
+        CHORD_GET_PREDECESSOR(false, false),
+        CHORD_GET_PREDECESSOR_RESPONSE(true, false),
+        CHORD_NOTIFY(true, false),
+        CHORD_NOTIFY_ACK(false, false);
         ;
 
         private final boolean needsKey;
