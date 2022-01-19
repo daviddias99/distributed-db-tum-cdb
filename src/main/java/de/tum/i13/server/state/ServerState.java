@@ -45,6 +45,16 @@ public class ServerState {
    * @param curNetworkLocation location of the current server
    * @param ecsLocation location of the ecs
    */
+  public ServerState(NetworkLocation curNetworkLocation) {
+    this(curNetworkLocation, null,  State.STOPPED);
+  }
+
+
+  /**
+   * Create a new server state. The server is started in a STOPPED state.
+   * @param curNetworkLocation location of the current server
+   * @param ecsLocation location of the ecs
+   */
   public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
     this(curNetworkLocation, ecsLocation, State.STOPPED);
   }

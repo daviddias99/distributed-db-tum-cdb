@@ -37,7 +37,7 @@ public class Config {
      */
     @CommandLine.Option(names = "-b", description = "bootstrap broker where clients and other brokers connect first to retrieve configuration, "
             +
-            "port and ip, e.g., 192.168.1.1:5153. Default: ${DEFAULT-VALUE}", defaultValue = "clouddatabases.i13.in.tum.de:5153")
+            "port and ip, e.g., 192.168.1.1:5153. Default: ${DEFAULT-VALUE}")
     public InetSocketAddress bootstrap;
 
     /**

@@ -162,7 +162,9 @@ public interface KVMessage {
         CHORD_GET_PREDECESSOR(false, false),
         CHORD_GET_PREDECESSOR_RESPONSE(true, false),
         CHORD_NOTIFY(true, false),
-        CHORD_NOTIFY_ACK(false, false);
+        CHORD_NOTIFY_ACK(false, false),
+        CHORD_GET_STATE_STR(false, false),
+        CHORD_GET_STATE_STR_RESPONSE(true, false)
         ;
 
         private final boolean needsKey;

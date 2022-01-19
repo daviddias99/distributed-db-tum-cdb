@@ -1,11 +1,13 @@
-package de.tum.i13.server.kv.commandprocessing;
+package de.tum.i13.server.kvchord.commandprocessing;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
-import de.tum.i13.server.net.ServerCommunicator;
+import de.tum.i13.server.kv.commandprocessing.KVClientCommandProcessor;
+import de.tum.i13.server.kv.commandprocessing.KVServerCommandProcessor;
+import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
@@ -26,24 +28,11 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     private ServerState serverState;
     private List<CommandProcessor<KVMessage>> processors;
 
-    /**
-     * Create a new KVMessage command processor
-     * @param storage server storage
-     * @param serverState server state
-     * @param ecsCommunicator ECS communication interface
-     */
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
+    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, Chord chord) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
                 new KVServerCommandProcessor(storage),
-                new KVEcsCommandProcessor(storage, serverState, ecsCommunicator, false),
-                new KVClientCommandProcessor(storage, serverState));
-    }
-
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState) {
-        this.serverState = serverState;
-        this.processors = Arrays.asList(
-                new KVServerCommandProcessor(storage),
+                new KVChordCommandProcessor(chord),
                 new KVClientCommandProcessor(storage, serverState));
     }
 

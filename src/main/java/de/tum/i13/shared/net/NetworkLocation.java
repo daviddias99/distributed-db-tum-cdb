@@ -35,4 +35,8 @@ public interface NetworkLocation {
 
         return new NetworkLocationImpl(address, Integer.parseInt(port));
     }
+
+    static String toPackedString(NetworkLocation location) {
+        return String.format("%s:%s", location.getAddress(), location.getPort());
+    }
 }

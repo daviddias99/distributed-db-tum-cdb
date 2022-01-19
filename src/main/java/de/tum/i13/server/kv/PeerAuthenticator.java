@@ -128,6 +128,16 @@ public class PeerAuthenticator {
         return PeerType.CLIENT;
       case KEYRANGE_SUCCESS:
         return PeerType.SERVER;
+      case CHORD_CLOSEST_PRECEDING_FINGER:
+        return PeerType.SERVER;
+      case CHORD_FIND_SUCCESSOR:
+        return PeerType.SERVER;
+      case CHORD_GET_PREDECESSOR:
+        return PeerType.SERVER;
+      case CHORD_NOTIFY:
+        return PeerType.SERVER;
+      case CHORD_GET_STATE_STR:
+        return PeerType.SERVER;
       default:
         return PeerType.ANY;
     }

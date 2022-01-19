@@ -52,7 +52,6 @@ public class Chord {
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation, NetworkLocation bootstrapNode)
             throws ChordException {
         this(hashingAlgorithm, ownLocation);
-        this.predecessor = null;
         NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
                 this.hashingAlgorithm.hash(ownLocation));
 
@@ -115,6 +114,11 @@ public class Chord {
 
     private void stabilize() {
         NetworkLocation successor = this.getSuccessor();
+
+        if(this.getPredecessor().equals(successor)) {
+            return;
+        }
+
         NetworkLocation successorPredecessor = messaging.getPredecessor(successor);
         boolean isBetweenKeys = this.betweenTwoKeys(
                 hashingAlgorithm.hash(ownLocation),
@@ -143,8 +147,8 @@ public class Chord {
         Runnable t2 = this::fixFingers;
 
         // The threads are started with a delay to avoid them running at the same time
-        periodicThreadPool.scheduleAtFixedRate(t1, 0, 1000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleAtFixedRate(t2, 200, 1000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleAtFixedRate(t1, 0, 5000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleAtFixedRate(t2, 200, 5000, TimeUnit.MILLISECONDS);
     }
 
     /* HELPER */
@@ -219,5 +223,31 @@ public class Chord {
         else {
             return !((upperBound.compareTo(key) < 0) && (key.compareTo(lowerBound) < 0));
         }
+    }
+
+    public String getStateStr() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CHORD Instance\n");
+        sb.append(String.format("Own: %s (%s)%n", this.ownLocation, this.hashingAlgorithm.hash(this.ownLocation).toString(16)));
+        sb.append(String.format("Predecessor: %s (%s)%n", this.predecessor, this.hashingAlgorithm.hash(this.predecessor).toString(16)));
+        sb.append("------\n");
+
+        Iterator<Map.Entry<BigInteger, NetworkLocation>> iterator = this.fingerTable.entrySet().iterator();
+        Map.Entry<BigInteger, NetworkLocation> previous = iterator.next();
+
+        sb.append(String.format("%s - %s%n", previous.getKey().toString(16), previous.getValue()));
+
+        while(iterator.hasNext()) {
+            Map.Entry<BigInteger, NetworkLocation> next = iterator.next();
+
+            // if(next.getValue().equals(previous.getValue()))
+            //     continue;
+
+            previous = next;
+            sb.append(String.format("%s - %s (%s) %n", previous.getKey().toString(16), previous.getValue(), hashingAlgorithm.hash(previous.getValue()).toString(16)));
+        }
+
+        sb.append("-----\n");
+        return sb.toString();
     }
 }

@@ -55,5 +55,4 @@ public class NetworkLocationImpl implements NetworkLocation {
     public String toString() {
         return String.format("%s{%s:%s}", NetworkLocationImpl.class.getSimpleName(), getAddress(), getPort());
     }
-
 }

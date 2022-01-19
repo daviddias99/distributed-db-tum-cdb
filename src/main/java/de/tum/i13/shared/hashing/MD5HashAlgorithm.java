@@ -38,7 +38,7 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
 
     @Override
     public BigInteger hash(String string) {
-        LOGGER.info("Hashing the string '{}'", string);
+        LOGGER.trace("Hashing the string '{}'", string);
 
         final byte[] bytes = string.getBytes(Constants.TELNET_ENCODING);
         final byte[] digest = messageDigest.digest(bytes);

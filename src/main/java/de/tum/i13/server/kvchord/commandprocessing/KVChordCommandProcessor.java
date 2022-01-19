@@ -25,6 +25,7 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
       case CHORD_FIND_SUCCESSOR -> this.findSuccessor(command.getKey());
       case CHORD_GET_PREDECESSOR -> this.getPredecessor();
       case CHORD_NOTIFY -> this.notifyChord(command.getKey());
+      case CHORD_GET_STATE_STR -> this.getState();
       default -> null;
     };
   }
@@ -33,20 +34,24 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
     BigInteger keyNumber = new BigInteger(key, 16);
     NetworkLocation cpn = this.chord.closestPrecedingFinger(keyNumber);
 
-    return new KVMessageImpl(key, cpn.toString(), StatusType.CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE);
+    return new KVMessageImpl(key, NetworkLocation.toPackedString(cpn), StatusType.CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE);
   }
   private KVMessage findSuccessor(String key) {
     BigInteger keyNumber = new BigInteger(key, 16);
     NetworkLocation suc = this.chord.findSuccessor(keyNumber);
 
-    return new KVMessageImpl(key, suc.toString(), StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
+    return new KVMessageImpl(key, NetworkLocation.toPackedString(suc), StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
   }
   private KVMessage getPredecessor() {
-    return new KVMessageImpl(this.chord.getPredecessor().toString(), StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
+    return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getPredecessor()), StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
   }
   private KVMessage notifyChord(String peerAddr) {
     NetworkLocation peer = NetworkLocation.extractNetworkLocation(peerAddr);
     this.chord.notifyNode(peer);
     return new KVMessageImpl(StatusType.CHORD_NOTIFY_ACK);
+  }
+  private KVMessage getState() {
+    String state = this.chord.getStateStr();
+    return new KVMessageImpl(state, StatusType.CHORD_GET_STATE_STR_RESPONSE);
   }
 }
