@@ -93,13 +93,13 @@ public class Chord {
         return this.findPredecessor(key)[1];
     }
 
-    NetworkLocation closestPrecedingFinger(BigInteger key) {
+    public NetworkLocation closestPrecedingFinger(BigInteger key) {
         Map.Entry<BigInteger, NetworkLocation> preceding = fingerTable.floorEntry(key);
         return preceding == null ? fingerTable.lastEntry().getValue() : preceding.getValue();
     }
 
 
-    public void notify(NetworkLocation peer) {
+    public void notifyNode(NetworkLocation peer) {
 
         boolean isBetweenKeys = this.betweenTwoKeys(
                 hashingAlgorithm.hash(predecessor),
@@ -127,7 +127,7 @@ public class Chord {
             this.setSuccessor(successorPredecessor);
         }
 
-        messaging.notify(this.getSuccessor());
+        messaging.notifyNode(this.getSuccessor());
     }
 
     private void fixFingers() {

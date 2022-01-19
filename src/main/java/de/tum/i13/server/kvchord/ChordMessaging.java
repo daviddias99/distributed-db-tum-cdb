@@ -81,7 +81,7 @@ public class ChordMessaging {
         return result;
     }
 
-    public void notify(NetworkLocation peer) {
+    public void notifyNode(NetworkLocation peer) {
         LOGGER.debug("Notifying {} (notify", peer);
         KVMessage outgoingMessage = new KVMessageImpl(chordInstance.getLocation().toString(), KVMessage.StatusType.CHORD_NOTIFY);
         
