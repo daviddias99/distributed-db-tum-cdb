@@ -148,8 +148,18 @@ public interface KVMessage {
          * Indicates the return of the key ranges and which KVStores are responsible for
          * the ranges
          */
-        KEYRANGE_SUCCESS(true, false);
-        
+        KEYRANGE_SUCCESS(true, false),
+
+        /* CHORD */
+
+        CHORD_FIND_SUCCESSOR(true, false),
+
+        CHORD_FIND_SUCESSSOR_RESPONSE(true, true),
+
+        CHORD_CLOSEST_PRECEDING_FINGER(true, false),
+
+        CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE(true, true),
+        ;
 
         private final boolean needsKey;
         private final boolean needsValue;

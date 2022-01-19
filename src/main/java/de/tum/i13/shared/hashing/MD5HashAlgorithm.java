@@ -65,4 +65,9 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
         return Objects.hash();
     }
 
+    @Override
+    public int getHashSizeBits() {
+        return  128;
+    }
+
 }

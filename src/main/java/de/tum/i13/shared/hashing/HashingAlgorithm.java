@@ -83,4 +83,5 @@ public interface HashingAlgorithm {
      */
     BigInteger getMax();
 
+    int getHashSizeBits();
 }
