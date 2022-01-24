@@ -1,8 +1,5 @@
 package de.tum.i13.server.kv.commandprocessing;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,7 +12,6 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.shared.persistentstorage.PutException;
 
 /**
  * Command processor for ECS KVMessages
@@ -27,7 +23,6 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private PersistentStorage storage;
   private ServerCommunicator ecsCommunicator;
   private boolean asyncHandoff;
-  private List<String> nodesToDelete = new LinkedList<>();
 
   /**
    * Create a new ECS KVMessage processor
@@ -87,26 +82,20 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
     return new KVMessageImpl(KVMessage.StatusType.SERVER_WRITE_UNLOCK);
   }
 
-  private KVMessage setKeyRange(KVMessage command) {
+  private synchronized KVMessage setKeyRange(KVMessage command) {
     LOGGER.info("Trying set server metadata");
+
+    ConsistentHashRing newMetadata = ConsistentHashRing.unpackMetadata(command.getKey());
+    ConsistentHashRing oldMetadata = this.serverState.getRingMetadata();
     this.serverState.setRingMetadata(ConsistentHashRing.unpackMetadata(command.getKey()));
+    this.serverState.handleKeyRangeChange(oldMetadata, newMetadata);
 
     if (this.serverState.isStopped()) {
       LOGGER.info("Trying to set server state to ACTIVE");
       this.serverState.start();
     }
 
-    (new Thread(() -> {
-      for (String key : nodesToDelete) {
-        try {
-          LOGGER.info("Trying to delete item with key {}.", key);
-          storage.put(key, null);
-        } catch (PutException e) {
-          LOGGER.error("Could not delete item with key {} after keyrange change.", key);
-        }
-      }
-      nodesToDelete = new LinkedList<>();
-    })).start();
+    (new Thread(() -> this.serverState.executeStoredDeletes(storage))).start();
 
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
@@ -125,7 +114,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
     Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage,
-        asyncHandoff, nodesToDelete);
+        asyncHandoff, this.serverState);
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

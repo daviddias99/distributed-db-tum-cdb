@@ -30,6 +30,7 @@ public class KVServerCommandProcessor implements CommandProcessor<KVMessage> {
   public KVMessage process(KVMessage command) {
     return switch (command.getStatus()) {
       case PUT_SERVER -> this.put(command.getKey(), command.getValue());
+      case DELETE_SERVER -> this.put(command.getKey(), null);
       default -> null;
     };
   }
@@ -42,6 +43,8 @@ public class KVServerCommandProcessor implements CommandProcessor<KVMessage> {
    * @return a KVMessage with the status of the put operation
    */
   private KVMessage put(String key, String value) {
+
+    // Think if any check is needed
     try {
       LOGGER.info("Trying to put key: {} and value: {}", key, value);
       return kvStore.put(key, value);

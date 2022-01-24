@@ -1,7 +1,6 @@
 package de.tum.i13.ecs;
 
 import de.tum.i13.server.Config;
-import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
