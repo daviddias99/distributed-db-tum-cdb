@@ -39,25 +39,6 @@ public class DebugHashAlgorithm implements HashingAlgorithm {
 
     return BigInteger.valueOf(toRet);
   }
-  // public BigInteger hash(String string) {
-
-  //   int i;
-  //   int j;
-  //   int h;
-  //   int retval = 0;
-
-  //   for (j = 0; j < string.length(); ++j) {
-  //     // Change the first byte
-  //     h = T[(string.charAt(0) + j) % 256];
-  //     for (i = 1; i < string.length(); ++i) {
-  //       h = T[h ^ string.charAt(i)];
-  //     }
-  //     retval = ((retval << 8) | h);
-  //   }
-
-  //   System.out.println(retval);
-  //   return BigInteger.valueOf(retval);
-  // }
 
   @Override
   public BigInteger getMax() {

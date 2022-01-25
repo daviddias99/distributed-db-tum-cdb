@@ -1,6 +1,7 @@
 package de.tum.i13.server.kvchord;
 
 import java.math.BigInteger;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
@@ -27,15 +28,19 @@ public class Chord {
     private final HashingAlgorithm hashingAlgorithm;
     private final ChordMessaging messaging;
 
-    private Iterator<Map.Entry<BigInteger,NetworkLocation>> fingerTableUpdateIterator;
-
+    private int fingerTableUpdateIndex;
     private final NetworkLocation ownLocation;
+    private final NetworkLocation bootstrapNode;
     private NetworkLocation predecessor;
     private final NetworkLocation[] successors; // Maybe this and the finger table can be merged
     private final ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable;
     private final ArrayList<BigInteger> fingerTableKeys;
 
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation) {
+        this(hashingAlgorithm, ownLocation, null);
+    }
+
+    public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation, NetworkLocation bootstrapNode) {
         this.hashingAlgorithm = hashingAlgorithm;
         this.ownLocation = ownLocation;
         this.predecessor = ownLocation; // TODO: check this
@@ -44,23 +49,26 @@ public class Chord {
         this.fingerTableKeys = new ArrayList<>();
         this.successors = new NetworkLocation[SUCCESSOR_LIST_SIZE];
         this.messaging = new ChordMessaging(this);
+        this.bootstrapNode = bootstrapNode;
         this.initFingerTable(ownLocation);
         this.initSuccessorList(ownLocation);
-        this.initThreads();
+
     }
 
-    public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation, NetworkLocation bootstrapNode)
-            throws ChordException {
-        this(hashingAlgorithm, ownLocation);
-        NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
-                this.hashingAlgorithm.hash(ownLocation));
+    public void start() throws ChordException {
+        if(bootstrapNode != null) {
+            NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
+            this.hashingAlgorithm.hash(ownLocation));
 
-        if (successor == null) {
-            LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
-            throw new ChordException(String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
+            if (successor == null) {
+                LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
+                throw new ChordException(String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
+            }
+
+            this.setSuccessor(successor);
+            messaging.notifyNode(successor);
         }
-
-        this.setSuccessor(successor);
+        this.initThreads();
     }
 
     public NetworkLocation getLocation() {
@@ -74,6 +82,11 @@ public class Chord {
     private NetworkLocation[] findPredecessor(BigInteger key) {
         NetworkLocation predecessor = this.ownLocation;
         NetworkLocation predecessorSuccessor = this.getSuccessor();
+
+        if(predecessor.equals(this.ownLocation) && key.toString(16).equals("da")) {
+            int i = 1;
+        }
+
         while (!this.betweenTwoKeys(
                 hashingAlgorithm.hash(predecessor),
                 hashingAlgorithm.hash(predecessorSuccessor),
@@ -82,19 +95,43 @@ public class Chord {
                 true)) {
             predecessor = this.messaging.closestPrecedingFinger(predecessor, key);
             // TODO: check for null and handle
-            predecessorSuccessor = this.messaging.findSuccessor(predecessor, this.hashingAlgorithm.hash(predecessor));
+            predecessorSuccessor = this.messaging.getSuccessor(predecessor);
         }
 
         return new NetworkLocation[] { predecessor, predecessorSuccessor };
     }
 
     public NetworkLocation findSuccessor(BigInteger key) {
+
+        if(key.equals(this.hashingAlgorithm.hash(this.ownLocation))) {
+            return this.ownLocation;
+        }
+
         return this.findPredecessor(key)[1];
     }
 
     public NetworkLocation closestPrecedingFinger(BigInteger key) {
-        Map.Entry<BigInteger, NetworkLocation> preceding = fingerTable.floorEntry(key);
-        return preceding == null ? fingerTable.lastEntry().getValue() : preceding.getValue();
+        // Map.Entry<BigInteger, NetworkLocation> preceding = fingerTable.floorEntry(key);
+        // NetworkLocation preceding = null;
+        
+        for (BigInteger mapKey : this.fingerTable.descendingKeySet()) {
+            NetworkLocation value = this.fingerTable.get(mapKey);
+            // if( mapKey.compareTo(key) < 0 && !value.equals(this.ownLocation)) {
+            //     preceding = value;
+            //     break;
+            // }
+
+            if(this.betweenTwoKeys(
+                this.hashingAlgorithm.hash(this.ownLocation),
+                key,
+                mapKey,
+                false,
+                false)) {
+                    return value;
+                }
+        }
+        
+        return this.ownLocation;
     }
 
 
@@ -114,12 +151,12 @@ public class Chord {
 
     private void stabilize() {
         NetworkLocation successor = this.getSuccessor();
+        NetworkLocation successorPredecessor = successor.equals(this.ownLocation) ? this.predecessor : messaging.getPredecessor(successor);
 
-        if(this.getPredecessor().equals(successor)) {
+        if(successorPredecessor.equals(this.ownLocation)) {
             return;
         }
 
-        NetworkLocation successorPredecessor = messaging.getPredecessor(successor);
         boolean isBetweenKeys = this.betweenTwoKeys(
                 hashingAlgorithm.hash(ownLocation),
                 hashingAlgorithm.hash(successor),
@@ -135,9 +172,15 @@ public class Chord {
     }
 
     private void fixFingers() {
+
+        if(this.ownLocation.getPort() == 25565) {
+            int i = 1;
+        }
+
         Map.Entry<BigInteger,NetworkLocation> toUpdate = this.advanceUpdateIteratorIterator();
         NetworkLocation newFinger = this.findSuccessor(toUpdate.getKey());
         this.fingerTable.put(toUpdate.getKey(), newFinger);
+        LOGGER.debug("Fixed finger {} to {}", toUpdate.getKey().toString(16), newFinger);
     }
 
     public void initThreads() {
@@ -147,12 +190,12 @@ public class Chord {
         Runnable t2 = this::fixFingers;
 
         // The threads are started with a delay to avoid them running at the same time
-        periodicThreadPool.scheduleAtFixedRate(t1, 0, 5000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleAtFixedRate(t2, 200, 5000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleAtFixedRate(t1, 0, 1000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleAtFixedRate(t2, 200, 1000, TimeUnit.MILLISECONDS);
     }
 
     /* HELPER */
-    private NetworkLocation getSuccessor() {
+    public NetworkLocation getSuccessor() {
         return this.successors[0];
     }
 
@@ -174,7 +217,7 @@ public class Chord {
         }
 
         this.fingerTable.put(this.hashingAlgorithm.hash(this.ownLocation), location);
-        this.fingerTableUpdateIterator = this.fingerTable.entrySet().iterator();
+        this.fingerTableUpdateIndex = 0;
     }
 
     private void initSuccessorList(NetworkLocation location) {
@@ -184,18 +227,14 @@ public class Chord {
 
     private Map.Entry<BigInteger,NetworkLocation> advanceUpdateIteratorIterator() {
 
-        if(!this.fingerTableUpdateIterator.hasNext()) {
-            this.fingerTableUpdateIterator = this.fingerTable.entrySet().iterator();
+        if(this.fingerTableUpdateIndex == this.fingerTableKeys.size()) {
+            this.fingerTableUpdateIndex = 0;
         }
 
-        Map.Entry<BigInteger,NetworkLocation> toUpdate = this.fingerTableUpdateIterator.next();
+        BigInteger fingerKey = this.fingerTableKeys.get(this.fingerTableUpdateIndex);
 
-        // Skip successor
-        if(toUpdate.getKey().equals(this.fingerTableKeys.get(0))) {
-            toUpdate = this.fingerTableUpdateIterator.next();
-        }
-
-        return toUpdate;
+        this.fingerTableUpdateIndex++;
+        return new AbstractMap.SimpleEntry<BigInteger, NetworkLocation>(fingerKey, this.fingerTable.get(fingerKey));
     }
 
     // TODO: Took this from my previous project, but I think Lukas already did it
@@ -232,19 +271,11 @@ public class Chord {
         sb.append(String.format("Predecessor: %s (%s)%n", this.predecessor, this.hashingAlgorithm.hash(this.predecessor).toString(16)));
         sb.append("------\n");
 
-        Iterator<Map.Entry<BigInteger, NetworkLocation>> iterator = this.fingerTable.entrySet().iterator();
-        Map.Entry<BigInteger, NetworkLocation> previous = iterator.next();
-
-        sb.append(String.format("%s - %s%n", previous.getKey().toString(16), previous.getValue()));
-
-        while(iterator.hasNext()) {
-            Map.Entry<BigInteger, NetworkLocation> next = iterator.next();
-
-            // if(next.getValue().equals(previous.getValue()))
-            //     continue;
-
-            previous = next;
-            sb.append(String.format("%s - %s (%s) %n", previous.getKey().toString(16), previous.getValue(), hashingAlgorithm.hash(previous.getValue()).toString(16)));
+        for (int i = 0; i < this.fingerTableKeys.size(); i++) {
+            BigInteger key = this.fingerTableKeys.get(i);
+            NetworkLocation value = this.fingerTable.get(key);
+            value = value == null ? this.ownLocation : value;
+            sb.append(String.format("%s - %d (%s) %n", key.toString(16), value.getPort(), hashingAlgorithm.hash(value).toString(16)));
         }
 
         sb.append("-----\n");

@@ -161,6 +161,8 @@ public interface KVMessage {
         CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE(true, true),
         CHORD_GET_PREDECESSOR(false, false),
         CHORD_GET_PREDECESSOR_RESPONSE(true, false),
+        CHORD_GET_SUCCESSOR(false, false),
+        CHORD_GET_SUCCESSOR_RESPONSE(true, false),
         CHORD_NOTIFY(true, false),
         CHORD_NOTIFY_ACK(false, false),
         CHORD_GET_STATE_STR(false, false),

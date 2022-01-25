@@ -52,7 +52,7 @@ public class ChordMessaging {
     }
 
     public NetworkLocation findSuccessor(NetworkLocation peer, BigInteger key) {
-        LOGGER.debug("Asking {} for successor of {} (findSuccessor)", peer, key);
+        LOGGER.debug("Asking {} for successor of {} (findSuccessor)", peer, key.toString(16));
         
         if (peer.equals(this.chordInstance.getLocation())) {
             NetworkLocation result = this.chordInstance.findSuccessor(key);
@@ -71,7 +71,7 @@ public class ChordMessaging {
     }
 
     public NetworkLocation closestPrecedingFinger(NetworkLocation peer, BigInteger key) {
-        LOGGER.debug("Asking {} for closest preceding of {} (closestPrecedingFinger)", peer, key);
+        LOGGER.debug("Asking {} for closest preceding of {} (closestPrecedingFinger)", peer, key.toString(16));
 
         if (peer.equals(this.chordInstance.getLocation())) {
             NetworkLocation result = this.chordInstance.closestPrecedingFinger(key);
@@ -104,6 +104,26 @@ public class ChordMessaging {
         NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getKey());
 
         LOGGER.debug("Perceived predecessor of {} is {}", peer, result);
+
+        return result;
+    }
+
+    public NetworkLocation getSuccessor(NetworkLocation peer) {
+
+        LOGGER.debug("Asking {} for it's successor (getSuccessor)", peer);
+
+        if (peer.equals(this.chordInstance.getLocation())) {
+            NetworkLocation result = this.chordInstance.getSuccessor();
+            LOGGER.debug("Successor of {} is {}", peer, result);
+            return result;
+        }
+
+        KVMessage outgoingMessage = new KVMessageImpl(KVMessage.StatusType.CHORD_GET_SUCCESSOR);
+        KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
+                KVMessage.StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
+        NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getKey());
+
+        LOGGER.debug("Successor of {} is {}", peer, result);
 
         return result;
     }

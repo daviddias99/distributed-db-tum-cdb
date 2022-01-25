@@ -14,7 +14,6 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHa
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.hashing.DebugHashAlgorithm;
-import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.server.state.ServerState;
 
@@ -70,10 +69,15 @@ public class MainChord {
             // Setup shutdown procedure (handoff)
             // TODO: CHORD
             listeningThread.start();
+            Thread.sleep(600);
+            chord.start();
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
-        } catch (ChordException e) {
-            LOGGER.fatal("Could not start Chord instance");
+        } catch (InterruptedException exception) {
+            LOGGER.warn("The current thread was interrupted", exception);
+            Thread.currentThread().interrupt();
+        } catch (ChordException ex) {
+            LOGGER.fatal("Could not start Chord", ex);
         }
     }
 

@@ -24,6 +24,7 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
       case CHORD_CLOSEST_PRECEDING_FINGER -> this.closestPreceding(command.getKey());
       case CHORD_FIND_SUCCESSOR -> this.findSuccessor(command.getKey());
       case CHORD_GET_PREDECESSOR -> this.getPredecessor();
+      case CHORD_GET_SUCCESSOR -> this.getSuccessor();
       case CHORD_NOTIFY -> this.notifyChord(command.getKey());
       case CHORD_GET_STATE_STR -> this.getState();
       default -> null;
@@ -44,6 +45,9 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
   }
   private KVMessage getPredecessor() {
     return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getPredecessor()), StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
+  }
+  private KVMessage getSuccessor() {
+    return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getSuccessor()), StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
   }
   private KVMessage notifyChord(String peerAddr) {
     NetworkLocation peer = NetworkLocation.extractNetworkLocation(peerAddr);
