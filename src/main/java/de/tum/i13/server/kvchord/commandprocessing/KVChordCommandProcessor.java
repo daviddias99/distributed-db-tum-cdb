@@ -3,6 +3,7 @@ package de.tum.i13.server.kvchord.commandprocessing;
 import de.tum.i13.server.kvchord.Chord;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
@@ -24,9 +25,10 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
       case CHORD_CLOSEST_PRECEDING_FINGER -> this.closestPreceding(command.getKey());
       case CHORD_FIND_SUCCESSOR -> this.findSuccessor(command.getKey());
       case CHORD_GET_PREDECESSOR -> this.getPredecessor();
-      case CHORD_GET_SUCCESSOR -> this.getSuccessor();
+      case CHORD_GET_SUCCESSORS -> this.getSuccessors(Integer.valueOf(command.getKey()));
       case CHORD_NOTIFY -> this.notifyChord(command.getKey());
       case CHORD_GET_STATE_STR -> this.getState();
+      case CHORD_HEARTBEAT -> new KVMessageImpl(StatusType.CHORD_HEARTBEAT_RESPONSE);
       default -> null;
     };
   }
@@ -46,8 +48,12 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
   private KVMessage getPredecessor() {
     return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getPredecessor()), StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
   }
-  private KVMessage getSuccessor() {
-    return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getSuccessor()), StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
+  private KVMessage getSuccessors(int successorCount) {
+    List<NetworkLocation> successors = this.chord.getSuccessors(successorCount);
+    StringBuilder sb = new StringBuilder();
+    successors.forEach( x -> sb.append(NetworkLocation.toPackedString(x)));
+
+    return new KVMessageImpl(sb.toString(), StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
   }
   private KVMessage notifyChord(String peerAddr) {
     NetworkLocation peer = NetworkLocation.extractNetworkLocation(peerAddr);
