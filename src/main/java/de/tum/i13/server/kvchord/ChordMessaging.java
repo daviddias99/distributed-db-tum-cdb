@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -60,16 +59,21 @@ public class ChordMessaging {
         LOGGER.debug("Asking {} for successor of {} (findSuccessor)", peer, key.toString(16));
         
         if (peer.equals(this.chordInstance.getLocation())) {
-            NetworkLocation result = this.chordInstance.findSuccessor(key);
-            LOGGER.debug("Successor of {} is {}", key.toString(16), result);
-            return result;
+            try {
+                NetworkLocation result = this.chordInstance.findSuccessor(key);
+                LOGGER.debug("Successor of {} is {}", key.toString(16), result);
+                return result;
+            } catch (ChordException e) {
+                LOGGER.debug("Successor of {} is {}", key.toString(16), NetworkLocation.getNull());
+                return NetworkLocation.getNull();
+            }
         }
 
         KVMessage outgoingMessage = new KVMessageImpl(key.toString(16), KVMessage.StatusType.CHORD_FIND_SUCCESSOR);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
         
-        NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getValue());
+        NetworkLocation result = response == null ? NetworkLocation.getNull() : NetworkLocation.extractNetworkLocation(response.getValue());
         LOGGER.debug("Successor of {} is {}", key.toString(16), result);
 
         return result;
@@ -88,7 +92,7 @@ public class ChordMessaging {
                 KVMessage.StatusType.CHORD_CLOSEST_PRECEDING_FINGER);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE);
-        NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getValue());
+        NetworkLocation result = response == null ? NetworkLocation.getNull() : NetworkLocation.extractNetworkLocation(response.getValue());
         LOGGER.debug("Closest preceeding of {} is {}", key, result);
         return result;
     }
@@ -131,7 +135,7 @@ public class ChordMessaging {
         KVMessage outgoingMessage = new KVMessageImpl("1", KVMessage.StatusType.CHORD_GET_SUCCESSORS);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
-        NetworkLocation result = response == null ? null : NetworkLocation.extractNetworkLocation(response.getKey());
+        NetworkLocation result = response == null ? NetworkLocation.getNull() : NetworkLocation.extractNetworkLocation(response.getKey());
 
         LOGGER.debug("Successor of {} is {}", peer, result);
 

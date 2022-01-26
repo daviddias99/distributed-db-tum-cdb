@@ -41,8 +41,8 @@ public class NetworkLocationImpl implements NetworkLocation {
     @Override
     public boolean equals(Object otherObject) {
         if (this == otherObject) return true;
-        if (!(otherObject instanceof NetworkLocationImpl)) return false;
-        NetworkLocationImpl that = (NetworkLocationImpl) otherObject;
+        if (!(otherObject instanceof NetworkLocation)) return false;
+        NetworkLocation that = (NetworkLocation) otherObject;
         return getPort() == that.getPort() && Objects.equals(getAddress(), that.getAddress());
     }
 

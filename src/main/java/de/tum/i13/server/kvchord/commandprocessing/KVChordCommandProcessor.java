@@ -1,6 +1,7 @@
 package de.tum.i13.server.kvchord.commandprocessing;
 
 import de.tum.i13.server.kvchord.Chord;
+import de.tum.i13.server.kvchord.ChordException;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -41,9 +42,13 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
   }
   private KVMessage findSuccessor(String key) {
     BigInteger keyNumber = new BigInteger(key, 16);
-    NetworkLocation suc = this.chord.findSuccessor(keyNumber);
-
-    return new KVMessageImpl(key, NetworkLocation.toPackedString(suc), StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
+    
+    try {
+      NetworkLocation suc = this.chord.findSuccessor(keyNumber);
+      return new KVMessageImpl(key, NetworkLocation.toPackedString(suc), StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
+    } catch (ChordException e) {
+      return new KVMessageImpl(StatusType.ERROR);
+    }
   }
   private KVMessage getPredecessor() {
     return new KVMessageImpl(NetworkLocation.toPackedString(this.chord.getPredecessor()), StatusType.CHORD_GET_PREDECESSOR_RESPONSE);

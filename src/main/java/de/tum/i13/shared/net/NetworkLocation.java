@@ -39,4 +39,8 @@ public interface NetworkLocation {
     static String toPackedString(NetworkLocation location) {
         return String.format("%s:%s", location.getAddress(), location.getPort());
     }
+
+    static NetworkLocation getNull() {
+        return new NullNetworkLocation();
+    }
 }
