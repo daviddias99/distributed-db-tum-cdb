@@ -204,10 +204,6 @@ public class Chord {
         try {
             NetworkLocation successor = this.getSuccessor();
 
-            if (this.ownLocation.getPort() == 25566) {
-                int i = 1;
-            }
-
             // Check if successor is self
             if (successor.equals(this.ownLocation)) {
                 if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
@@ -281,10 +277,6 @@ public class Chord {
     private void checkPredecessor() {
 
         try {
-            if (this.ownLocation.getPort() == 25565) {
-                int i = 1;
-            }
-
             if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
                 return;
             }
