@@ -158,12 +158,7 @@ public class Chord {
             this.fingerTable.remove(this.hashingAlgorithm.hash(oldSuccessor));
         }
 
-        for (int i = 0; i < successorsUpdate.size(); i++) {
-
-            if (this.successors.size() == this.SUCCESSOR_LIST_SIZE) {
-                break;
-            }
-
+        for (int i = 0; i < successorsUpdate.size() && this.successors.size() != this.SUCCESSOR_LIST_SIZE; i++) {
             NetworkLocation successorUpdate = successorsUpdate.get(i);
             if (successorUpdate.equals(this.ownLocation)) {
                 break;
@@ -188,17 +183,19 @@ public class Chord {
     }
 
     private StabilizationData querySuccessorForStabilization() {
-        while (!this.successors.isEmpty()) {
+        while (true) {
             NetworkLocation successor = this.getSuccessor();
             try {
-                NetworkLocation successorPredecessor = successor.equals(this.ownLocation) ? this.predecessor
-                        : messaging.getPredecessor(successor);
-                List<NetworkLocation> successorSuccessors = this.messaging.getSuccessors(successor,
-                        this.SUCCESSOR_LIST_SIZE);
-                return new StabilizationData(successorPredecessor, successorSuccessors);
+                NetworkLocation succPredecessor = messaging.getPredecessor(successor);
+                List<NetworkLocation> succSuccessors = messaging.getSuccessors(successor, this.SUCCESSOR_LIST_SIZE);
+                return new StabilizationData(succPredecessor, succSuccessors);
             } catch (ChordException e) {
+                // Could not reach successor, change to next successor in list
                 this.shiftSuccessors();
                 LOGGER.error("Failed to communicate with successor");
+            }
+            if (successor.equals(this.getSuccessor())) {
+                break;
             }
         }
 
