@@ -75,36 +75,37 @@ public class Chord {
     }
 
     private NetworkLocation[] findPredecessor(BigInteger key) throws ChordException {
-        NetworkLocation predecessor = this.ownLocation;
-        NetworkLocation predecessorSuccessor = this.getSuccessor();
+        NetworkLocation nPrime = this.ownLocation;
+        NetworkLocation nPrimeSuccessor = this.getSuccessor();
 
         while (!this.betweenTwoKeys(
-                hashingAlgorithm.hash(predecessor),
-                hashingAlgorithm.hash(predecessorSuccessor),
+                hashingAlgorithm.hash(nPrime),
+                hashingAlgorithm.hash(nPrimeSuccessor),
                 key,
                 false,
                 true)) {
-            NetworkLocation newPredecessor = this.messaging.closestPrecedingFinger(predecessor, key);
+            NetworkLocation newNPrime = this.messaging.closestPrecedingFinger(nPrime, key);
 
-            if (newPredecessor.equals(NetworkLocation.getNull())) {
-                LOGGER.error("Could not get closest preceding finger from {}", predecessor);
+            if (newNPrime.equals(NetworkLocation.getNull())) {
+                LOGGER.error("Could not get closest preceding finger from {}", nPrime);
                 throw new ChordException("Could not get closest preceding finger");
             }
 
-            if (newPredecessor == predecessor) {
+            // Avoid infinite loop
+            if (newNPrime == nPrime) {
                 break;
             }
 
-            predecessor = newPredecessor;
-            predecessorSuccessor = this.messaging.getSuccessor(predecessor);
+            nPrime = newNPrime;
+            nPrimeSuccessor = this.messaging.getSuccessor(nPrime);
 
-            if (predecessorSuccessor.equals(NetworkLocation.getNull())) {
-                LOGGER.error("Could not successor from {}", predecessor);
+            if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
+                LOGGER.error("Could not successor from {}", nPrime);
                 throw new ChordException("Could not get sucessor");
             }
         }
 
-        return new NetworkLocation[] { predecessor, predecessorSuccessor };
+        return new NetworkLocation[] { nPrime, nPrimeSuccessor };
     }
 
     public NetworkLocation findSuccessor(BigInteger key) throws ChordException {
