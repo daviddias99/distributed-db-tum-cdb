@@ -53,19 +53,23 @@ public class Chord {
         this.initSuccessorList();
     }
 
+    private void doBoostrap() throws ChordException {
+        NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
+                this.hashingAlgorithm.hash(ownLocation));
+
+        if (successor.equals(NetworkLocation.getNull())) {
+            LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
+            throw new ChordException(
+                    String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
+        }
+
+        this.setSuccessor(successor);
+        messaging.notifyNode(successor);
+    }
+
     public void start() throws ChordException {
         if (bootstrapNode != null) {
-            NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
-                    this.hashingAlgorithm.hash(ownLocation));
-
-            if (successor.equals(NetworkLocation.getNull())) {
-                LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
-                throw new ChordException(
-                        String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
-            }
-
-            this.setSuccessor(successor);
-            messaging.notifyNode(successor);
+            this.doBoostrap();
         }
         this.initThreads();
     }
