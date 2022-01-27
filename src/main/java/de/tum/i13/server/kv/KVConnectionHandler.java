@@ -16,7 +16,7 @@ public class KVConnectionHandler implements ConnectionHandler {
 
   @Override
   public String connectionAccepted(InetSocketAddress address, InetSocketAddress remoteAddress) {
-    LOGGER.info("new connection: {}", remoteAddress);
+    LOGGER.debug("new connection: {}", remoteAddress);
     return "Connection to KVServer established: " + address.toString();
   }
 

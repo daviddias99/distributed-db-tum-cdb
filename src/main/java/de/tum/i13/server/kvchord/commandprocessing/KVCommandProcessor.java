@@ -1,22 +1,22 @@
 package de.tum.i13.server.kvchord.commandprocessing;
 
 import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator;
-import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.kv.commandprocessing.KVClientCommandProcessor;
+import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVServerCommandProcessor;
 import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Command processor for KVMessages. Uses {@link KVClientCommandProcessor},
@@ -42,7 +42,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         PeerType peerType = PeerAuthenticator.authenticate(incomingMessage.getStatus());
 
         if (this.serverState.isStopped() && !peerType.canBypassStop()) {
-            LOGGER.info("Can't process command '{}' because server is stopped", command);
+            LOGGER.warn("Can't process command '{}' because server is stopped", command);
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 
@@ -59,7 +59,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
         response = response == null ? new KVMessageImpl(KVMessage.StatusType.ERROR) : response;
 
         if(response.getStatus() != StatusType.SERVER_HEART_BEAT) {
-            LOGGER.info("Response processing '{}' -> '{}'", command, response);
+            LOGGER.debug("Response processing '{}' -> '{}'", command, response);
         }
 
         return response.toString();

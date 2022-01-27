@@ -57,7 +57,7 @@ public class ConnectionHandleThread implements Runnable {
             ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
             // Send a confirmation message to peer upon connection if he needs the greet
 
-            LOGGER.info("({}) Sending greet to peer", Thread.currentThread().getName());
+            LOGGER.trace("({}) Sending greet to peer", Thread.currentThread().getName());
 
             String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                     (InetSocketAddress) clientSocket.getRemoteSocketAddress());
@@ -68,7 +68,7 @@ public class ConnectionHandleThread implements Runnable {
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
 
-                if (!response.startsWith("server_heart_beat")) {
+                if (!isHeartbeat(response)) {
                     LOGGER.info("({}) Peer message exchange in: {} out: {}", Thread.currentThread().getName(),
                             firstLine, response);
                 }
@@ -91,6 +91,10 @@ public class ConnectionHandleThread implements Runnable {
                     .withThrowable(ex)
                     .log("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
         }
+    }
+
+    private boolean isHeartbeat(String response) {
+        return response.startsWith("server_heart_beat") || response.startsWith("chord_heartbeat");
     }
 
 }

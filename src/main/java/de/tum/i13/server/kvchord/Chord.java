@@ -1,5 +1,11 @@
 package de.tum.i13.server.kvchord;
 
+import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.net.NetworkLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -10,13 +16,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.hashing.HashingAlgorithm;
-import de.tum.i13.shared.net.NetworkLocation;
 
 public class Chord {
     private static final Logger LOGGER = LogManager.getLogger(Chord.class);
