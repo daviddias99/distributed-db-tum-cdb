@@ -44,11 +44,11 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
     @Override
     public void connect(String address, int port) throws CommunicationClientException {
         Preconditions.check(port >= 0 && port <= 65535, "Port must be between 0 and 65535 inclusive");
-        LOGGER.info("Trying to connect to '{}:{}'", address, port);
+        LOGGER.debug("Trying to connect to '{}:{}'", address, port);
 
         try {
             // Open socket and get streams
-            LOGGER.info("Creating socket to '{}:{}'", address, port);
+            LOGGER.trace("Creating socket to '{}:{}'", address, port);
             // Ignore the SonarLint warning because it is not aware that we close the socket elsewhere
             @SuppressWarnings("java:S2095")
             final Socket newConnection = new Socket(address, port);
@@ -69,7 +69,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
     @Override
     public void disconnect() throws CommunicationClientException {
-        LOGGER.info("Trying to disconnect from socket at '{}:{}'", getAddress(), getPort());
+        LOGGER.debug("Trying to disconnect from socket at '{}:{}'", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -79,7 +79,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
         }
 
         try {
-            LOGGER.debug("Closing connection from socket at '{}:{}'", getAddress(), getPort());
+            LOGGER.trace("Closing connection from socket at '{}:{}'", getAddress(), getPort());
             this.connection.close();
             this.connection = null;
             this.inStream = null;
@@ -97,12 +97,12 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
      */
     @Override
     public void send(String message) throws CommunicationClientException {
-        LOGGER.info("Trying to send message: '{}'", message);
+        LOGGER.debug("Trying to send message: '{}'", message);
         final String terminatedMessage = message + Constants.TERMINATING_STR;
         final byte[] bytes = message.getBytes(Constants.TELNET_ENCODING);
         final byte[] terminatedBytes = terminatedMessage.getBytes(Constants.TELNET_ENCODING);
 
-        LOGGER.info("Sending {} bytes to '{}:{}'. ('{}')",
+        LOGGER.trace("Sending {} bytes to '{}:{}'. ('{}')",
                 () -> terminatedBytes.length, this::getAddress, this::getPort,
                 () -> message);
 
@@ -130,7 +130,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
 
     @Override
     public String receive() throws CommunicationClientException {
-        LOGGER.info("Trying to receive message from '{}:{}'.", getAddress(), getPort());
+        LOGGER.debug("Trying to receive message from '{}:{}'.", getAddress(), getPort());
 
         // Throw exception if no connection is open
         if (!this.isConnected()) {
@@ -150,7 +150,7 @@ public class CommunicationClient implements NetworkMessageServer, AutoCloseable 
             String response = new String(result, 0, result.length - 2, Constants.TELNET_ENCODING);
 
             // Logging aid variables
-            LOGGER.info("Receiving {} bytes from '{}:{}'. ('{}')",
+            LOGGER.trace("Receiving {} bytes from '{}:{}'. ('{}')",
                     () -> result.length, this::getAddress, this::getPort,
                     () -> response);
 

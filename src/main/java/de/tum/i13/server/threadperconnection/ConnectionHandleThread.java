@@ -47,7 +47,7 @@ public class ConnectionHandleThread implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Handling connection to {} in new thread", serverAddress);
+        LOGGER.debug("Handling connection to {} in new thread", serverAddress);
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
@@ -76,7 +76,7 @@ public class ConnectionHandleThread implements Runnable {
                 activeConnection.send(response);
             }
 
-            LOGGER.info("({}) Closing connection", Thread.currentThread().getName());
+            LOGGER.trace("({}) Closing connection", Thread.currentThread().getName());
             activeConnection.close();
             connectionHandler.connectionClosed(clientSocket.getInetAddress());
 

@@ -1,12 +1,11 @@
 package de.tum.i13.server.kv;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
+import de.tum.i13.shared.ConnectionHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.shared.ConnectionHandler;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 /**
  * An implementation of {@link ConnectionHandler}
@@ -23,7 +22,7 @@ public class KVConnectionHandler implements ConnectionHandler {
 
   @Override
   public void connectionClosed(InetAddress remoteAddress) {
-    LOGGER.info("connection closed: {}", remoteAddress);
+    LOGGER.debug("connection closed: {}", remoteAddress);
   }
 
 }
