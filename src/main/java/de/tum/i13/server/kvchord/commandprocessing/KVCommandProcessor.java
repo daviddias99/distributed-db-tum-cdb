@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Command processor for KVMessages. Uses {@link KVClientCommandProcessor},
@@ -24,8 +25,8 @@ import java.util.List;
 public class KVCommandProcessor implements CommandProcessor<String> {
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
-    private ServerState serverState;
-    private List<CommandProcessor<KVMessage>> processors;
+    private final ServerState serverState;
+    private final List<CommandProcessor<KVMessage>> processors;
 
     public KVCommandProcessor(PersistentStorage storage, ChordServerState serverState, Chord chord) {
         this.serverState = serverState;
@@ -45,17 +46,11 @@ public class KVCommandProcessor implements CommandProcessor<String> {
             return new KVMessageImpl(StatusType.SERVER_STOPPED).toString();
         }
 
-        KVMessage response = null;
-
-        for (CommandProcessor<KVMessage> processor : processors) {
-            response = processor.process(incomingMessage);
-
-            if (response != null) {
-                break;
-            }
-        }
-
-        response = response == null ? new KVMessageImpl(KVMessage.StatusType.ERROR) : response;
+        final KVMessage response = processors.stream()
+                .map(processor -> processor.process(incomingMessage))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseGet(() -> new KVMessageImpl(StatusType.ERROR));
 
         if(response.getStatus() != StatusType.SERVER_HEART_BEAT) {
             LOGGER.debug("Response processing '{}' -> '{}'", command, response);

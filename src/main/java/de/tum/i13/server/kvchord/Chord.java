@@ -100,7 +100,7 @@ public class Chord {
             nPrimeSuccessor = this.messaging.getSuccessor(nPrime);
 
             if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
-                LOGGER.error("Could not successor from {}", nPrime);
+                LOGGER.error("Could not get successor from {}", nPrime);
                 throw new ChordException("Could not get sucessor");
             }
         }
@@ -180,6 +180,15 @@ public class Chord {
     public boolean isReadResponsible(String key) {
         // TODO implement
         return isWriteResponsible(key);
+    }
+
+    public NetworkLocation getWriteResponsibleNetworkLocation(String key) throws ChordException {
+        return isWriteResponsible(key) ? ownLocation : findSuccessor(hashingAlgorithm.hash(key));
+    }
+
+    public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) throws ChordException {
+        // TODO Implement
+        return List.of(getWriteResponsibleNetworkLocation(key));
     }
 
     private static class StabilizationData {
