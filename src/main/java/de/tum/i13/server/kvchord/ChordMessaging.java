@@ -1,21 +1,22 @@
 package de.tum.i13.server.kvchord;
 
-import java.io.Console;
+import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.KVMessageImpl;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.KVMessage.StatusType;
-import de.tum.i13.shared.net.CommunicationClient;
-import de.tum.i13.shared.net.CommunicationClientException;
-import de.tum.i13.shared.net.NetworkLocation;
 
 public class ChordMessaging {
     private static final Logger LOGGER = LogManager.getLogger(ChordMessaging.class);
@@ -191,28 +192,26 @@ public class ChordMessaging {
         return response != null;
     }
 
-    public static void main(String[] args) {
-
+    @SuppressWarnings("java:S2189")
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
             // Create the console object
-            Console cnsl = System.console();
+            System.out.print("Enter command: ");
+            // Read line
+            String str = reader.readLine();
 
-            if (cnsl == null) {
-                System.out.println(
-                        "No console available");
-                return;
+            try {
+                final NetworkLocation peer = NetworkLocation.extractNetworkLocation(String.format("127.0.0.1:%s", str));
+                KVMessage response = ChordMessaging.connectSendAndReceive(
+                        peer,
+                        new KVMessageImpl(StatusType.CHORD_GET_STATE_STR),
+                        StatusType.CHORD_GET_STATE_STR_RESPONSE);
+                System.out.println(response == null ? "COULD NOT FETCH RESPONSE" : response.getKey());
+            } catch (NumberFormatException ex) {
+                LOGGER.warn("Could not parse port number", ex);
             }
 
-            // Read line
-            String str = cnsl.readLine(
-                    "Enter command : ");
-
-            KVMessage response = ChordMessaging.connectSendAndReceive(
-                NetworkLocation.extractNetworkLocation(String.format("127.0.0.1:%s", str)),
-                new KVMessageImpl(StatusType.CHORD_GET_STATE_STR),
-                StatusType.CHORD_GET_STATE_STR_RESPONSE);
-
-            System.out.println(response == null ? "COULD NOT FETCH RESPONSE" : response.getKey());
         }
     }
 }
