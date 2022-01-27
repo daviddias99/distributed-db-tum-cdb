@@ -2,6 +2,8 @@ package de.tum.i13.server.state;
 
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class that represents the server's state. It contains the actual state, the
@@ -9,9 +11,11 @@ import de.tum.i13.shared.net.NetworkLocation;
  */
 public class ECSServerState extends AbstractServerState implements ServerState {
 
+  private static final Logger LOGGER = LogManager.getLogger(ECSServerState.class);
+
   private ConsistentHashRing ringMetadata;
-  private NetworkLocation curNetworkLocation;
-  private NetworkLocation ecsLocation;
+  private final NetworkLocation curNetworkLocation;
+  private final NetworkLocation ecsLocation;
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
@@ -72,8 +76,15 @@ public class ECSServerState extends AbstractServerState implements ServerState {
   }
 
   @Override
-  public synchronized boolean responsibleForKey(String key) {
+  public synchronized boolean isWriteResponsible(String key) {
     return ringMetadata.isWriteResponsible(curNetworkLocation, key);
+  }
+
+  @Override
+  public boolean isReadResponsible(String key) {
+    // TODO Merge branch that includes replication into this branch
+    LOGGER.warn("Replication is not yet implemented in this branch for the ECS servers");
+    return isWriteResponsible(key);
   }
 
 }

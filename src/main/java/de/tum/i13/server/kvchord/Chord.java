@@ -18,6 +18,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Chord {
+
     private static final Logger LOGGER = LogManager.getLogger(Chord.class);
 
     private final int TABLE_SIZE;
@@ -30,9 +31,9 @@ public class Chord {
     private final NetworkLocation ownLocation;
     private final NetworkLocation bootstrapNode;
     private NetworkLocation predecessor;
-    private ArrayList<NetworkLocation> successors; // Maybe this and the finger table can be merged
+    private List<NetworkLocation> successors; // Maybe this and the finger table can be merged
     private final ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable;
-    private final ArrayList<BigInteger> fingerTableKeys;
+    private final List<BigInteger> fingerTableKeys;
 
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation) {
         this(hashingAlgorithm, ownLocation, null);
@@ -104,7 +105,7 @@ public class Chord {
             }
         }
 
-        return new NetworkLocation[] { nPrime, nPrimeSuccessor };
+        return new NetworkLocation[]{nPrime, nPrimeSuccessor};
     }
 
     public NetworkLocation findSuccessor(BigInteger key) throws ChordException {
@@ -171,7 +172,18 @@ public class Chord {
         }
     }
 
-    private class StabilizationData {
+    public boolean isWriteResponsible(String key) {
+        return betweenTwoKeys(hashingAlgorithm.hash(predecessor), hashingAlgorithm.hash(ownLocation),
+                hashingAlgorithm.hash(key), false, true);
+    }
+
+    public boolean isReadResponsible(String key) {
+        // TODO implement
+        return isWriteResponsible(key);
+    }
+
+    private static class StabilizationData {
+
         public final NetworkLocation successorPredecessor;
         public final List<NetworkLocation> successorSuccessors;
 
@@ -179,6 +191,7 @@ public class Chord {
             this.successorPredecessor = successorPredecessor;
             this.successorSuccessors = successorSuccessors;
         }
+
     }
 
     private StabilizationData querySuccessorForStabilization() {
@@ -382,7 +395,7 @@ public class Chord {
     // TODO: Took this from my previous project, but I think Lukas already did it
     // somewhere
     private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
-            boolean closedRight) {
+                                   boolean closedRight) {
 
         // Equal to one of the bounds and are inclusive
         if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
@@ -435,4 +448,5 @@ public class Chord {
         sb.append("-----\n");
         return sb.toString();
     }
+
 }

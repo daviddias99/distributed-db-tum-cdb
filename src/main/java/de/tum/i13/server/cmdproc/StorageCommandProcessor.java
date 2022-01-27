@@ -14,8 +14,8 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     private static final Logger LOGGER = LogManager.getLogger(StorageCommandProcessor.class);
 
-    protected ServerState serverState;
-    protected PersistentStorage kvStore;
+    private final ServerState serverState;
+    private final PersistentStorage kvStore;
 
     public StorageCommandProcessor(ServerState serverState, PersistentStorage storage) {
         this.serverState = serverState;
@@ -39,7 +39,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
      * @return a KVMessage with the status of the query
      */
     protected KVMessage get(String key) {
-        if (!this.serverState.responsibleForKey(key)) {
+        if (!this.serverState.isReadResponsible(key)) {
             return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
         }
 
@@ -54,7 +54,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     protected KVMessage put(String key, String value) {
         synchronized (this.kvStore) {
-            if (!this.serverState.responsibleForKey(key)) {
+            if (!this.serverState.isWriteResponsible(key)) {
                 return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
             }
 
@@ -75,8 +75,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     protected KVMessage delete(String key) {
         synchronized (this.kvStore) {
-
-            if (!this.serverState.responsibleForKey(key)) {
+            if (!this.serverState.isWriteResponsible(key)) {
                 return new KVMessageImpl(KVMessage.StatusType.SERVER_NOT_RESPONSIBLE);
             }
 

@@ -1,5 +1,8 @@
 package de.tum.i13.server.state;
 
+/**
+ * Class that represents the server's state. It contains the actual state and potentially additional information
+ */
 public interface ServerState {
 
     /**
@@ -58,12 +61,20 @@ public interface ServerState {
     void start();
 
     /**
-     * Check if a given key is the responsability of the current server
+     * Check if a given key is the responsibility of the current server for writing
      *
      * @param key key to check
      * @return true if the server is responsible for the key
      */
-    boolean responsibleForKey(String key);
+    boolean isWriteResponsible(String key);
+
+    /**
+     * Check if a given key is the responsibility of the current server for reading
+     *
+     * @param key key to check
+     * @return true if the server is responsible for the key
+     */
+    boolean isReadResponsible(String key);
 
     /**
      * Enum that represents the server's state

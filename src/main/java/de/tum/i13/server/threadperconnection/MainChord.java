@@ -57,7 +57,7 @@ public class MainChord {
 
             // Create state
             LOGGER.trace("Creating server state");
-            final ChordServerState state = new ChordServerState(curLocation, chord);
+            final ChordServerState state = new ChordServerState(chord);
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, chord);
 
             LOGGER.trace("Starting the listening thread");
@@ -69,7 +69,6 @@ public class MainChord {
             listeningThread.start();
             Thread.sleep(600);
             chord.start();
-            state.start();
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (InterruptedException exception) {

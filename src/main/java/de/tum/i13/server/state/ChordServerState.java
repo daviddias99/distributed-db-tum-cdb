@@ -1,22 +1,24 @@
 package de.tum.i13.server.state;
 
 import de.tum.i13.server.kvchord.Chord;
-import de.tum.i13.shared.net.NetworkLocation;
 
 public class ChordServerState extends AbstractServerState implements ServerState {
 
-    private NetworkLocation curLocation;
-    private Chord chord;
+    private final Chord chord;
 
-    public ChordServerState(NetworkLocation curLocation, Chord chord) {
-        super( State.ACTIVE);
-        this.curLocation = curLocation;
+    public ChordServerState(Chord chord) {
+        super(State.ACTIVE);
         this.chord = chord;
     }
 
     @Override
-    public boolean responsibleForKey(String key) {
-        throw new UnsupportedOperationException();
+    public boolean isWriteResponsible(String key) {
+        return chord.isWriteResponsible(key);
+    }
+
+    @Override
+    public boolean isReadResponsible(String key) {
+        return chord.isReadResponsible(key);
     }
 
 }

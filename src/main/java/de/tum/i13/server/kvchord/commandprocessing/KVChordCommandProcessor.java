@@ -13,7 +13,7 @@ import java.util.List;
 
 public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
 
-    private Chord chord;
+    private final Chord chord;
 
     public KVChordCommandProcessor(Chord chord) {
         this.chord = chord;
@@ -25,7 +25,7 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
             case CHORD_CLOSEST_PRECEDING_FINGER -> this.closestPreceding(command.getKey());
             case CHORD_FIND_SUCCESSOR -> this.findSuccessor(command.getKey());
             case CHORD_GET_PREDECESSOR -> this.getPredecessor();
-            case CHORD_GET_SUCCESSORS -> this.getSuccessors(Integer.valueOf(command.getKey()));
+            case CHORD_GET_SUCCESSORS -> this.getSuccessors(Integer.parseInt(command.getKey()));
             case CHORD_NOTIFY -> this.notifyChord(command.getKey());
             case CHORD_GET_STATE_STR -> this.getState();
             case CHORD_HEARTBEAT -> new KVMessageImpl(StatusType.CHORD_HEARTBEAT_RESPONSE);
