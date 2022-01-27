@@ -153,7 +153,7 @@ public class ChordMessaging {
             return result;
         }
 
-        KVMessage outgoingMessage = new KVMessageImpl("1", KVMessage.StatusType.CHORD_GET_SUCCESSORS);
+        KVMessage outgoingMessage = new KVMessageImpl(Integer.toString(n), KVMessage.StatusType.CHORD_GET_SUCCESSORS);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
 

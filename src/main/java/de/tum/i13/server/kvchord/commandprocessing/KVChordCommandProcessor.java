@@ -9,7 +9,7 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.net.NetworkLocation;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.util.stream.Collectors;
 
 public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
 
@@ -59,11 +59,12 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
     }
 
     private KVMessage getSuccessors(int successorCount) {
-        List<NetworkLocation> successors = this.chord.getSuccessors(successorCount);
-        StringBuilder sb = new StringBuilder();
-        successors.forEach(x -> sb.append(NetworkLocation.toPackedString(x)));
-
-        return new KVMessageImpl(sb.toString(), StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
+        return new KVMessageImpl(
+                this.chord.getSuccessors(successorCount).stream()
+                        .map(NetworkLocation::toPackedString)
+                        .collect(Collectors.joining(",")),
+                StatusType.CHORD_GET_SUCCESSOR_RESPONSE
+        );
     }
 
     private KVMessage notifyChord(String peerAddr) {

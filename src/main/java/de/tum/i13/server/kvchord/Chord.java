@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -16,6 +17,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Chord {
 
@@ -173,13 +176,50 @@ public class Chord {
     }
 
     public boolean isWriteResponsible(String key) {
-        return betweenTwoKeys(hashingAlgorithm.hash(predecessor), hashingAlgorithm.hash(ownLocation),
-                hashingAlgorithm.hash(key), false, true);
+        return isWriteResponsible(ownLocation, key);
+    }
+
+    private boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
+        try {
+            return betweenTwoKeys(
+                    hashingAlgorithm.hash(messaging.getPredecessor(networkLocation)),
+                    hashingAlgorithm.hash(networkLocation),
+                    hashingAlgorithm.hash(key),
+                    false,
+                    true
+            );
+        } catch (ChordException e) {
+            LOGGER.error("Could not determine predecessor of network location {}", networkLocation);
+            return false;
+        }
     }
 
     public boolean isReadResponsible(String key) {
-        // TODO implement
-        return isWriteResponsible(key);
+        // TODO Check whether replication is actually active
+        return getReplicatedLocations(ownLocation).stream()
+                .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
+    }
+
+    private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
+        return Stream.iterate(networkLocation,
+                iterLocation -> {
+                    try {
+                        return messaging.getPredecessor(iterLocation);
+                    } catch (ChordException e) {
+                        LOGGER.error("Could not find predecessor of {}", iterLocation);
+                        throw new RuntimeException(e);
+                    }
+                })
+                .limit(Constants.NUMBER_OF_REPLICAS +1)
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                collection -> {
+                                    Collections.reverse(collection);
+                                    return collection;
+                                }
+                        )
+                );
     }
 
     public NetworkLocation getWriteResponsibleNetworkLocation(String key) throws ChordException {
@@ -187,8 +227,11 @@ public class Chord {
     }
 
     public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) throws ChordException {
-        // TODO Implement
-        return List.of(getWriteResponsibleNetworkLocation(key));
+        // TODO Check whether replication is actually active
+        final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
+        return Stream.concat(Stream.of(writeResponsibleNetworkLocation),
+                        messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
+                .collect(Collectors.toList());
     }
 
     private static class StabilizationData {
