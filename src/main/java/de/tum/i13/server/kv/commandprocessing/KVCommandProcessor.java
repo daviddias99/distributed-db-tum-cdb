@@ -1,20 +1,20 @@
 package de.tum.i13.server.kv.commandprocessing;
 
 import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator;
-import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
 import de.tum.i13.server.net.ServerCommunicator;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Command processor for KVMessages. Uses {@link KVClientCommandProcessor},
@@ -32,7 +32,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
      * @param serverState server state
      * @param ecsCommunicator ECS communication interface
      */
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
+    public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState, ServerCommunicator ecsCommunicator) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
                 new KVServerCommandProcessor(storage),
@@ -40,7 +40,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
                 new KVClientCommandProcessor(storage, serverState));
     }
 
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState) {
+    public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
                 new KVServerCommandProcessor(storage),

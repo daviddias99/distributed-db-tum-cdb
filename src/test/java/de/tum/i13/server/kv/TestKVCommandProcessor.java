@@ -2,7 +2,7 @@ package de.tum.i13.server.kv;
 
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.state.ServerState;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
@@ -38,7 +38,7 @@ class TestKVCommandProcessor {
 
     NetworkLocation server1Location = new NetworkLocationImpl("192.168.1.0", 25565);
     ConsistentHashRing ring;
-    ServerState state;
+    ECSServerState state;
 
     @Mock
     HashingAlgorithm hashingAlgorithm;
@@ -62,7 +62,7 @@ class TestKVCommandProcessor {
         lenient().doReturn(true).when(ring)
                 .isWriteResponsible(any(NetworkLocation.class), anyString());
 
-        state = new ServerState(server1Location, new NetworkLocationImpl("127.0.0.1", 25566));
+        state = new ECSServerState(server1Location, new NetworkLocationImpl("127.0.0.1", 25566));
         state.setRingMetadata(ring);
     }
 

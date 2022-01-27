@@ -1,21 +1,20 @@
 package de.tum.i13.server.kv.commandprocessing;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.commandprocessing.handlers.HandoffHandler;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.server.state.ServerState;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.CommandProcessor;
-import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Command processor for ECS KVMessages
@@ -23,7 +22,7 @@ import de.tum.i13.shared.persistentstorage.PutException;
 public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
   private static final Logger LOGGER = LogManager.getLogger(KVEcsCommandProcessor.class);
 
-  private ServerState serverState;
+  private ECSServerState serverState;
   private PersistentStorage storage;
   private ServerCommunicator ecsCommunicator;
   private boolean asyncHandoff;
@@ -38,8 +37,8 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
    * @param asyncHandoff    true if handoff is to be processed asynchronously,
    *                        false otherwise
    */
-  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator,
-      boolean asyncHandoff) {
+  public KVEcsCommandProcessor(PersistentStorage storage, ECSServerState serverState, ServerCommunicator ecsCommunicator,
+                               boolean asyncHandoff) {
     this.serverState = serverState;
     this.storage = storage;
     this.asyncHandoff = asyncHandoff;
@@ -54,7 +53,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
    * @param serverState     server state
    * @param ecsCommunicator ECS communication interface
    */
-  public KVEcsCommandProcessor(PersistentStorage storage, ServerState serverState, ServerCommunicator ecsCommunicator) {
+  public KVEcsCommandProcessor(PersistentStorage storage, ECSServerState serverState, ServerCommunicator ecsCommunicator) {
     this(storage, serverState, ecsCommunicator, true);
   }
 

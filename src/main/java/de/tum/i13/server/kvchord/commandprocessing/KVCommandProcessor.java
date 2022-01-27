@@ -5,10 +5,9 @@ import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.PeerAuthenticator;
 import de.tum.i13.server.kv.PeerAuthenticator.PeerType;
-import de.tum.i13.server.kv.commandprocessing.KVClientCommandProcessor;
-import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVServerCommandProcessor;
 import de.tum.i13.server.kvchord.Chord;
+import de.tum.i13.server.state.ChordServerState;
 import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
@@ -20,7 +19,7 @@ import java.util.List;
 
 /**
  * Command processor for KVMessages. Uses {@link KVClientCommandProcessor},
- * {@link KVServerCommandProcessor} and {@link KVEcsCommandProcessor} to parse these messages.
+ * {@link KVServerCommandProcessor} and {@link KVChordCommandProcessor} to parse these messages.
  */
 public class KVCommandProcessor implements CommandProcessor<String> {
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
@@ -28,7 +27,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     private ServerState serverState;
     private List<CommandProcessor<KVMessage>> processors;
 
-    public KVCommandProcessor(PersistentStorage storage, ServerState serverState, Chord chord) {
+    public KVCommandProcessor(PersistentStorage storage, ChordServerState serverState, Chord chord) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
                 new KVServerCommandProcessor(storage),

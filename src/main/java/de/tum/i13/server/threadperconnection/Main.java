@@ -1,5 +1,6 @@
 package de.tum.i13.server.threadperconnection;
 
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -18,7 +19,6 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHa
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.server.state.ServerState;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,7 +58,7 @@ public class Main {
 
             // Create state
             LOGGER.trace("Creating server state");
-            final ServerState state = new ServerState(curLocation, ecsLocation);
+            final ECSServerState state = new ECSServerState(curLocation, ecsLocation);
 
             // Setup communications with ECS
             final ServerCommunicator ecsCommunicator = setupEcsOutgoingCommunications(ecsLocation);

@@ -1,7 +1,5 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.shared.net.NetworkLocation;
-import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
@@ -12,16 +10,16 @@ import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.state.ChordServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.hashing.DebugHashAlgorithm;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.server.state.ServerState;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
-
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
 
@@ -59,7 +57,7 @@ public class MainChord {
 
             // Create state
             LOGGER.trace("Creating server state");
-            final ServerState state = new ServerState(curLocation);
+            final ChordServerState state = new ChordServerState(curLocation, chord);
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, chord);
 
             LOGGER.trace("Starting the listening thread");
@@ -71,6 +69,7 @@ public class MainChord {
             listeningThread.start();
             Thread.sleep(600);
             chord.start();
+            state.start();
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (InterruptedException exception) {
