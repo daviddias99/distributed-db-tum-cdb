@@ -1,6 +1,7 @@
 package de.tum.i13.server;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import de.tum.i13.shared.BaseConfig;
 import de.tum.i13.shared.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +17,7 @@ import java.nio.file.Path;
 /**
  * Server configuration. Provides function to parse command line arguments
  */
-public class Config {
+public class Config extends BaseConfig {
 
     private static final Logger LOGGER = LogManager.getLogger(Config.class);
 
@@ -71,12 +72,6 @@ public class Config {
     public CachingStrategy cachingStrategy;
 
     /**
-     * Usage help
-     */
-    @CommandLine.Option(names = "-h", description = "Displays help", usageHelp = true)
-    public boolean usageHelp;
-
-    /**
      * BTree minimum degree
      */
     @CommandLine.Option(names = { "-t",
@@ -95,29 +90,11 @@ public class Config {
         final CommandLine cmd = new CommandLine(cfg)
                 .setCaseInsensitiveEnumValuesAllowed(true)
                 .registerConverter(InetSocketAddress.class, new InetSocketAddressTypeConverter());
-        final PrintWriter out = cmd.getOut();
-        final PrintWriter err = cmd.getErr();
 
-        try {
-            cmd.parseArgs(args);
-        } catch (CommandLine.ParameterException ex) {
-            final CommandLine exCmd = ex.getCommandLine();
-            ex.printStackTrace(exCmd.getErr());
-            exCmd.usage(exCmd.getOut());
-            System.exit(-1);
-        }
-
-        showHelpAndExitIfRequested(cmd, out);
-        ensureDataDirectoryExistence(cfg.dataDir, out, err);
+        parseConfig(cmd, args);
+        ensureDataDirectoryExistence(cfg.dataDir, cmd.getOut(), cmd.getErr());
 
         return cfg;
-    }
-
-    private static void showHelpAndExitIfRequested(CommandLine cmd, PrintWriter out) {
-        if (cmd.isUsageHelpRequested()) {
-            cmd.usage(out);
-            System.exit(0);
-        }
     }
 
     private static void ensureDataDirectoryExistence(Path dataDir, PrintWriter out, PrintWriter err) {

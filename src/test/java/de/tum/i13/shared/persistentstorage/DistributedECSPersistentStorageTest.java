@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DistributedPersistentStorageTest {
+class DistributedECSPersistentStorageTest {
 
     @Mock(name = "Persistent storage")
     NetworkPersistentStorage persistentStorage;
@@ -34,7 +34,7 @@ class DistributedPersistentStorageTest {
 
     @InjectMocks
     @Spy
-    DistributedPersistentStorage distributedStorage;
+    DistributedECSPersistentStorage distributedStorage;
 
     @SuppressWarnings("java:S5790")
     abstract class RetryTest {

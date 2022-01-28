@@ -29,7 +29,9 @@ public class Shell {
      * @param args command line arguments of the program. Unused in this class
      */
     public static void main(String[] args) {
-        final CLICommands commands = new CLICommands();
+        Config cfg = Config.parseCommandlineArgs(args);
+
+        final CLICommands commands = new CLICommands(cfg.serverType);
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())

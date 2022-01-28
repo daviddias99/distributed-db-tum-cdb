@@ -23,12 +23,12 @@ import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBa
 
 /**
  * A {@link WrappingPersistentStorage} that is aware of the distributed nature of the
- * {@link DistributedPersistentStorage}.
+ * {@link DistributedChordPersistentStorage}.
  * Uses a {@link ConsistentHashRing} to store server metadata.
  */
-public class DistributedPersistentStorage implements NetworkPersistentStorage {
+public class DistributedChordPersistentStorage implements NetworkPersistentStorage {
 
-    private static final Logger LOGGER = LogManager.getLogger(DistributedPersistentStorage.class);
+    private static final Logger LOGGER = LogManager.getLogger(DistributedChordPersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final RetryConfig retryConfig = RetryConfig.<KVMessage>custom()
             .maxAttempts(Constants.MAX_REQUEST_RETRIES)
@@ -52,11 +52,11 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
     private ConsistentHashRing hashRing;
 
     /**
-     * Creates a new {@link DistributedPersistentStorage} that wraps around the given {@link NetworkMessageServer}
+     * Creates a new {@link DistributedChordPersistentStorage} that wraps around the given {@link NetworkMessageServer}
      *
      * @param networkPersistentStorage the server to use for network communication
      */
-    public DistributedPersistentStorage(NetworkPersistentStorage networkPersistentStorage) {
+    public DistributedChordPersistentStorage(NetworkPersistentStorage networkPersistentStorage) {
         this.persistentStorage = networkPersistentStorage;
         hashRing = new TreeMapServerMetadata();
     }
