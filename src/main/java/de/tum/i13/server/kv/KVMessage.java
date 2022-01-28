@@ -161,7 +161,7 @@ public interface KVMessage {
          */
         KEYRANGE_READ_SUCCESS(true, false),
         
-        DELETE_SERVER(true, false);
+        DELETE_SERVER(true, false),
         
 
         /* CHORD */

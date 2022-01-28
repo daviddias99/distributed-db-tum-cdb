@@ -2,6 +2,7 @@ package de.tum.i13.server.state;
 
 import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.kvchord.ChordException;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,6 +51,16 @@ public class ChordServerState extends AbstractServerState implements ServerState
                     .log("Could not retrieve read responsible network locations for key {}", key);
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public NetworkLocation getCurNetworkLocation() {
+        return chord.getLocation();
+    }
+
+    @Override
+    public boolean isReplicationActive() {
+        return chord.getSuccessors(Constants.NUMBER_OF_REPLICAS).size() == Constants.NUMBER_OF_REPLICAS;
     }
 
 }

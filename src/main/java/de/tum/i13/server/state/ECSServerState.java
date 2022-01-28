@@ -1,9 +1,15 @@
 package de.tum.i13.server.state;
 
+import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Class that represents the server's state. It contains the actual state, the
@@ -16,6 +22,10 @@ public class ECSServerState extends AbstractServerState implements ServerState {
   private ConsistentHashRing ringMetadata;
   private final NetworkLocation curNetworkLocation;
   private final NetworkLocation ecsLocation;
+  private boolean isShuttingDown;
+  private List<String> nodesToDelete = new LinkedList<>();
+  private ReplicationOrchestrator replicationOrchestrator;
+
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
@@ -23,7 +33,7 @@ public class ECSServerState extends AbstractServerState implements ServerState {
    * @param ecsLocation location of the ecs
    */
   public ECSServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
-    this(curNetworkLocation, ecsLocation, State.STOPPED);
+    this(curNetworkLocation, ecsLocation, null);
   }
 
   /**
@@ -32,8 +42,8 @@ public class ECSServerState extends AbstractServerState implements ServerState {
    * @param ecsLocation location of the ecs
    * @param startState starting state
    */
-  public ECSServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, State startState) {
-    this(curNetworkLocation, ecsLocation, null, startState);
+  public ECSServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ReplicationOrchestrator replicationOrchestrator) {
+    this(curNetworkLocation, ecsLocation, null, State.STOPPED, replicationOrchestrator);
   }
 
   /**
@@ -44,11 +54,13 @@ public class ECSServerState extends AbstractServerState implements ServerState {
    * @param startState starting state
    */
   public ECSServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata,
-                        State startState) {
+                        State startState, ReplicationOrchestrator replicationOrchestrator) {
     super(startState);
     this.setRingMetadata(ringMetadata);
     this.curNetworkLocation = curNetworkLocation;
     this.ecsLocation = ecsLocation;
+    this.isShuttingDown = false;
+    this.replicationOrchestrator = replicationOrchestrator;
   }
 
   /**
@@ -82,9 +94,63 @@ public class ECSServerState extends AbstractServerState implements ServerState {
 
   @Override
   public boolean isReadResponsible(String key) {
-    // TODO Merge branch that includes replication into this branch
-    LOGGER.warn("Replication is not yet implemented in this branch for the ECS servers");
-    return isWriteResponsible(key);
+    return ringMetadata.isReadResponsible(curNetworkLocation, key);
+  }
+
+  @Override
+  public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) {
+    return ringMetadata.getReadResponsibleNetworkLocation(key);
+  }
+
+  @Override
+  public synchronized boolean isShutdown() {
+    return this.isShuttingDown;
+  }
+
+  @Override
+  public synchronized void shutdown() {
+    this.isShuttingDown = false;
+  }
+
+  public synchronized NetworkLocation getCurNetworkLocation() {
+    return curNetworkLocation;
+  }
+
+  @Override
+  public boolean isReplicationActive() {
+    return ringMetadata.isReplicationActive();
+  }
+
+  public synchronized void executeStoredDeletes(PersistentStorage storage) {
+    for (String key : nodesToDelete) {
+      try {
+        LOGGER.info("Trying to delete item with key {}.", key);
+        storage.put(key, null);
+      } catch (PutException e) {
+        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+      }
+    }
+    nodesToDelete = new LinkedList<>();
+  }
+
+  public synchronized List<String> getDeleteQueue() {
+    return this.nodesToDelete;
+  }
+
+  public synchronized void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {
+    if (this.replicationOrchestrator == null) {
+      return;
+    }
+
+    this.replicationOrchestrator.handleKeyRangeChange(oldMetadata, newMetadata);
+  }
+
+  public synchronized void deleteReplicatedRanges() {
+    if (this.replicationOrchestrator == null) {
+      return;
+    }
+
+    this.replicationOrchestrator.deleteReplicatedRangesWithoutUpdate();
   }
 
 }

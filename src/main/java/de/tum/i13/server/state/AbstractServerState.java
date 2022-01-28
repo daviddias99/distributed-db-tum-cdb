@@ -34,17 +34,17 @@ public abstract class AbstractServerState implements ServerState {
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
         this.setState(State.STOPPED);
     }
 
     @Override
-    public void writeLock() {
+    public synchronized void writeLock() {
         this.setState(State.WRITE_LOCK);
     }
 
     @Override
-    public void shutdown() {
+    public synchronized void shutdown() {
         this.setState(State.SHUTDOWN);
     }
 

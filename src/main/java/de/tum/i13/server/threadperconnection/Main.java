@@ -1,11 +1,5 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.server.state.ECSServerState;
-import de.tum.i13.shared.net.CommunicationClient;
-import de.tum.i13.shared.net.CommunicationClientException;
-import de.tum.i13.shared.net.NetworkLocation;
-import de.tum.i13.shared.net.NetworkLocationImpl;
-import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
@@ -18,14 +12,18 @@ import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocationImpl;
+import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
-
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
 
@@ -59,7 +57,8 @@ public class Main {
 
             // Create state
             LOGGER.trace("Creating server state");
-            final ECSServerState state = new ECSServerState(curLocation, ecsLocation);
+            final ReplicationOrchestrator replicationOrchestrator = new ReplicationOrchestrator(curLocation, storage);
+            final ECSServerState state = new ECSServerState(curLocation, ecsLocation, replicationOrchestrator);
 
             // Setup communications with ECS
             final ServerCommunicator ecsCommunicator = setupEcsOutgoingCommunications(ecsLocation);

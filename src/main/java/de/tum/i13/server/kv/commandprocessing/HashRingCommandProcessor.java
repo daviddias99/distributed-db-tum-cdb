@@ -19,7 +19,11 @@ public class HashRingCommandProcessor implements CommandProcessor<KVMessage> {
 
     @Override
     public KVMessage process(KVMessage command) {
-        return command.getStatus().equals(KVMessage.StatusType.KEYRANGE) ? this.keyRange() : null;
+        return switch (command.getStatus()) {
+            case KEYRANGE -> this.keyRange();
+            case KEYRANGE_SUCCESS -> this.keyRangeRead();
+            default -> null;
+        };
     }
 
     private KVMessage keyRange() {
@@ -27,6 +31,13 @@ public class HashRingCommandProcessor implements CommandProcessor<KVMessage> {
         LOGGER.info("Sending key-range to client: {}", writeRanges);
 
         return new KVMessageImpl(writeRanges, KVMessage.StatusType.KEYRANGE_SUCCESS);
+    }
+
+    private KVMessage keyRangeRead() {
+        final String writeRanges = this.serverState.getRingMetadata().packReadRanges();
+        LOGGER.info("Sending reading key-range to client: {}", writeRanges);
+
+        return new KVMessageImpl(writeRanges, KVMessage.StatusType.KEYRANGE_READ_SUCCESS);
     }
 
 }

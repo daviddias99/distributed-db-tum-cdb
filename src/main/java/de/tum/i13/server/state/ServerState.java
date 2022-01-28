@@ -1,5 +1,9 @@
 package de.tum.i13.server.state;
 
+import de.tum.i13.shared.net.NetworkLocation;
+
+import java.util.List;
+
 /**
  * Class that represents the server's state. It contains the actual state and potentially additional information
  */
@@ -75,6 +79,12 @@ public interface ServerState {
      * @return true if the server is responsible for the key
      */
     boolean isReadResponsible(String key);
+
+    List<NetworkLocation> getReadResponsibleNetworkLocation(String key);
+
+    NetworkLocation getCurNetworkLocation();
+
+    boolean isReplicationActive();
 
     /**
      * Enum that represents the server's state

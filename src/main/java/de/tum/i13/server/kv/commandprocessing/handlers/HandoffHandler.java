@@ -1,16 +1,9 @@
 package de.tum.i13.server.kv.commandprocessing.handlers;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.net.ServerCommunicator;
-import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.server.state.ServerState;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -18,6 +11,12 @@ import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Handler that manages chunk handoff to other servers
@@ -33,7 +32,7 @@ public class HandoffHandler implements Runnable {
   private boolean async;
   private boolean isShutdown;
   private List<String> nodesToDelete;
-  private ServerState state;
+  private ECSServerState state;
 
   /**
    * Create a new handoff handler
@@ -44,7 +43,7 @@ public class HandoffHandler implements Runnable {
    * @param storage current server storage
    */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage, boolean async, ServerState state) {
+                        PersistentStorage storage, boolean async, ECSServerState state) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
