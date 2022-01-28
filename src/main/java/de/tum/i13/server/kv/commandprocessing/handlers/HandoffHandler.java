@@ -10,6 +10,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.server.state.ServerState;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -23,7 +24,6 @@ import de.tum.i13.shared.persistentstorage.PutException;
  */
 public class HandoffHandler implements Runnable {
 
-  private static final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
 
   private PersistentStorage storage;
   private ServerCommunicator ecs;
@@ -31,7 +31,9 @@ public class HandoffHandler implements Runnable {
   private String lowerBound;
   private String upperBound;
   private boolean async;
+  private boolean isShutdown;
   private List<String> nodesToDelete;
+  private ServerState state;
 
   /**
    * Create a new handoff handler
@@ -42,18 +44,22 @@ public class HandoffHandler implements Runnable {
    * @param storage current server storage
    */
   public HandoffHandler(NetworkLocation peer, ServerCommunicator ecs, String lowerBound, String upperBound,
-      PersistentStorage storage, boolean async, List<String> nodesToDelete) {
+      PersistentStorage storage, boolean async, ServerState state) {
     this.storage = storage;
     this.peer = peer;
     this.ecs = ecs;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
     this.async = async;
-    this.nodesToDelete = nodesToDelete;  
+    this.state = state;
+    this.nodesToDelete = state.getDeleteQueue(); 
+    this.isShutdown = state.isShutdown();
   }
 
   @Override
   public void run() {
+    final Logger LOGGER = LogManager.getLogger(HandoffHandler.class);
+
     NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
 
     try {
@@ -61,6 +67,7 @@ public class HandoffHandler implements Runnable {
       netPeerStorage.connectAndReceive(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
       LOGGER.error("Could not connect to peer {} for handoff.", peer, e);
+      return;
     }
 
     List<Pair<String>> itemsToSend = new LinkedList<>();
@@ -90,15 +97,11 @@ public class HandoffHandler implements Runnable {
       }
     }
 
-    // // Delete items after sending (only sucessful ones)
-    // for (String key : nodesToDelete) {
-    //   try {
-    //     LOGGER.info("Trying to delete item with key {}.", key);
-    //     storage.put(key, null);
-    //   } catch (PutException e) {
-    //     LOGGER.error("Could not delete item with key {} during handoff to {}.", key, peer, e);
-    //   }
-    // }
+    // Delete items after sending (only sucessful ones)
+    if(this.isShutdown) {
+      this.state.executeStoredDeletes(storage);
+      this.state.deleteReplicatedRanges();
+    }
 
     if(this.async) {
       try {

@@ -12,6 +12,7 @@ import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kv.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.KVEcsCommandProcessor;
 import de.tum.i13.server.kv.commandprocessing.handlers.ShutdownHandler;
+import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.server.net.ServerCommunicator;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -65,16 +66,13 @@ public class Main {
             final KVEcsCommandProcessor ecsCommandProcessor = new KVEcsCommandProcessor(storage, state, ecsCommunicator,
                     false);
 
-            // Setup shutdown procedure (handoff)
-
-
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, ecsCommunicator);
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
             final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread)));
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state)));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(500);
@@ -82,7 +80,6 @@ public class Main {
             // Request metadata from ECS
             LOGGER.info("Requesting metadata do ECS");
             ecsCommandProcessor.process(ecsCommunicator.signalStart(cfg.listenAddress, Integer.toString(cfg.port)));
-
         } catch (StorageException ex) {
             LOGGER.fatal("Caught exception while setting up storage", ex);
         } catch (CommunicationClientException ex) {

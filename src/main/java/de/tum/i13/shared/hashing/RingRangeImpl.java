@@ -13,6 +13,7 @@ import static de.tum.i13.shared.hashing.HashingAlgorithm.convertHashToHex;
 /**
  * A standard implementation of a {@link RingRange}
  */
+
 class RingRangeImpl implements RingRange {
 
     private static final Logger LOGGER = LogManager.getLogger(RingRangeImpl.class);
