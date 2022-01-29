@@ -13,9 +13,6 @@ import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Command processor for ECS KVMessages
  */
