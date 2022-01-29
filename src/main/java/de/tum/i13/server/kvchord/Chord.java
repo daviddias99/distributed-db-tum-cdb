@@ -108,7 +108,7 @@ public class Chord {
             }
         }
 
-        return new NetworkLocation[]{nPrime, nPrimeSuccessor};
+        return new NetworkLocation[] { nPrime, nPrimeSuccessor };
     }
 
     public NetworkLocation findSuccessor(BigInteger key) throws ChordException {
@@ -186,8 +186,7 @@ public class Chord {
                     hashingAlgorithm.hash(networkLocation),
                     hashingAlgorithm.hash(key),
                     false,
-                    true
-            );
+                    true);
         } catch (ChordException e) {
             LOGGER.error("Could not determine predecessor of network location {}", networkLocation);
             return false;
@@ -210,16 +209,14 @@ public class Chord {
                         throw new RuntimeException(e);
                     }
                 })
-                .limit(Constants.NUMBER_OF_REPLICAS +1)
+                .limit(Constants.NUMBER_OF_REPLICAS + 1)
                 .collect(
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 collection -> {
                                     Collections.reverse(collection);
                                     return collection;
-                                }
-                        )
-                );
+                                }));
     }
 
     public NetworkLocation getWriteResponsibleNetworkLocation(String key) throws ChordException {
@@ -230,7 +227,7 @@ public class Chord {
         // TODO Check whether replication is actually active
         final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
         return Stream.concat(Stream.of(writeResponsibleNetworkLocation),
-                        messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
+                messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
                 .collect(Collectors.toList());
     }
 
@@ -267,58 +264,54 @@ public class Chord {
     }
 
     private void stabilize() {
-        try {
-            NetworkLocation successor = this.getSuccessor();
+        NetworkLocation successor = this.getSuccessor();
 
-            // Check if successor is self
-            if (successor.equals(this.ownLocation)) {
-                if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
-                    this.setSuccessor(this.getPredecessor());
-                }
-                return;
+        // Check if successor is self
+        if (successor.equals(this.ownLocation)) {
+            if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
+                this.setSuccessor(this.getPredecessor());
             }
-
-            StabilizationData stabilizationData = this.querySuccessorForStabilization();
-
-            if (stabilizationData == null) {
-                LOGGER.error("Could not stabilize");
-                return;
-            }
-
-            NetworkLocation successorPredecessor = stabilizationData.successorPredecessor;
-            List<NetworkLocation> successorSuccessors = stabilizationData.successorSuccessors;
-            this.updateSuccessorList(successorSuccessors);
-
-            // Check if successor predecessor is self
-            if (this.ownLocation.equals(successorPredecessor)) {
-                // No need to notify
-                return;
-            }
-
-            // Re-fetch successor because it might have changed during the stabilization
-            // query
-            successor = this.getSuccessor();
-
-            if (successorPredecessor.equals(NetworkLocation.getNull())) {
-                messaging.notifyNode(successor);
-                return;
-            }
-
-            boolean setNewSuccessor = this.betweenTwoKeys(
-                    hashingAlgorithm.hash(ownLocation),
-                    hashingAlgorithm.hash(successor),
-                    hashingAlgorithm.hash(successorPredecessor),
-                    false,
-                    false);
-
-            if (setNewSuccessor) {
-                this.setSuccessor(successorPredecessor);
-            }
-
-            messaging.notifyNode(this.getSuccessor());
-        } catch (Exception e) {
-            e.printStackTrace();
+            return;
         }
+
+        StabilizationData stabilizationData = this.querySuccessorForStabilization();
+
+        if (stabilizationData == null) {
+            LOGGER.error("Could not stabilize");
+            return;
+        }
+
+        NetworkLocation successorPredecessor = stabilizationData.successorPredecessor;
+        List<NetworkLocation> successorSuccessors = stabilizationData.successorSuccessors;
+        this.updateSuccessorList(successorSuccessors);
+
+        // Check if successor predecessor is self
+        if (this.ownLocation.equals(successorPredecessor)) {
+            // No need to notify
+            return;
+        }
+
+        // Re-fetch successor because it might have changed during the stabilization
+        // query
+        successor = this.getSuccessor();
+
+        if (successorPredecessor.equals(NetworkLocation.getNull())) {
+            messaging.notifyNode(successor);
+            return;
+        }
+
+        boolean setNewSuccessor = this.betweenTwoKeys(
+                hashingAlgorithm.hash(ownLocation),
+                hashingAlgorithm.hash(successor),
+                hashingAlgorithm.hash(successorPredecessor),
+                false,
+                false);
+
+        if (setNewSuccessor) {
+            this.setSuccessor(successorPredecessor);
+        }
+
+        messaging.notifyNode(this.getSuccessor());
     }
 
     private void fixFingers() {
@@ -334,29 +327,28 @@ public class Chord {
             LOGGER.debug("Fixed finger {} to {}", toUpdate.getKey().toString(16), newFinger);
         } catch (ChordException e) {
             LOGGER.error("Could not fix finger {}", toUpdate.getKey().toString(16));
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.fatal("ERROR in fix fingers");
         }
     }
 
     private void checkPredecessor() {
+        if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
+            return;
+        }
 
+        boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
+
+        if (!predecessorAlive) {
+            this.predecessor = NetworkLocation.getNull();
+        }
+    }
+
+    private void periodicFunction(Runnable function) {
         try {
-            if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
-                return;
-            }
-
-            boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
-
-            if (!predecessorAlive) {
-                this.predecessor = NetworkLocation.getNull();
-            }
+            function.run();
         } catch (Exception e) {
-            // TODO: this and other periodic threads are wrapped in try catch to help catch
-            // unexpected exceptions, maybe later we should change the initThread function
-            // to call threads wrapped in try-catches instead of doing it for each one
-            e.printStackTrace();
+            LOGGER.atError()
+                    .withThrowable(e)
+                    .log("Exception was caught during periodic thread execution");
         }
     }
 
@@ -364,9 +356,9 @@ public class Chord {
         final ScheduledThreadPoolExecutor periodicThreadPool = (ScheduledThreadPoolExecutor) Executors
                 .newScheduledThreadPool(3);
 
-        Runnable t1 = this::stabilize;
-        Runnable t2 = this::fixFingers;
-        Runnable t3 = this::checkPredecessor;
+        Runnable t1 = () -> periodicFunction(this::stabilize);
+        Runnable t2 = () -> periodicFunction(this::fixFingers);
+        Runnable t3 = () -> periodicFunction(this::checkPredecessor);
 
         // The threads are started with a delay to avoid them running at the same time
         periodicThreadPool.scheduleWithFixedDelay(t1, 0, 1000, TimeUnit.MILLISECONDS);
@@ -447,7 +439,7 @@ public class Chord {
     // TODO: Took this from my previous project, but I think Lukas already did it
     // somewhere
     private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
-                                   boolean closedRight) {
+            boolean closedRight) {
 
         // Equal to one of the bounds and are inclusive
         if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
