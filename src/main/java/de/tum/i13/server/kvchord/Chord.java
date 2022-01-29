@@ -156,7 +156,7 @@ public class Chord {
             return;
         }
 
-        for (int i = 1; i < this.successors.size(); i++) {
+        for (int i = this.successors.size() - 1; i > 0; i--) {
             NetworkLocation oldSuccessor = this.successors.remove(i);
             this.fingerTable.remove(this.hashingAlgorithm.hash(oldSuccessor));
         }
