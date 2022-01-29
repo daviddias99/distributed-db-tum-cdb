@@ -41,27 +41,33 @@ class TestCommunicationClient {
 
         @Test
         void createsOnCorrectLocalhost() throws CommunicationClientException {
-            final CommunicationClient client = new CommunicationClient("localhost", serverSocket.getLocalPort());
-            assertThat(client.isConnected())
-                    .isTrue();
+            try (CommunicationClient client = new CommunicationClient("localhost", serverSocket.getLocalPort())) {
+                assertThat(client.isConnected())
+                        .isTrue();
+            }
         }
 
         @Test
         void createsOnDefaultConstructor() {
-            CommunicationClient client = new CommunicationClient();
-            assertThat(client.isConnected())
-                    .isFalse();
+            try (CommunicationClient client = new CommunicationClient()) {
+                assertThat(client.isConnected())
+                        .isFalse();
+            } catch (CommunicationClientException e) {
+            }
         }
 
         @Test
         void doesNotCreateOnWrongAddress() {
-            CommunicationClient client = new CommunicationClient();
-            assertThatExceptionOfType(CommunicationClientException.class)
-                    .isThrownBy(() -> new CommunicationClient("localhost00", serverSocket.getLocalPort()))
-                    .extracting(CommunicationClientException::getType)
-                    .isEqualTo(CommunicationClientException.Type.UNKNOWN_HOST);
-            assertThat(client.isConnected())
-                    .isFalse();
+            try (CommunicationClient client = new CommunicationClient()) {
+                assertThatExceptionOfType(CommunicationClientException.class)
+                        .isThrownBy(() -> new CommunicationClient("localhost00", serverSocket.getLocalPort()))
+                        .extracting(CommunicationClientException::getType)
+                        .isEqualTo(CommunicationClientException.Type.UNKNOWN_HOST);
+                assertThat(client.isConnected())
+                        .isFalse();
+            } catch (CommunicationClientException e) {
+            }
+                    
         }
 
     }
