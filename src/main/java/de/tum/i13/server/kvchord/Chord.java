@@ -55,10 +55,10 @@ public class Chord {
         this.TABLE_SIZE = hashingAlgorithm.getHashSizeBits();
         this.fingerTable = new ConcurrentSkipListMap<>();
         this.fingerTableKeys = new ArrayList<>();
-        this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm);
+        this.listeners =  new LinkedList<>();
+        this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm, this.listeners);
         this.messaging = new ChordMessaging(this);
         this.bootstrapNode = bootstrapNode;
-        this.listeners =  new LinkedList<>();
         this.initFingerTable(ownLocation);
     }
 
@@ -402,10 +402,7 @@ public class Chord {
     private boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
 
         if(this.getPredecessor().equals(NetworkLocation.getNull())) {
-            if (this.getSuccessorCount() == 0 && this.getPredecessor().equals(NetworkLocation.getNull())) {
-                return true;
-            } 
-            return false;
+            return this.getSuccessorCount() == 0;
         }
 
         try {
