@@ -14,6 +14,7 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHa
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -108,7 +109,7 @@ public class Main {
 
         // TODO: is using MD5 by default, should somehow be configured with the one used
         // in the Ring
-        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler);
+        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, new MD5HashAlgorithm());
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 

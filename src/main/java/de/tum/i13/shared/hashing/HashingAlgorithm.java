@@ -77,6 +77,25 @@ public interface HashingAlgorithm {
     }
 
     /**
+     * Pad given string with zeros on the left up to a given final string length
+     * @param inputString   string to pad
+     * @param length        final string length
+     * @return              padded string
+     */
+    static String padLeftZeros(String inputString, int length) {
+        if (inputString.length() >= length) {
+          return inputString;
+        }
+        StringBuilder sb = new StringBuilder();
+        while (sb.length() < length - inputString.length()) {
+          sb.append('0');
+        }
+        sb.append(inputString);
+    
+        return sb.toString();
+      }
+
+    /**
      * Returns the maximum value this {@link HashingAlgorithm} can map to.
      *
      * @return the maximum value this {@link HashingAlgorithm} can map to

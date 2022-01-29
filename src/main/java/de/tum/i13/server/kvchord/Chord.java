@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -289,7 +290,7 @@ public class Chord {
     }
 
     private void setPredecessor(NetworkLocation predecessor) {
-        NetworkLocation oldPredecessor = predecessor;
+        NetworkLocation oldPredecessor = this.predecessor;
         this.predecessor = predecessor;
 
         for (ChordListener list : this.listeners) {
@@ -379,7 +380,9 @@ public class Chord {
         }
     }
 
-
+    public int getSuccessorCount() {
+        return this.successors.count();
+    }
     /* LISTENERS */
 
     public void addListener(ChordListener listener) {
@@ -408,6 +411,11 @@ public class Chord {
 
     public boolean isReadResponsible(String key) {
         // TODO Check whether replication is actually active
+
+        if(this.getSuccessorCount() < Constants.NUMBER_OF_REPLICAS) {
+            return isWriteResponsible(this.ownLocation, key);
+        }
+
         return getReplicatedLocations(ownLocation).stream()
                 .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
     }
@@ -439,6 +447,11 @@ public class Chord {
     public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) throws ChordException {
         // TODO Check whether replication is actually active
         final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
+        
+        if(this.getSuccessorCount() < Constants.NUMBER_OF_REPLICAS) {
+            return Arrays.asList(writeResponsibleNetworkLocation);
+        }
+        
         return Stream.concat(Stream.of(writeResponsibleNetworkLocation),
                 messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
                 .collect(Collectors.toList());

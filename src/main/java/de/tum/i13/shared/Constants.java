@@ -41,7 +41,7 @@ public class Constants {
     public static final int METADATA_UPDATE_TIMEOUT = 5;
     public static final int MD5_HASH_HEX_STRING_SIZE = 16;
     public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", MD5_HASH_HEX_STRING_SIZE);
-    public static final int NUMBER_OF_REPLICAS = 2;
+    public static final int NUMBER_OF_REPLICAS = 10;
 
     private Constants() {
     }

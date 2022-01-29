@@ -114,7 +114,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
 
     NetworkLocation peerNetworkLocation = NetworkLocation.extractNetworkLocation(command.getKey());
     Runnable handoff = new HandoffHandler(peerNetworkLocation, ecsCommunicator, lowerBound, upperBound, storage,
-        asyncHandoff, this.serverState);
+        asyncHandoff, this.serverState, this.serverState.getRingMetadata().getHashingAlgorithm());
 
     if (asyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

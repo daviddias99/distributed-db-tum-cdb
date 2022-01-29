@@ -13,7 +13,6 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandle
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
-import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
@@ -58,26 +57,10 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         this.hashAlg = hashingAlgorithm;
     }
 
-    /**
-     * Create a new B-Tree with a given minimum degree (see
-     * {@link PersistentBTree}).
-     * Storage handler is also configurable. First there is an attempt to load the
-     * tree, if it fails, a new tree is created.
-     * 
-     * @param minimumDegree  B-Tree minimum degree
-     * @param storageHandler Handler used by the BTree to persist
-     *
-     * @throws StorageException An exception is thrown when an error occures while
-     *                          saving tree to persistent storage
-     */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler)
-            throws StorageException {
-        this(minimumDegree, storageHandler, new MD5HashAlgorithm());
-    }
 
     private String normalizeKey(String key) {
         String intermediate = this.hashAlg.hash(key).toString(16);
-        return "00000000000000000000000000000000".substring(intermediate.length()) + intermediate;
+        return "0".repeat(this.hashAlg.getHashSizeBits()/4).substring(intermediate.length()) + intermediate;
     }
 
     @Override

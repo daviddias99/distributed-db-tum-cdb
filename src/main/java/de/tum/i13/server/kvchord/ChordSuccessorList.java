@@ -30,6 +30,10 @@ class ChordSuccessorList {
     this.fingerTable = fingerTable;
   }
 
+  int count() {
+    return this.successors.size();
+  }
+
   NetworkLocation getFirst() {
     return this.successors.isEmpty() ? NetworkLocation.getNull() : this.successors.get(0);
   }

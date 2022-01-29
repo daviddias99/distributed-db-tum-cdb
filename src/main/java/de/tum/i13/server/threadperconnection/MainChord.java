@@ -44,8 +44,9 @@ public class MainChord {
 
         try {
             // Setup storage
+            final HashingAlgorithm hashingAlgorithm = new DebugHashAlgorithm();
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy,
-                    cfg.cacheSize);
+                    cfg.cacheSize, hashingAlgorithm);
 
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
@@ -53,7 +54,6 @@ public class MainChord {
             NetworkLocation boostrapLocation = cfg.bootstrap == null ? null : new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
                     cfg.bootstrap.getPort());
 
-            HashingAlgorithm hashingAlgorithm = new DebugHashAlgorithm();
             Chord chord = boostrapLocation == null ? 
                 new Chord(hashingAlgorithm, curLocation) :
                 new Chord(hashingAlgorithm, curLocation, boostrapLocation);
@@ -94,7 +94,7 @@ public class MainChord {
      * @return
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree,
-            CachingStrategy cachingStrategy, int cacheSize)
+            CachingStrategy cachingStrategy, int cacheSize, HashingAlgorithm hashAlg)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
@@ -103,7 +103,7 @@ public class MainChord {
 
         // TODO: is using MD5 by default, should somehow be configured with the one used
         // in the Ring
-        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler);
+        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, hashAlg);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 }

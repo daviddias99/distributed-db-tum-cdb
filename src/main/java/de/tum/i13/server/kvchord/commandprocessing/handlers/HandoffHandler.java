@@ -3,6 +3,7 @@ package de.tum.i13.server.kvchord.commandprocessing.handlers;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.state.ChordServerState;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
@@ -30,6 +31,7 @@ public class HandoffHandler implements Runnable {
   private String upperBound;
   private List<String> nodesToDelete;
   private ChordServerState state;
+  private HashingAlgorithm hashingAlgorithm;
 
   /**
    * Create a new handoff handler
@@ -39,13 +41,14 @@ public class HandoffHandler implements Runnable {
    * @param upperBound upper bound for the keys of the transfered elements
    * @param storage current server storage
    */
-  public HandoffHandler(NetworkLocation peer, String lowerBound, String upperBound, PersistentStorage storage, ChordServerState state) {
+  public HandoffHandler(NetworkLocation peer, String lowerBound, String upperBound, PersistentStorage storage, ChordServerState state, HashingAlgorithm hashingAlgorithm) {
     this.storage = storage;
     this.peer = peer;
     this.lowerBound = lowerBound;
     this.upperBound = upperBound;
     this.state = state;
     this.nodesToDelete = state.getDeleteQueue(); 
+    this.hashingAlgorithm = hashingAlgorithm;
   }
 
   @Override
@@ -91,31 +94,19 @@ public class HandoffHandler implements Runnable {
     this.state.executeStoredDeletes(storage);
   }
 
-  private String padLeftZeros(String inputString, int length) {
-    if (inputString.length() >= length) {
-        return inputString;
-    }
-    StringBuilder sb = new StringBuilder();
-    while (sb.length() < length - inputString.length()) {
-        sb.append('0');
-    }
-    sb.append(inputString);
-
-    return sb.toString();
-}
-  
   private List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
 
-    String paddedLower = this.padLeftZeros(lowerBound, 32);
-    String paddedUpper = this.padLeftZeros(upperBound, 32);
+    int hashSize = this.hashingAlgorithm.getHashSizeBits()/4;
+    String paddedLower = HashingAlgorithm.padLeftZeros(lowerBound, hashSize);
+    String paddedUpper = HashingAlgorithm.padLeftZeros(upperBound, hashSize);
 
     if(paddedLower.compareTo(paddedUpper) <= 0) {
       return this.storage.getRange(paddedLower, paddedUpper);
     }
 
     List<Pair<String>> result = new LinkedList<>();
-    result.addAll(this.storage.getRange("00000000000000000000000000000000", paddedUpper));
-    result.addAll(this.storage.getRange(paddedLower, "ffffffffffffffffffffffffffffffff"));
+    result.addAll(this.storage.getRange("0".repeat(hashSize), paddedUpper));
+    result.addAll(this.storage.getRange(paddedLower, "f".repeat(hashSize)));
 
     return result;
   }

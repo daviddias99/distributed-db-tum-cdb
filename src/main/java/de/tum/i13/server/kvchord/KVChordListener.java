@@ -30,6 +30,10 @@ public class KVChordListener implements ChordListener {
   @Override
   public synchronized void predecessorChanged(NetworkLocation previous, NetworkLocation current){
 
+    if (current.equals(previous)) {
+      return;
+    }
+
     if (current.equals(NetworkLocation.getNull())) {
       this.predecessorChangeMemory = previous;
       return;
@@ -45,7 +49,7 @@ public class KVChordListener implements ChordListener {
     String upperBound = this.hashing.hash(current).toString(16);
     LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", doAsyncHandoff, lowerBound, upperBound);
     
-    Runnable handoff = new HandoffHandler(current, lowerBound, upperBound, this.storage, this.state);
+    Runnable handoff = new HandoffHandler(current, lowerBound, upperBound, this.storage, this.state, this.hashing);
 
     if (doAsyncHandoff) {
       Thread handoffProcess = new Thread(handoff);

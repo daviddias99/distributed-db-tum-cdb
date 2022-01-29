@@ -50,4 +50,7 @@ public class DebugHashAlgorithm implements HashingAlgorithm {
     return 8;
   }
 
+  public static void main(String[] args) {
+    System.out.println((new DebugHashAlgorithm()).hash("").toString(16));
+  }
 }

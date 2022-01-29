@@ -68,7 +68,8 @@ public class ConnectionHandleThread implements Runnable {
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
 
-                if (!isHeartbeat(response)) {
+                // TODO: remove second condition
+                if (!isHeartbeat(response) && !response.startsWith("chord")) {
                     LOGGER.info("Peer message exchange in: {} out: {}", firstLine, response);
                 }
 

@@ -56,7 +56,7 @@ public class RequestListener implements Runnable {
         while (!Thread.interrupted()) {
           // accept a connection
           Socket clientSocket = serverSocket.accept();
-          LOGGER.info("New connection at {}", clientSocket);
+          LOGGER.debug("New connection at {}", clientSocket);
 
           // start a new Thread for this connection
           executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, clientSocket,
@@ -64,7 +64,7 @@ public class RequestListener implements Runnable {
         }
       } catch (IOException ex) {
         LOGGER.fatal("Caught exception while accepting client request", ex);
-        LOGGER.info("Closing executor service");
+        LOGGER.debug("Closing executor service");
         executorService.shutdown();
       }
 

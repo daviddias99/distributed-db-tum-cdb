@@ -60,7 +60,7 @@ public class ChordServerState extends AbstractServerState {
 
     @Override
     public boolean isReplicationActive() {
-        return chord.getSuccessors(Constants.NUMBER_OF_REPLICAS).size() == Constants.NUMBER_OF_REPLICAS;
+        return chord.getSuccessorCount() >= Constants.NUMBER_OF_REPLICAS;
     }
 
 }
