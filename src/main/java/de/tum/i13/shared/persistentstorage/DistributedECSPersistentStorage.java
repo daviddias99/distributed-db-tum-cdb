@@ -33,51 +33,6 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
         hashRing = new TreeMapServerMetadata();
     }
 
-    @Override
-    protected KVMessage processResponseResiliently(String key, Callable<KVMessage> serverCallable,
-                                                   KVMessage responseMessage) throws CommunicationClientException {
-        KVMessage.StatusType responseStatus = responseMessage.getStatus();
-        LOGGER.debug("Server indicated status '{}'", responseStatus);
-        if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
-            return handleServerNotResponsible(serverCallable, key);
-        else if (responseStatus == KVMessage.StatusType.SERVER_STOPPED)
-            return retryWithBackOff(serverCallable);
-        else if (responseStatus == KVMessage.StatusType.SERVER_WRITE_LOCK)
-            return retryWithBackOff(serverCallable);
-        else {
-            LOGGER.debug("Server indicated no status that requires additional action. Therefore, returning message.");
-            return responseMessage;
-        }
-    }
-
-    private KVMessage handleServerNotResponsible(Callable<KVMessage> serverCallable, String key) throws CommunicationClientException {
-        LOGGER.debug("Requesting new metadata from server");
-        updateHashRing();
-
-        NetworkLocation responsibleNetLocation = hashRing.getWriteResponsibleNetworkLocation(key)
-                .orElseThrow(() -> {
-                    var exception = new CommunicationClientException("Could not find server responsible for data");
-                    LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-                    return exception;
-                });
-        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
-        connectAndReceive(
-                responsibleNetLocation.getAddress(),
-                responsibleNetLocation.getPort()
-        );
-
-        LOGGER.debug("Retrying with new server");
-        try {
-            final KVMessage newResponse = serverCallable.call();
-            return handleSecondServerResponse(serverCallable, key, newResponse);
-        } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex,
-                    "The storage encountered an error. " + ex.getMessage());
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-    }
-
     private void updateHashRing() throws CommunicationClientException {
         final KVMessage keyRangeRequest = new KVMessageImpl(KVMessage.StatusType.KEYRANGE);
         final CommunicationCallable getKeyRangeFunction = () -> sendAndReceive(keyRangeRequest);
@@ -102,16 +57,26 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
         }
     }
 
-    private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
-                                                 KVMessage newResponse) throws CommunicationClientException {
-        final KVMessage.StatusType newStatus = newResponse.getStatus();
-        LOGGER.debug("Second server indicated status {}", newStatus);
-
-        if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
-            final var exception = new CommunicationClientException("Could not find responsible server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        } else return processResponseResiliently(key, serverCallable, newResponse);
+    @Override
+    protected NetworkLocation getResponsibleNetworkLocation(String key, RequestType requestType, KVMessage responseMessage) throws CommunicationClientException {
+        LOGGER.debug("Requesting new metadata from server");
+        updateHashRing();
+        return switch (requestType) {
+            case PUT -> hashRing.getWriteResponsibleNetworkLocation(key)
+                    .orElseThrow(() -> {
+                        var exception = new CommunicationClientException("Could not find server responsible for data");
+                        LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+                        return exception;
+                    });
+            case GET -> hashRing.getReadResponsibleNetworkLocation(key)
+                    .stream()
+                    .findAny()
+                    .orElseThrow(() -> {
+                        var exception = new CommunicationClientException("Could not find server responsible for data");
+                        LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+                        return exception;
+                    });
+        };
     }
 
     private interface CommunicationCallable extends Callable<KVMessage> {

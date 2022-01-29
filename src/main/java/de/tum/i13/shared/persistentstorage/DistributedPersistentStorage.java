@@ -4,6 +4,7 @@ import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
 import io.github.resilience4j.retry.MaxRetriesExceededException;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -55,7 +56,7 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         final Callable<KVMessage> serverCallable = () -> persistentStorage.get(key);
 
         try {
-            return processResponseResiliently(key, serverCallable, responseMessage);
+            return processResponseResiliently(key, RequestType.GET, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
             final GetException getException = new GetException(exception,
                     EXCEPTION_FORMAT, exception.getMessage());
@@ -76,7 +77,7 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         final Callable<KVMessage> serverCallable = () -> persistentStorage.put(key, value);
 
         try {
-            return processResponseResiliently(key, serverCallable, responseMessage);
+            return processResponseResiliently(key, RequestType.PUT, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
             final PutException putException = new PutException(exception,
                     EXCEPTION_FORMAT, exception.getMessage());
@@ -91,8 +92,22 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         return persistentStorage.getRange(lowerBound, upperBound);
     }
 
-    protected abstract KVMessage processResponseResiliently(String key, Callable<KVMessage> serverCallable,
-                                                            KVMessage responseMessage) throws CommunicationClientException;
+    private KVMessage processResponseResiliently(String key, RequestType requestType,
+                                                 Callable<KVMessage> serverCallable,
+                                                 KVMessage responseMessage) throws CommunicationClientException {
+        KVMessage.StatusType responseStatus = responseMessage.getStatus();
+        LOGGER.debug("Server indicated status '{}'", responseStatus);
+        return switch (responseStatus) {
+            case SERVER_NOT_RESPONSIBLE -> handleServerNotResponsible(serverCallable, key, requestType,
+                    responseMessage);
+            case SERVER_STOPPED, SERVER_WRITE_LOCK -> retryWithBackOff(serverCallable);
+            default -> {
+                LOGGER.debug("Server indicated no status that requires additional action. Therefore, returning " +
+                        "message.");
+                yield responseMessage;
+            }
+        };
+    }
 
     protected KVMessage retryWithBackOff(Callable<KVMessage> serverCallable) throws CommunicationClientException {
         LOGGER.debug("Retrying using backoff with jitter");
@@ -158,5 +173,51 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
     public String connectAndReceive(String address, int port) throws CommunicationClientException {
         return persistentStorage.connectAndReceive(address, port);
     }
+
+    private KVMessage handleServerNotResponsible(Callable<KVMessage> serverCallable, String key,
+                                                 RequestType requestType,
+                                                 KVMessage responseMessage) throws CommunicationClientException {
+        LOGGER.debug("Handling not responsible message from server");
+        final NetworkLocation responsibleNetLocation = getResponsibleNetworkLocation(key, requestType, responseMessage);
+
+        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
+        connectAndReceive(
+                responsibleNetLocation.getAddress(),
+                responsibleNetLocation.getPort()
+        );
+
+        LOGGER.debug("Retrying with new server");
+        try {
+            final KVMessage newResponse = serverCallable.call();
+            return handleSecondServerResponse(serverCallable, key, requestType, newResponse);
+        } catch (Exception ex) {
+            var exception = new CommunicationClientException(ex,
+                    "The storage encountered an error. " + ex.getMessage());
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+    }
+
+    protected abstract NetworkLocation getResponsibleNetworkLocation(String key, RequestType requestType,
+                                                                     KVMessage responseMessage) throws CommunicationClientException;
+
+    private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
+                                                 RequestType requestType,
+                                                 KVMessage newResponse) throws CommunicationClientException {
+        final KVMessage.StatusType newStatus = newResponse.getStatus();
+        LOGGER.debug("Second server indicated status {}", newStatus);
+
+        if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+            final var exception = new CommunicationClientException("Could not find responsible server");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        } else return processResponseResiliently(key, requestType, serverCallable, newResponse);
+    }
+
+    protected enum RequestType {
+        PUT,
+        GET
+    }
+
 
 }
