@@ -40,7 +40,7 @@ public class ECSServerState extends AbstractServerState implements ServerState {
    * Creates a new server state, intialized with the given state.
    * @param curNetworkLocation location of the current server
    * @param ecsLocation location of the ecs
-   * @param startState starting state
+   * @param replicationOrchestrator replication orchestrator to use
    */
   public ECSServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ReplicationOrchestrator replicationOrchestrator) {
     this(curNetworkLocation, ecsLocation, null, State.STOPPED, replicationOrchestrator);
