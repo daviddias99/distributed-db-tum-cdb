@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -165,7 +166,7 @@ public class ChordMessaging {
 
         String[] networkLocationsStr = response.getKey().split(",");
 
-        List<NetworkLocation> result  = Arrays
+        List<NetworkLocation> result  = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>() : Arrays
             .asList(networkLocationsStr)
             .stream()
             .map(NetworkLocation::extractNetworkLocation)

@@ -3,12 +3,7 @@ package de.tum.i13.server.state;
 import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
-import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.shared.persistentstorage.PutException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -17,15 +12,12 @@ import java.util.List;
  */
 public class ECSServerState extends AbstractServerState {
 
-  private static final Logger LOGGER = LogManager.getLogger(ECSServerState.class);
 
   private ConsistentHashRing ringMetadata;
   private final NetworkLocation curNetworkLocation;
   private final NetworkLocation ecsLocation;
   private boolean isShuttingDown;
-  private List<String> nodesToDelete = new LinkedList<>();
   private ReplicationOrchestrator replicationOrchestrator;
-
 
   /**
    * Create a new server state. The server is started in a STOPPED state.
@@ -119,22 +111,6 @@ public class ECSServerState extends AbstractServerState {
   @Override
   public boolean isReplicationActive() {
     return ringMetadata.isReplicationActive();
-  }
-
-  public synchronized void executeStoredDeletes(PersistentStorage storage) {
-    for (String key : nodesToDelete) {
-      try {
-        LOGGER.info("Trying to delete item with key {}.", key);
-        storage.put(key, null);
-      } catch (PutException e) {
-        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
-      }
-    }
-    nodesToDelete = new LinkedList<>();
-  }
-
-  public synchronized List<String> getDeleteQueue() {
-    return this.nodesToDelete;
   }
 
   public synchronized void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {

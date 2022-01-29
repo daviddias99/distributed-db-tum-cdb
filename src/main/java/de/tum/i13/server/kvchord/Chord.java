@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -38,6 +39,8 @@ public class Chord {
     private final ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable;
     private final List<BigInteger> fingerTableKeys;
 
+    private final List<ChordListener> listeners;
+
     /* CHORD */
 
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation) {
@@ -54,6 +57,7 @@ public class Chord {
         this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm);
         this.messaging = new ChordMessaging(this);
         this.bootstrapNode = bootstrapNode;
+        this.listeners =  new LinkedList<>();
         this.initFingerTable(ownLocation);
     }
 
@@ -81,6 +85,10 @@ public class Chord {
     private NetworkLocation[] findPredecessor(BigInteger key) throws ChordException {
         NetworkLocation nPrime = this.ownLocation;
         NetworkLocation nPrimeSuccessor = this.getSuccessor();
+
+        if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
+            return new NetworkLocation[] { nPrime, nPrime }; 
+        }
 
         while (!this.betweenTwoKeys(
                 hashingAlgorithm.hash(nPrime),
@@ -148,13 +156,18 @@ public class Chord {
                 false);
 
         if (this.predecessor.equals(NetworkLocation.getNull()) || isBetweenKeys) {
-            this.predecessor = peer;
+            this.setPredecessor(peer);
         }
     }
 
     private StabilizationData querySuccessorForStabilization() {
         while (true) {
             NetworkLocation successor = this.getSuccessor();
+
+            if(successor.equals(NetworkLocation.getNull())) {
+                return null;
+            }
+
             try {
                 NetworkLocation succPredecessor = messaging.getPredecessor(successor);
                 List<NetworkLocation> succSuccessors = messaging.getSuccessors(successor, this.SUCCESSOR_LIST_SIZE);
@@ -176,8 +189,8 @@ public class Chord {
         NetworkLocation successor = this.getSuccessor();
 
         // Check if successor is self
-        if (successor.equals(this.ownLocation)) {
-            if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
+        if (successor.equals(this.ownLocation) || successor.equals(NetworkLocation.getNull())) {
+            if (!this.getPredecessor().equals(NetworkLocation.getNull()) && !this.getPredecessor().equals(this.ownLocation)) {
                 this.successors.setFirst(this.getPredecessor());
             }
             return;
@@ -247,7 +260,7 @@ public class Chord {
         boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
 
         if (!predecessorAlive) {
-            this.predecessor = NetworkLocation.getNull();
+            this.setPredecessor(NetworkLocation.getNull());
         }
     }
 
@@ -273,6 +286,15 @@ public class Chord {
         periodicThreadPool.scheduleWithFixedDelay(t1, 0, 1000, TimeUnit.MILLISECONDS);
         periodicThreadPool.scheduleWithFixedDelay(t2, 200, 1000, TimeUnit.MILLISECONDS);
         periodicThreadPool.scheduleWithFixedDelay(t3, 400, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    private void setPredecessor(NetworkLocation predecessor) {
+        NetworkLocation oldPredecessor = predecessor;
+        this.predecessor = predecessor;
+
+        for (ChordListener list : this.listeners) {
+            list.predecessorChanged(oldPredecessor, predecessor);
+        }
     }
 
     /* HELPER */
@@ -355,6 +377,13 @@ public class Chord {
         else {
             return !((upperBound.compareTo(key) < 0) && (key.compareTo(lowerBound) < 0));
         }
+    }
+
+
+    /* LISTENERS */
+
+    public void addListener(ChordListener listener) {
+        this.listeners.add(listener);
     }
 
     /* SYSTEM SPECIFIC */

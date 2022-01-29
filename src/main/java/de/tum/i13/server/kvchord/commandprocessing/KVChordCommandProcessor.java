@@ -59,12 +59,11 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
     }
 
     private KVMessage getSuccessors(int successorCount) {
-        return new KVMessageImpl(
-                this.chord.getSuccessors(successorCount).stream()
-                        .map(NetworkLocation::toPackedString)
-                        .collect(Collectors.joining(",")),
-                StatusType.CHORD_GET_SUCCESSOR_RESPONSE
-        );
+        String packedSuccs = this.chord.getSuccessors(successorCount).stream()
+                .map(NetworkLocation::toPackedString)
+                .collect(Collectors.joining(","));
+
+        return new KVMessageImpl(packedSuccs.isEmpty() ? "NO_SUCCS" : packedSuccs, StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
     }
 
     private KVMessage notifyChord(String peerAddr) {

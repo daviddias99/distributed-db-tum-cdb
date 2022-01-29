@@ -5,6 +5,7 @@ import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.kvchord.ChordException;
+import de.tum.i13.server.kvchord.KVChordListener;
 import de.tum.i13.server.kvchord.commandprocessing.KVCommandProcessor;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -13,6 +14,7 @@ import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ChordServerState;
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.hashing.DebugHashAlgorithm;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
@@ -51,14 +53,17 @@ public class MainChord {
             NetworkLocation boostrapLocation = cfg.bootstrap == null ? null : new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
                     cfg.bootstrap.getPort());
 
+            HashingAlgorithm hashingAlgorithm = new DebugHashAlgorithm();
             Chord chord = boostrapLocation == null ? 
-                new Chord(new DebugHashAlgorithm(), curLocation) :
-                new Chord(new DebugHashAlgorithm(), curLocation, boostrapLocation);
+                new Chord(hashingAlgorithm, curLocation) :
+                new Chord(hashingAlgorithm, curLocation, boostrapLocation);
 
             // Create state
             LOGGER.trace("Creating server state");
             final ChordServerState state = new ChordServerState(chord);
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, chord);
+
+            chord.addListener(new KVChordListener(state, storage, hashingAlgorithm));
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages

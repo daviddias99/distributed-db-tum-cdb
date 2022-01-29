@@ -28,11 +28,10 @@ class ChordSuccessorList {
     this.successors = new ArrayList<>();
     this.hashing = hashingAlgorithm;
     this.fingerTable = fingerTable;
-    this.successors.add(ownLocation);
   }
 
   NetworkLocation getFirst() {
-    return this.successors.get(0);
+    return this.successors.isEmpty() ? NetworkLocation.getNull() : this.successors.get(0);
   }
 
   List<NetworkLocation> get(int n) {
@@ -40,11 +39,11 @@ class ChordSuccessorList {
   }
 
   NetworkLocation shift() {
-    NetworkLocation oldSuccessor = this.successors.remove(0);
-
     if (this.successors.isEmpty()) {
-      this.successors.add(this.ownLocation);
+      return NetworkLocation.getNull();
     }
+
+    NetworkLocation oldSuccessor = this.successors.remove(0);
 
     this.fingerTable.remove(this.hashing.hash(this.getFirst()));
     this.fingerTable.remove(this.hashing.hash(oldSuccessor));
@@ -53,8 +52,12 @@ class ChordSuccessorList {
   }
 
   NetworkLocation setFirst(NetworkLocation newSuccessor) {
-    NetworkLocation oldSuccessor = this.successors.set(0, newSuccessor);
+    if (this.successors.isEmpty()) {
+      this.successors.add(newSuccessor);
+      return null;
+    } 
 
+    NetworkLocation oldSuccessor = this.successors.set(0, newSuccessor);
     this.fingerTable.remove(this.hashing.hash(oldSuccessor));
 
     LOGGER.debug("Sucessor changed from {} to {}", oldSuccessor, newSuccessor);
@@ -93,6 +96,10 @@ class ChordSuccessorList {
     for (int i = 0; i < this.successors.size(); i++) {
         NetworkLocation succ = this.successors.get(i);
         sb.append(String.format("%s - %d %n", this.hashing.hash(succ).toString(16), succ.getPort()));
+    }
+
+    if(this.successors.isEmpty()) {
+      sb.append("No successors\n");
     }
 
     sb.append("-----\n");

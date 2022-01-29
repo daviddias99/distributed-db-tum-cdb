@@ -1,6 +1,7 @@
 package de.tum.i13.server.state;
 
 import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
 import java.util.List;
 
@@ -86,6 +87,10 @@ public interface ServerState {
 
     boolean isReplicationActive();
 
+    void executeStoredDeletes(PersistentStorage storage);
+    
+    List<String> getDeleteQueue();
+    
     /**
      * Enum that represents the server's state
      */
