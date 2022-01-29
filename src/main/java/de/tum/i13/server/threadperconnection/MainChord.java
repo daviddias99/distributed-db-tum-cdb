@@ -7,6 +7,7 @@ import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.kvchord.ChordException;
 import de.tum.i13.server.kvchord.KVChordListener;
 import de.tum.i13.server.kvchord.commandprocessing.KVCommandProcessor;
+import de.tum.i13.server.kvchord.commandprocessing.handlers.ShutdownHandler;
 import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
@@ -70,7 +71,8 @@ public class MainChord {
             final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
 
             // Setup shutdown procedure (handoff)
-            // TODO: CHORD
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(listeningThread, chord, state, storage)));
+
             listeningThread.start();
             Thread.sleep(600);
             chord.start();

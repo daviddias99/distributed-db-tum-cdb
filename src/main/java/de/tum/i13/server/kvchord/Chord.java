@@ -312,6 +312,10 @@ public class Chord {
 
     }
 
+    public HashingAlgorithm getHashingAlgorithm() {
+        return this.hashingAlgorithm;
+    }
+
     public NetworkLocation getSuccessor() {
         return this.successors.getFirst();
     }
@@ -396,6 +400,14 @@ public class Chord {
     }
 
     private boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
+
+        if(this.getPredecessor().equals(NetworkLocation.getNull())) {
+            if (this.getSuccessorCount() == 0 && this.getPredecessor().equals(NetworkLocation.getNull())) {
+                return true;
+            } 
+            return false;
+        }
+
         try {
             return betweenTwoKeys(
                     hashingAlgorithm.hash(messaging.getPredecessor(networkLocation)),
