@@ -34,9 +34,11 @@ public class Chord {
     private final NetworkLocation ownLocation;
     private final NetworkLocation bootstrapNode;
     private NetworkLocation predecessor;
-    private List<NetworkLocation> successors; // Maybe this and the finger table can be merged
+    private ChordSuccessorList successors; // Maybe this and the finger table can be merged
     private final ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable;
     private final List<BigInteger> fingerTableKeys;
+
+    /* CHORD */
 
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation) {
         this(hashingAlgorithm, ownLocation, null);
@@ -49,11 +51,10 @@ public class Chord {
         this.TABLE_SIZE = hashingAlgorithm.getHashSizeBits();
         this.fingerTable = new ConcurrentSkipListMap<>();
         this.fingerTableKeys = new ArrayList<>();
-        this.successors = new ArrayList<>();
+        this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm);
         this.messaging = new ChordMessaging(this);
         this.bootstrapNode = bootstrapNode;
         this.initFingerTable(ownLocation);
-        this.initSuccessorList();
     }
 
     private void doBoostrap() throws ChordException {
@@ -66,7 +67,7 @@ public class Chord {
                     String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
         }
 
-        this.setSuccessor(successor);
+        this.successors.setFirst(successor);
         messaging.notifyNode(successor);
     }
 
@@ -151,29 +152,212 @@ public class Chord {
         }
     }
 
-    private void updateSuccessorList(List<NetworkLocation> successorsUpdate) {
-        if (successorsUpdate.isEmpty()) {
+    private StabilizationData querySuccessorForStabilization() {
+        while (true) {
+            NetworkLocation successor = this.getSuccessor();
+            try {
+                NetworkLocation succPredecessor = messaging.getPredecessor(successor);
+                List<NetworkLocation> succSuccessors = messaging.getSuccessors(successor, this.SUCCESSOR_LIST_SIZE);
+                return new StabilizationData(succPredecessor, succSuccessors);
+            } catch (ChordException e) {
+                // Could not reach successor, change to next successor in list
+                this.successors.shift();
+                LOGGER.error("Failed to communicate with successor");
+            }
+            if (successor.equals(this.getSuccessor())) {
+                break;
+            }
+        }
+
+        return null;
+    }
+
+    private void stabilize() {
+        NetworkLocation successor = this.getSuccessor();
+
+        // Check if successor is self
+        if (successor.equals(this.ownLocation)) {
+            if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
+                this.successors.setFirst(this.getPredecessor());
+            }
             return;
         }
 
-        for (int i = this.successors.size() - 1; i > 0; i--) {
-            NetworkLocation oldSuccessor = this.successors.remove(i);
-            this.fingerTable.remove(this.hashingAlgorithm.hash(oldSuccessor));
+        StabilizationData stabilizationData = this.querySuccessorForStabilization();
+
+        if (stabilizationData == null) {
+            LOGGER.error("Could not stabilize");
+            return;
         }
 
-        for (int i = 0; i < successorsUpdate.size() && this.successors.size() != this.SUCCESSOR_LIST_SIZE; i++) {
-            NetworkLocation successorUpdate = successorsUpdate.get(i);
-            if (successorUpdate.equals(this.ownLocation)) {
-                break;
+        NetworkLocation successorPredecessor = stabilizationData.successorPredecessor;
+        List<NetworkLocation> successorSuccessors = stabilizationData.successorSuccessors;
+        this.successors.update(successorSuccessors);
+
+        // Check if successor predecessor is self
+        if (this.ownLocation.equals(successorPredecessor)) {
+            // No need to notify
+            return;
+        }
+
+        // Re-fetch successor because it might have changed during the stabilization
+        // query
+        successor = this.getSuccessor();
+
+        if (successorPredecessor.equals(NetworkLocation.getNull())) {
+            messaging.notifyNode(successor);
+            return;
+        }
+
+        boolean setNewSuccessor = this.betweenTwoKeys(
+                hashingAlgorithm.hash(ownLocation),
+                hashingAlgorithm.hash(successor),
+                hashingAlgorithm.hash(successorPredecessor),
+                false,
+                false);
+
+        if (setNewSuccessor) {
+            this.successors.setFirst(successorPredecessor);
+        }
+
+        messaging.notifyNode(this.getSuccessor());
+    }
+
+    private void fixFingers() {
+        Map.Entry<BigInteger, NetworkLocation> toUpdate = this.advanceUpdateIteratorIterator();
+        try {
+            NetworkLocation newFinger = this.findSuccessor(toUpdate.getKey());
+
+            if (newFinger.equals(NetworkLocation.getNull())) {
+                return;
             }
-            this.successors.add(successorUpdate);
-            this.fingerTable.putIfAbsent(this.hashingAlgorithm.hash(successorUpdate), successorUpdate);
-        }
 
-        if (this.successors.isEmpty()) {
-            this.successors.add(this.ownLocation);
+            this.fingerTable.put(toUpdate.getKey(), newFinger);
+            LOGGER.debug("Fixed finger {} to {}", toUpdate.getKey().toString(16), newFinger);
+        } catch (ChordException e) {
+            LOGGER.error("Could not fix finger {}", toUpdate.getKey().toString(16));
         }
     }
+
+    private void checkPredecessor() {
+        if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
+            return;
+        }
+
+        boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
+
+        if (!predecessorAlive) {
+            this.predecessor = NetworkLocation.getNull();
+        }
+    }
+
+    private void periodicFunction(Runnable function) {
+        try {
+            function.run();
+        } catch (Exception e) {
+            LOGGER.atError()
+                    .withThrowable(e)
+                    .log("Exception was caught during periodic thread execution");
+        }
+    }
+
+    private void initThreads() {
+        final ScheduledThreadPoolExecutor periodicThreadPool = (ScheduledThreadPoolExecutor) Executors
+                .newScheduledThreadPool(3);
+
+        Runnable t1 = () -> periodicFunction(this::stabilize);
+        Runnable t2 = () -> periodicFunction(this::fixFingers);
+        Runnable t3 = () -> periodicFunction(this::checkPredecessor);
+
+        // The threads are started with a delay to avoid them running at the same time
+        periodicThreadPool.scheduleWithFixedDelay(t1, 0, 1000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleWithFixedDelay(t2, 200, 1000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleWithFixedDelay(t3, 400, 1000, TimeUnit.MILLISECONDS);
+    }
+
+    /* HELPER */
+
+    private static class StabilizationData {
+
+        public final NetworkLocation successorPredecessor;
+        public final List<NetworkLocation> successorSuccessors;
+
+        public StabilizationData(NetworkLocation successorPredecessor, List<NetworkLocation> successorSuccessors) {
+            this.successorPredecessor = successorPredecessor;
+            this.successorSuccessors = successorSuccessors;
+        }
+
+    }
+
+    public NetworkLocation getSuccessor() {
+        return this.successors.getFirst();
+    }
+
+    public List<NetworkLocation> getSuccessors(int n) {
+        return this.successors.get(n);
+    }
+
+    public NetworkLocation getLocation() {
+        return this.ownLocation;
+    }
+
+    public NetworkLocation getPredecessor() {
+        return this.predecessor;
+    }
+
+    private void initFingerTable(NetworkLocation location) {
+        BigInteger maxValue = this.hashingAlgorithm.getMax();
+
+        for (int i = 0; i < TABLE_SIZE; i++) {
+            BigInteger step = BigInteger.valueOf(2).pow(i);
+            BigInteger fingerKey = this.hashingAlgorithm.hash(location).add(step).mod(maxValue);
+            this.fingerTableKeys.add(fingerKey);
+            this.fingerTable.put(fingerKey, location);
+        }
+
+        this.fingerTable.put(this.hashingAlgorithm.hash(this.ownLocation), location);
+        this.fingerTableUpdateIndex = 0;
+    }
+
+    private Map.Entry<BigInteger, NetworkLocation> advanceUpdateIteratorIterator() {
+
+        if (this.fingerTableUpdateIndex == this.fingerTableKeys.size()) {
+            this.fingerTableUpdateIndex = 0;
+        }
+
+        BigInteger fingerKey = this.fingerTableKeys.get(this.fingerTableUpdateIndex);
+
+        this.fingerTableUpdateIndex++;
+        return new AbstractMap.SimpleEntry<>(fingerKey, this.fingerTable.get(fingerKey));
+    }
+
+    private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
+            boolean closedRight) {
+        // TODO: Took this from my previous project, but I think Lukas already did it
+        // somewhere
+        // Equal to one of the bounds and are inclusive
+        if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
+            return true;
+
+        // Equal to one of the bounds and are exclusive
+        if ((!closedLeft && key.equals(lowerBound)) || (!closedRight && key.equals(upperBound)))
+            return false;
+
+        // Whole circle is valid
+        if (upperBound.equals(lowerBound))
+            return true;
+
+        // Not crossing
+        if (lowerBound.compareTo(upperBound) < 0) {
+            return (lowerBound.compareTo(key) < 0) && (key.compareTo(upperBound) < 0);
+        }
+        // Crossing
+        else {
+            return !((upperBound.compareTo(key) < 0) && (key.compareTo(lowerBound) < 0));
+        }
+    }
+
+    /* SYSTEM SPECIFIC */
 
     public boolean isWriteResponsible(String key) {
         return isWriteResponsible(ownLocation, key);
@@ -231,238 +415,8 @@ public class Chord {
                 .collect(Collectors.toList());
     }
 
-    private static class StabilizationData {
 
-        public final NetworkLocation successorPredecessor;
-        public final List<NetworkLocation> successorSuccessors;
-
-        public StabilizationData(NetworkLocation successorPredecessor, List<NetworkLocation> successorSuccessors) {
-            this.successorPredecessor = successorPredecessor;
-            this.successorSuccessors = successorSuccessors;
-        }
-
-    }
-
-    private StabilizationData querySuccessorForStabilization() {
-        while (true) {
-            NetworkLocation successor = this.getSuccessor();
-            try {
-                NetworkLocation succPredecessor = messaging.getPredecessor(successor);
-                List<NetworkLocation> succSuccessors = messaging.getSuccessors(successor, this.SUCCESSOR_LIST_SIZE);
-                return new StabilizationData(succPredecessor, succSuccessors);
-            } catch (ChordException e) {
-                // Could not reach successor, change to next successor in list
-                this.shiftSuccessors();
-                LOGGER.error("Failed to communicate with successor");
-            }
-            if (successor.equals(this.getSuccessor())) {
-                break;
-            }
-        }
-
-        return null;
-    }
-
-    private void stabilize() {
-        NetworkLocation successor = this.getSuccessor();
-
-        // Check if successor is self
-        if (successor.equals(this.ownLocation)) {
-            if (!this.getPredecessor().equals(NetworkLocation.getNull())) {
-                this.setSuccessor(this.getPredecessor());
-            }
-            return;
-        }
-
-        StabilizationData stabilizationData = this.querySuccessorForStabilization();
-
-        if (stabilizationData == null) {
-            LOGGER.error("Could not stabilize");
-            return;
-        }
-
-        NetworkLocation successorPredecessor = stabilizationData.successorPredecessor;
-        List<NetworkLocation> successorSuccessors = stabilizationData.successorSuccessors;
-        this.updateSuccessorList(successorSuccessors);
-
-        // Check if successor predecessor is self
-        if (this.ownLocation.equals(successorPredecessor)) {
-            // No need to notify
-            return;
-        }
-
-        // Re-fetch successor because it might have changed during the stabilization
-        // query
-        successor = this.getSuccessor();
-
-        if (successorPredecessor.equals(NetworkLocation.getNull())) {
-            messaging.notifyNode(successor);
-            return;
-        }
-
-        boolean setNewSuccessor = this.betweenTwoKeys(
-                hashingAlgorithm.hash(ownLocation),
-                hashingAlgorithm.hash(successor),
-                hashingAlgorithm.hash(successorPredecessor),
-                false,
-                false);
-
-        if (setNewSuccessor) {
-            this.setSuccessor(successorPredecessor);
-        }
-
-        messaging.notifyNode(this.getSuccessor());
-    }
-
-    private void fixFingers() {
-        Map.Entry<BigInteger, NetworkLocation> toUpdate = this.advanceUpdateIteratorIterator();
-        try {
-            NetworkLocation newFinger = this.findSuccessor(toUpdate.getKey());
-
-            if (newFinger.equals(NetworkLocation.getNull())) {
-                return;
-            }
-
-            this.fingerTable.put(toUpdate.getKey(), newFinger);
-            LOGGER.debug("Fixed finger {} to {}", toUpdate.getKey().toString(16), newFinger);
-        } catch (ChordException e) {
-            LOGGER.error("Could not fix finger {}", toUpdate.getKey().toString(16));
-        }
-    }
-
-    private void checkPredecessor() {
-        if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
-            return;
-        }
-
-        boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
-
-        if (!predecessorAlive) {
-            this.predecessor = NetworkLocation.getNull();
-        }
-    }
-
-    private void periodicFunction(Runnable function) {
-        try {
-            function.run();
-        } catch (Exception e) {
-            LOGGER.atError()
-                    .withThrowable(e)
-                    .log("Exception was caught during periodic thread execution");
-        }
-    }
-
-    public void initThreads() {
-        final ScheduledThreadPoolExecutor periodicThreadPool = (ScheduledThreadPoolExecutor) Executors
-                .newScheduledThreadPool(3);
-
-        Runnable t1 = () -> periodicFunction(this::stabilize);
-        Runnable t2 = () -> periodicFunction(this::fixFingers);
-        Runnable t3 = () -> periodicFunction(this::checkPredecessor);
-
-        // The threads are started with a delay to avoid them running at the same time
-        periodicThreadPool.scheduleWithFixedDelay(t1, 0, 1000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleWithFixedDelay(t2, 200, 1000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleWithFixedDelay(t3, 400, 1000, TimeUnit.MILLISECONDS);
-    }
-
-    /* HELPER */
-    public NetworkLocation getSuccessor() {
-        return this.successors.get(0);
-    }
-
-    public List<NetworkLocation> getSuccessors(int n) {
-        return this.successors.subList(0, Math.min(n, this.successors.size()));
-    }
-
-    private NetworkLocation shiftSuccessors() {
-        NetworkLocation oldSuccessor = this.successors.remove(0);
-
-        if (this.successors.isEmpty()) {
-            this.successors.add(this.ownLocation);
-        }
-
-        this.fingerTable.remove(this.hashingAlgorithm.hash(this.getSuccessor()));
-        this.fingerTable.remove(this.hashingAlgorithm.hash(oldSuccessor));
-
-        return oldSuccessor;
-    }
-
-    private NetworkLocation setSuccessor(NetworkLocation newSuccessor) {
-        NetworkLocation oldSuccessor = this.successors.set(0, newSuccessor);
-
-        this.fingerTable.remove(this.hashingAlgorithm.hash(oldSuccessor));
-
-        LOGGER.debug("Sucessor changed from {} to {}", oldSuccessor, newSuccessor);
-        return oldSuccessor;
-    }
-
-    public NetworkLocation getLocation() {
-        return this.ownLocation;
-    }
-
-    public NetworkLocation getPredecessor() {
-        return this.predecessor;
-    }
-
-    private void initFingerTable(NetworkLocation location) {
-        BigInteger maxValue = this.hashingAlgorithm.getMax();
-
-        for (int i = 0; i < TABLE_SIZE; i++) {
-            BigInteger step = BigInteger.valueOf(2).pow(i);
-            BigInteger fingerKey = this.hashingAlgorithm.hash(location).add(step).mod(maxValue);
-            this.fingerTableKeys.add(fingerKey);
-            this.fingerTable.put(fingerKey, location);
-        }
-
-        this.fingerTable.put(this.hashingAlgorithm.hash(this.ownLocation), location);
-        this.fingerTableUpdateIndex = 0;
-    }
-
-    private void initSuccessorList() {
-        this.successors = new ArrayList<>();
-        this.successors.add(this.ownLocation);
-    }
-
-    private Map.Entry<BigInteger, NetworkLocation> advanceUpdateIteratorIterator() {
-
-        if (this.fingerTableUpdateIndex == this.fingerTableKeys.size()) {
-            this.fingerTableUpdateIndex = 0;
-        }
-
-        BigInteger fingerKey = this.fingerTableKeys.get(this.fingerTableUpdateIndex);
-
-        this.fingerTableUpdateIndex++;
-        return new AbstractMap.SimpleEntry<>(fingerKey, this.fingerTable.get(fingerKey));
-    }
-
-    // TODO: Took this from my previous project, but I think Lukas already did it
-    // somewhere
-    private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
-            boolean closedRight) {
-
-        // Equal to one of the bounds and are inclusive
-        if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
-            return true;
-
-        // Equal to one of the bounds and are exclusive
-        if ((!closedLeft && key.equals(lowerBound)) || (!closedRight && key.equals(upperBound)))
-            return false;
-
-        // Whole circle is valid
-        if (upperBound.equals(lowerBound))
-            return true;
-
-        // Not crossing
-        if (lowerBound.compareTo(upperBound) < 0) {
-            return (lowerBound.compareTo(key) < 0) && (key.compareTo(upperBound) < 0);
-        }
-        // Crossing
-        else {
-            return !((upperBound.compareTo(key) < 0) && (key.compareTo(lowerBound) < 0));
-        }
-    }
-
+    /* OTHER */
     public String getStateStr() {
         StringBuilder sb = new StringBuilder();
         sb.append("CHORD Instance\n");
@@ -482,14 +436,7 @@ public class Chord {
                     hashingAlgorithm.hash(value).toString(16)));
         }
         sb.append("------\n");
-        sb.append("Successors\n");
-
-        for (int i = 0; i < this.successors.size(); i++) {
-            NetworkLocation succ = this.successors.get(i);
-            sb.append(String.format("%s - %d %n", this.hashingAlgorithm.hash(succ).toString(16), succ.getPort()));
-        }
-
-        sb.append("-----\n");
+        sb.append(this.successors.getStateStr());
         return sb.toString();
     }
 
