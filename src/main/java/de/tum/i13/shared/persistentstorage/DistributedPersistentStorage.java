@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBackoff;
@@ -20,6 +21,7 @@ import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBa
 public abstract class DistributedPersistentStorage implements NetworkPersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(DistributedPersistentStorage.class);
+    private static final Random RANDOM = new Random();
 
     private static final RetryConfig retryConfig = RetryConfig.<KVMessage>custom()
             .maxAttempts(Constants.MAX_REQUEST_RETRIES)
@@ -178,7 +180,9 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
                                                  RequestType requestType,
                                                  KVMessage responseMessage) throws CommunicationClientException {
         LOGGER.debug("Handling not responsible message from server");
-        final NetworkLocation responsibleNetLocation = getResponsibleNetworkLocation(key, requestType, responseMessage);
+        final List<NetworkLocation> responsibleNetworkLocations = getResponsibleNetworkLocations(key, requestType,
+                responseMessage);
+        final NetworkLocation responsibleNetLocation = getRandomNetworkLocation(responsibleNetworkLocations);
 
         LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
         connectAndReceive(
@@ -198,8 +202,21 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         }
     }
 
-    protected abstract NetworkLocation getResponsibleNetworkLocation(String key, RequestType requestType,
-                                                                     KVMessage responseMessage) throws CommunicationClientException;
+    private NetworkLocation getRandomNetworkLocation(List<NetworkLocation> networkLocations) throws CommunicationClientException {
+        if (networkLocations.isEmpty()) {
+            var exception = new CommunicationClientException("Could not find server responsible for " +
+                    "data");
+            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
+            throw exception;
+        }
+        if (networkLocations.size() == 1) {
+            return networkLocations.get(0);
+        }
+        return networkLocations.get(RANDOM.nextInt(networkLocations.size()));
+    }
+
+    protected abstract List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType,
+                                                                            KVMessage responseMessage) throws CommunicationClientException;
 
     private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
                                                  RequestType requestType,

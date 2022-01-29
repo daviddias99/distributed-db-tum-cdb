@@ -11,6 +11,7 @@ import de.tum.i13.shared.net.NetworkMessageServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -58,24 +59,19 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
     }
 
     @Override
-    protected NetworkLocation getResponsibleNetworkLocation(String key, RequestType requestType, KVMessage responseMessage) throws CommunicationClientException {
+    protected List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType,
+                                                             KVMessage responseMessage) throws CommunicationClientException {
         LOGGER.debug("Requesting new metadata from server");
         updateHashRing();
         return switch (requestType) {
             case PUT -> hashRing.getWriteResponsibleNetworkLocation(key)
+                    .map(List::of)
                     .orElseThrow(() -> {
                         var exception = new CommunicationClientException("Could not find server responsible for data");
                         LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
                         return exception;
                     });
-            case GET -> hashRing.getReadResponsibleNetworkLocation(key)
-                    .stream()
-                    .findAny()
-                    .orElseThrow(() -> {
-                        var exception = new CommunicationClientException("Could not find server responsible for data");
-                        LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-                        return exception;
-                    });
+            case GET -> hashRing.getReadResponsibleNetworkLocation(key);
         };
     }
 

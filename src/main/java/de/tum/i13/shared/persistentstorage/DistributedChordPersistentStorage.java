@@ -9,6 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A {@link WrappingPersistentStorage} that is aware of the distributed nature of the
@@ -29,15 +31,11 @@ public class DistributedChordPersistentStorage extends DistributedPersistentStor
     }
 
     @Override
-    protected NetworkLocation getResponsibleNetworkLocation(String key, RequestType requestType, KVMessage responseMessage) throws CommunicationClientException {
+    protected List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType, KVMessage responseMessage) throws CommunicationClientException {
         LOGGER.trace("Getting responsible network location for based on message '{}'", responseMessage);
         return Arrays.stream(responseMessage.getKey().split(","))
                 .map(NetworkLocation::extractNetworkLocation)
-                .findAny()
-                .orElseThrow(
-                        () -> new CommunicationClientException("Could not find server responsible for data from " +
-                                "message {}", responseMessage)
-                );
+                .collect(Collectors.toList());
     }
 
 }
