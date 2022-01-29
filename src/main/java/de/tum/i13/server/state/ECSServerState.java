@@ -15,7 +15,7 @@ import java.util.List;
  * Class that represents the server's state. It contains the actual state, the
  * ring metadata and the location of the ECS.
  */
-public class ECSServerState extends AbstractServerState implements ServerState {
+public class ECSServerState extends AbstractServerState {
 
   private static final Logger LOGGER = LogManager.getLogger(ECSServerState.class);
 

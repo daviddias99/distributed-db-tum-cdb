@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.List;
 
-public class ChordServerState extends AbstractServerState implements ServerState {
+public class ChordServerState extends AbstractServerState {
 
     private static final Logger LOGGER = LogManager.getLogger(ChordServerState.class);
 
