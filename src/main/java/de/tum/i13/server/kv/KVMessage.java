@@ -37,6 +37,10 @@ public interface KVMessage {
          */
         PUT_SERVER(true, true),
         /**
+         * Put - request from server
+         */
+        PUT_SERVER_OWNER(true, true),
+        /**
          * Put - request successful, tuple inserted
          */
         PUT_SUCCESS(true, false),

@@ -33,6 +33,4 @@ public class KVClientCommandProcessor implements CommandProcessor<KVMessage> {
       default -> null;
     };
   }
-
-
 }

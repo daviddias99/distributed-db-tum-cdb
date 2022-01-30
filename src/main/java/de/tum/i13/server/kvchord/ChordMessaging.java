@@ -166,11 +166,11 @@ public class ChordMessaging {
 
         String[] networkLocationsStr = response.getKey().split(",");
 
-        List<NetworkLocation> result  = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>() : Arrays
+        List<NetworkLocation> result  = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>() : new LinkedList<>(Arrays
             .asList(networkLocationsStr)
             .stream()
             .map(NetworkLocation::extractNetworkLocation)
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()));
         
             LOGGER.debug("Peer {} returned list with {} successors", peer, result.size());
 

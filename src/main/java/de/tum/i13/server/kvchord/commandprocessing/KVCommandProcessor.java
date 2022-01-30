@@ -31,7 +31,7 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     public KVCommandProcessor(PersistentStorage storage, ChordServerState serverState, Chord chord) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
-                new KVServerCommandProcessor(storage),
+                new KVServerCommandProcessor(storage, serverState),
                 new KVChordCommandProcessor(chord),
                 new KVClientCommandProcessor(storage, serverState));
     }

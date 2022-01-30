@@ -36,7 +36,7 @@ public class PutDeleteReplicationHandler implements Runnable {
 
   @Override
   public void run() {
-    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
+    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), WrappingPersistentStorage.MessageMode.SERVER);
     String status = value == null ? "delete" : "put";
     try {
       LOGGER.info("Trying to connect to peer {} for replication", peer);

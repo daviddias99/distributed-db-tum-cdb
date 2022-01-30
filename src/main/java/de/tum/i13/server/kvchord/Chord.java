@@ -458,7 +458,7 @@ public class Chord {
         final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
         
         if(this.getSuccessorCount() < Constants.NUMBER_OF_REPLICAS) {
-            return Arrays.asList(writeResponsibleNetworkLocation);
+            return new LinkedList<>(Arrays.asList(writeResponsibleNetworkLocation));
         }
         
         return Stream.concat(Stream.of(writeResponsibleNetworkLocation),

@@ -34,19 +34,19 @@ class ChordSuccessorList {
     this.listeners = listeners;
   }
 
-  int count() {
+  synchronized int count() {
     return this.successors.size();
   }
 
-  NetworkLocation getFirst() {
+  synchronized NetworkLocation getFirst() {
     return this.successors.isEmpty() ? NetworkLocation.getNull() : this.successors.get(0);
   }
 
-  List<NetworkLocation> get(int n) {
+  synchronized List<NetworkLocation> get(int n) {
     return this.successors.subList(0, Math.min(n, this.successors.size()));
   }
 
-  NetworkLocation shift() {
+  synchronized NetworkLocation shift() {
     if (this.successors.isEmpty()) {
       return NetworkLocation.getNull();
     }
@@ -63,7 +63,7 @@ class ChordSuccessorList {
     return oldSuccessor;
   }
 
-  NetworkLocation setFirst(NetworkLocation newSuccessor) {
+  synchronized NetworkLocation setFirst(NetworkLocation newSuccessor) {
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
     if (this.successors.isEmpty()) {
       this.successors.add(newSuccessor);
@@ -83,7 +83,7 @@ class ChordSuccessorList {
     return oldSuccessor;
   }
 
-  void update(List<NetworkLocation> successorsUpdate) {
+  synchronized void update(List<NetworkLocation> successorsUpdate) {
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
 
     if (successorsUpdate.isEmpty()) {
@@ -113,7 +113,7 @@ class ChordSuccessorList {
     }
   }
 
-  String getStateStr() {
+  synchronized String getStateStr() {
 
     StringBuilder sb = new StringBuilder();
     sb.append("Successors\n");

@@ -31,6 +31,9 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
     public KVMessage process(KVMessage command) {
         return switch (command.getStatus()) {
             case PUT -> this.put(command.getKey(), command.getValue());
+            case PUT_SERVER -> this.putWithoutChecks(command.getKey(), command.getValue(), false, true);
+            case PUT_SERVER_OWNER -> this.putWithoutChecks(command.getKey(), command.getValue(), true, false);
+            case DELETE_SERVER -> this.putWithoutChecks(command.getKey(), null, false, false);
             case DELETE -> this.put(command.getKey(), null);
             case GET -> this.get(command.getKey());
             default -> null;
@@ -70,26 +73,25 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
         }
     }
 
-
     protected KVMessage put(String key, String value) {
         synchronized (this.kvStore) {
             if (!this.serverState.isWriteResponsible(key)) {
                 return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
             }
             if (this.serverState.canWrite()) {
-                return putWithoutChecks(key, value);
+                return putWithoutChecks(key, value, false, false);
             }
 
             return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
         }
     }
 
-    private KVMessage putWithoutChecks(String key, String value) {
+    private KVMessage putWithoutChecks(String key, String value, boolean forceReplicate, boolean avoidReplicate) {
         if (value == null) LOGGER.info("Trying to delete key: {}", key);
         else LOGGER.info("Trying to put key: {} and value: {}", key, value);
         try {
             final KVMessage result = kvStore.put(key, value);
-            if (this.serverState.isReplicationActive() && isSuccessfulPut(result))
+            if (!avoidReplicate && (forceReplicate || (this.serverState.isReplicationActive() && isSuccessfulPut(result))))
                 this.replicateOperation(key, value);
             return result;
         } catch (PutException e) {

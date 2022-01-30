@@ -2,7 +2,6 @@ package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
@@ -21,11 +20,17 @@ import org.apache.logging.log4j.Logger;
  */
 public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
+    public enum MessageMode {
+        CLIENT,
+        SERVER,
+        SERVER_OWNER
+    }
+
     private static final Logger LOGGER = LogManager.getLogger(WrappingPersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
-    private final boolean useServerMessaging;
+    private MessageMode messageMode;
 
     /**
      * Creates a new {@link WrappingPersistentStorage} that wraps around the given
@@ -34,7 +39,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
      * @param networkMessageServer the server to use for network communication
      */
     public WrappingPersistentStorage(NetworkMessageServer networkMessageServer) {
-        this(networkMessageServer, false);
+        this(networkMessageServer, MessageMode.CLIENT);
     }
 
     /**
@@ -43,9 +48,9 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
      *
      * @param networkMessageServer the server to use for network communication
      */
-    public WrappingPersistentStorage(NetworkMessageServer networkMessageServer, boolean useServerMessaging) {
+    public WrappingPersistentStorage(NetworkMessageServer networkMessageServer, MessageMode messageMode) {
         this.networkMessageServer = networkMessageServer;
-        this.useServerMessaging = useServerMessaging;
+        this.messageMode = messageMode;
     }
 
     @Override
@@ -98,14 +103,14 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage deleteKey(String key) throws PutException {
         LOGGER.debug("Trying to delete key '{}'", key);
-        KVMessage.StatusType status = this.useServerMessaging ? StatusType.DELETE_SERVER : KVMessage.StatusType.DELETE;
+        KVMessage.StatusType status = this.getDelMessageStatus();
         final KVMessage deleteMessage = new KVMessageImpl(key, status);
         return sendPutOrDeleteMessage(deleteMessage);
     }
 
     private KVMessage putKey(String key, String value) throws PutException {
         LOGGER.debug("Trying to put key '{}' to supplied value '{}'", key, value);
-        KVMessage.StatusType status = this.useServerMessaging ? StatusType.PUT_SERVER : KVMessage.StatusType.PUT;
+        KVMessage.StatusType status = this.getPutMessageStatus();
         final KVMessage putMessage = new KVMessageImpl(key, value, status);
         return sendPutOrDeleteMessage(putMessage);
     }
@@ -114,11 +119,9 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         try {
             return sendAndReceive(putOrDeleteMessage);
         } catch (CommunicationClientException exception) {
-            boolean isPut = putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT
-                    || putOrDeleteMessage.getStatus() == KVMessage.StatusType.PUT_SERVER;
             LOGGER.atError()
                     .withThrowable(exception)
-                    .log("Caught exception while {}. Wrapping the exception.", isPut ? "putting" : "deleting");
+                    .log("Caught exception while sending {}. Wrapping the exception.", putOrDeleteMessage.getStatus());
             throw new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
     }
@@ -162,5 +165,25 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     @Override
     public List<Pair<String>> getRange(String lowerBound, String upperBound) {
         return new LinkedList<>();
+    }
+
+    private KVMessage.StatusType getPutMessageStatus() {
+        return switch (this.messageMode) {
+            case CLIENT -> KVMessage.StatusType.PUT;        
+            case SERVER -> KVMessage.StatusType.PUT_SERVER;
+            case SERVER_OWNER -> KVMessage.StatusType.PUT_SERVER_OWNER;
+        };
+    }
+
+    private KVMessage.StatusType getDelMessageStatus() {
+        return switch (this.messageMode) {
+            case CLIENT -> KVMessage.StatusType.DELETE;        
+            case SERVER -> KVMessage.StatusType.DELETE_SERVER;
+            case SERVER_OWNER -> KVMessage.StatusType.DELETE_SERVER;
+        };
+    }
+
+    public void setMessageMode(MessageMode mode) {
+        this.messageMode = mode;
     }
 }

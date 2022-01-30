@@ -35,15 +35,15 @@ public class KVCommandProcessor implements CommandProcessor<String> {
     public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState, ServerCommunicator ecsCommunicator) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
-                new KVServerCommandProcessor(storage),
-                new KVEcsCommandProcessor(storage, serverState, ecsCommunicator, false),
+            new KVServerCommandProcessor(storage, serverState),
+            new KVEcsCommandProcessor(storage, serverState, ecsCommunicator, false),
                 new KVClientCommandProcessor(storage, serverState));
     }
 
     public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
-                new KVServerCommandProcessor(storage),
+                new KVServerCommandProcessor(storage, serverState),
                 new KVClientCommandProcessor(storage, serverState));
     }
 

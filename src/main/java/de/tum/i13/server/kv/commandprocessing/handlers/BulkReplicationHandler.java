@@ -28,7 +28,7 @@ public class BulkReplicationHandler implements Runnable{
 
   @Override
   public void run() {
-    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
+    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), WrappingPersistentStorage.MessageMode.SERVER);
 
     try {
       LOGGER.info("Trying to connect to peer {} for bulk replication", peer);

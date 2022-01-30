@@ -54,7 +54,7 @@ public class HandoffHandler implements Runnable {
   @Override
   public void run() {
 
-    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), true);
+    NetworkPersistentStorage netPeerStorage = new WrappingPersistentStorage(new CommunicationClient(), WrappingPersistentStorage.MessageMode.SERVER_OWNER);
 
     try {
       LOGGER.info("Trying to connect to peer {} for handhoff", peer);
