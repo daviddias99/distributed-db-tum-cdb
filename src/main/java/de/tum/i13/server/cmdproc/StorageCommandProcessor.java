@@ -33,7 +33,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
             case PUT -> this.put(command.getKey(), command.getValue());
             case PUT_SERVER -> this.putWithoutChecks(command.getKey(), command.getValue(), false, true);
             case PUT_SERVER_OWNER -> this.putWithoutChecks(command.getKey(), command.getValue(), true, false);
-            case DELETE_SERVER -> this.putWithoutChecks(command.getKey(), null, false, false);
+            case DELETE_SERVER -> this.putWithoutChecks(command.getKey(), null, false, true);
             case DELETE -> this.put(command.getKey(), null);
             case GET -> this.get(command.getKey());
             default -> null;

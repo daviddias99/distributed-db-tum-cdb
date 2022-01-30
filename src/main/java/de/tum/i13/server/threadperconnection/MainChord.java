@@ -64,14 +64,15 @@ public class MainChord {
             final ChordServerState state = new ChordServerState(chord);
             final CommandProcessor<String> commandProcessor = new KVCommandProcessor(storage, state, chord);
 
-            chord.addListener(new KVChordListener(state, storage, hashingAlgorithm));
+            KVChordListener chordListener = new KVChordListener(state, storage, hashingAlgorithm);
+            chord.addListener(chordListener);
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
             final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
 
             // Setup shutdown procedure (handoff)
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(listeningThread, chord, state, storage)));
+            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(listeningThread, chord, state, storage, chordListener)));
 
             listeningThread.start();
             Thread.sleep(600);

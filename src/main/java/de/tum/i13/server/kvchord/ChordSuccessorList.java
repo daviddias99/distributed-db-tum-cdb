@@ -43,7 +43,7 @@ class ChordSuccessorList {
   }
 
   synchronized List<NetworkLocation> get(int n) {
-    return this.successors.subList(0, Math.min(n, this.successors.size()));
+    return new LinkedList<>(this.successors.subList(0, Math.min(n, this.successors.size())));
   }
 
   synchronized NetworkLocation shift() {
@@ -68,7 +68,7 @@ class ChordSuccessorList {
     if (this.successors.isEmpty()) {
       this.successors.add(newSuccessor);
       for (ChordListener listener : this.listeners) {
-        listener.successorsChanged(oldSuccList, this.successors);
+        listener.successorsChanged(oldSuccList, new LinkedList<>(this.successors));
       }
       return null;
     }
@@ -84,11 +84,20 @@ class ChordSuccessorList {
   }
 
   synchronized void update(List<NetworkLocation> successorsUpdate) {
-    List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
 
     if (successorsUpdate.isEmpty()) {
       return;
     }
+
+    List<NetworkLocation> testEquality = new LinkedList<>(successorsUpdate.subList(0, this.tableSize - 1));
+    testEquality.remove(this.ownLocation);
+
+    if(this.successors.subList(1, this.successors.size()).equals(testEquality)) {
+      return;
+    }
+
+    List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
+
 
     for (int i = this.successors.size() - 1; i > 0; i--) {
       NetworkLocation oldSuccessor = this.successors.remove(i);
@@ -109,7 +118,7 @@ class ChordSuccessorList {
     }
 
     for (ChordListener listener : this.listeners) {
-      listener.successorsChanged(oldSuccList, this.successors);
+      listener.successorsChanged(oldSuccList, new LinkedList<>(this.successors));
     }
   }
 

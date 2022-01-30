@@ -1,6 +1,7 @@
 package de.tum.i13.server.kvchord.commandprocessing.handlers;
 
 import de.tum.i13.server.kv.KVMessage;
+import de.tum.i13.server.kvchord.KVChordListener;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.state.ChordServerState;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
@@ -41,7 +42,7 @@ public class HandoffHandler implements Runnable {
    * @param upperBound upper bound for the keys of the transfered elements
    * @param storage current server storage
    */
-  public HandoffHandler(NetworkLocation peer, String lowerBound, String upperBound, PersistentStorage storage, ChordServerState state, HashingAlgorithm hashingAlgorithm) {
+  public HandoffHandler(NetworkLocation peer, String lowerBound, String upperBound, PersistentStorage storage, ChordServerState state, HashingAlgorithm hashingAlgorithm)  {
     this.storage = storage;
     this.peer = peer;
     this.lowerBound = lowerBound;
@@ -90,7 +91,6 @@ public class HandoffHandler implements Runnable {
         LOGGER.error("Could not send item with key {} to peer {}.", item.key, peer, e);
       }
     }
-
     this.state.executeStoredDeletes(storage);
   }
 

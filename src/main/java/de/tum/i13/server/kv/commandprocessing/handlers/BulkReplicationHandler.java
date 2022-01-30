@@ -20,10 +20,16 @@ public class BulkReplicationHandler implements Runnable{
 
   private final NetworkLocation peer;
   private final List<Pair<String>> elements;
+  private final boolean isDelete;
 
-  public BulkReplicationHandler(NetworkLocation peer, List<Pair<String>> elements) {
+  public BulkReplicationHandler(NetworkLocation peer, List<Pair<String>> elements, boolean isDelete) {
     this.peer = peer;
     this.elements = elements;
+    this.isDelete = isDelete;
+  }
+
+  public BulkReplicationHandler(NetworkLocation peer, List<Pair<String>> elements) {
+    this(peer, elements, false);
   }
 
   @Override
@@ -34,23 +40,23 @@ public class BulkReplicationHandler implements Runnable{
       LOGGER.info("Trying to connect to peer {} for bulk replication", peer);
       netPeerStorage.connectAndReceive(peer.getAddress(), peer.getPort());
     } catch (CommunicationClientException e) {
-      LOGGER.error("Could not connect to peer {} for bulk replication.", peer, e);
+      LOGGER.atError().withThrowable(e).log("Could not connect to peer {} for bulk replication.", peer);
       return;
     }
 
     // Send items to peer
     for (Pair<String> item : elements) {
       try {
-        LOGGER.info("Sending item with key {} to peer {}.", item.key, peer);
-        KVMessage response = netPeerStorage.put(item.key, item.value);
+        LOGGER.info("Sending item with key {} to peer {} (delete={}).", item.key, peer, this.isDelete);
+        KVMessage response = netPeerStorage.put(item.key, this.isDelete ? null : item.value);
 
-        if (response.getStatus() == KVMessage.StatusType.PUT_SUCCESS) {
-          LOGGER.info("Sent item with key {} to peer {}.", item.key, peer);
+        if (response.getStatus().equals(KVMessage.StatusType.PUT_SUCCESS) || response.getStatus().equals(KVMessage.StatusType.DELETE_SUCCESS)) {
+          LOGGER.info("{} item with key {} to peer {}.", this.isDelete ? "Delete" : "Sent", item.key, peer);
         } else {
-          LOGGER.error("Failed to send item with key {} to peer {}.", item.key, peer);
+          LOGGER.error("Failed to send item with key {} to peer {}  (delete={}).", item.key, peer, this.isDelete);
         }
       } catch (PutException e) {
-        LOGGER.error("Could not send item with key {} to peer {}.", item.key, peer, e);
+        LOGGER.atError().withThrowable(e).log("Could not send item with key {} to peer {}.  (delete={})", item.key, peer, this.isDelete);
       }
     }
     
