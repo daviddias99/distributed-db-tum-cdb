@@ -1,5 +1,6 @@
 package de.tum.i13.server.state;
 
+import de.tum.i13.server.ServerException;
 import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.kvchord.ChordException;
 import de.tum.i13.shared.Constants;
@@ -22,13 +23,21 @@ public class ChordServerState extends AbstractServerState {
     }
 
     @Override
-    public boolean isWriteResponsible(String key) {
-        return chord.isWriteResponsible(key);
+    public boolean isWriteResponsible(String key) throws ServerException {
+        try {
+            return chord.isWriteResponsible(key);
+        } catch (ChordException e) {
+            throw new ServerException("Caught exception while checking write responsibility", e);
+        }
     }
 
     @Override
-    public boolean isReadResponsible(String key) {
-        return chord.isReadResponsible(key);
+    public boolean isReadResponsible(String key) throws ServerException {
+        try {
+            return chord.isReadResponsible(key);
+        } catch (ChordException e) {
+            throw new ServerException("Caught exception while checking read responsibility", e);
+        }
     }
 
     public NetworkLocation getWriteResponsibleNetworkLocation(String key) {

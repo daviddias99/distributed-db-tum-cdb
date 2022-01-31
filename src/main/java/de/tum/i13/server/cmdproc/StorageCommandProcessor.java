@@ -1,5 +1,6 @@
 package de.tum.i13.server.cmdproc;
 
+import de.tum.i13.server.ServerException;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessage.StatusType;
 import de.tum.i13.server.kv.KVMessageImpl;
@@ -47,8 +48,12 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
      * @return a KVMessage with the status of the query
      */
     protected KVMessage get(String key) {
-        if (!this.serverState.isReadResponsible(key)) {
-            return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
+        try {
+            if (!this.serverState.isReadResponsible(key)) {
+                return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
+            }
+        } catch (ServerException e) {
+            return new KVMessageImpl(StatusType.ERROR);
         }
 
         try {
@@ -75,9 +80,13 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     protected KVMessage put(String key, String value) {
         synchronized (this.kvStore) {
-            if (!this.serverState.isWriteResponsible(key)) {
-                return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
+            try {
+                if (!this.serverState.isWriteResponsible(key))
+                    return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
+            } catch (ServerException e) {
+                return new KVMessageImpl(StatusType.ERROR);
             }
+
             if (this.serverState.canWrite()) {
                 return putWithoutChecks(key, value, false, false);
             }

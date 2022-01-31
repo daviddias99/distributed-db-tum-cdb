@@ -3,14 +3,13 @@ package de.tum.i13.server.kvchord;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.net.NetworkLocation;
+import io.vavr.control.Try;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +54,9 @@ public class Chord {
         this.TABLE_SIZE = hashingAlgorithm.getHashSizeBits();
         this.fingerTable = new ConcurrentSkipListMap<>();
         this.fingerTableKeys = new ArrayList<>();
-        this.listeners =  new LinkedList<>();
-        this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm, this.listeners);
+        this.listeners = new LinkedList<>();
+        this.successors = new ChordSuccessorList(SUCCESSOR_LIST_SIZE, ownLocation, fingerTable, hashingAlgorithm,
+                this.listeners);
         this.messaging = new ChordMessaging(this);
         this.bootstrapNode = bootstrapNode;
         this.initFingerTable(ownLocation);
@@ -88,7 +88,7 @@ public class Chord {
         NetworkLocation nPrimeSuccessor = this.getSuccessor();
 
         if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
-            return new NetworkLocation[] { nPrime, nPrime }; 
+            return new NetworkLocation[]{nPrime, nPrime};
         }
 
         while (!this.betweenTwoKeys(
@@ -118,7 +118,7 @@ public class Chord {
             }
         }
 
-        return new NetworkLocation[] { nPrime, nPrimeSuccessor };
+        return new NetworkLocation[]{nPrime, nPrimeSuccessor};
     }
 
     public NetworkLocation findSuccessor(BigInteger key) throws ChordException {
@@ -165,7 +165,7 @@ public class Chord {
         while (true) {
             NetworkLocation successor = this.getSuccessor();
 
-            if(successor.equals(NetworkLocation.getNull())) {
+            if (successor.equals(NetworkLocation.getNull())) {
                 return null;
             }
 
@@ -359,7 +359,7 @@ public class Chord {
     }
 
     private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
-            boolean closedRight) {
+                                   boolean closedRight) {
         // TODO: Took this from my previous project, but I think Lukas already did it
         // somewhere
         // Equal to one of the bounds and are inclusive
@@ -395,58 +395,57 @@ public class Chord {
 
     /* SYSTEM SPECIFIC */
 
-    public boolean isWriteResponsible(String key) {
+    public boolean isWriteResponsible(String key) throws ChordException {
         return isWriteResponsible(ownLocation, key);
     }
 
-    private boolean isWriteResponsible(NetworkLocation networkLocation, String key) {
-
-        if(this.getPredecessor().equals(NetworkLocation.getNull())) {
+    private boolean isWriteResponsible(NetworkLocation networkLocation, String key) throws ChordException {
+        if (this.getPredecessor().equals(NetworkLocation.getNull())) {
             return this.getSuccessorCount() == 0;
         }
 
-        try {
-            return betweenTwoKeys(
-                    hashingAlgorithm.hash(messaging.getPredecessor(networkLocation)),
-                    hashingAlgorithm.hash(networkLocation),
-                    hashingAlgorithm.hash(key),
-                    false,
-                    true);
-        } catch (ChordException e) {
-            LOGGER.error("Could not determine predecessor of network location {}", networkLocation);
-            return false;
-        }
+        return betweenTwoKeys(
+                hashingAlgorithm.hash(checkNullLocation(messaging.getPredecessor(networkLocation))),
+                hashingAlgorithm.hash(networkLocation),
+                hashingAlgorithm.hash(key),
+                false,
+                true);
     }
 
-    public boolean isReadResponsible(String key) {
-        // TODO Check whether replication is actually active
-
-        if(this.getSuccessorCount() < Constants.NUMBER_OF_REPLICAS) {
-            return isWriteResponsible(this.ownLocation, key);
-        }
-
-        return getReplicatedLocations(ownLocation).stream()
-                .anyMatch(iterLocation -> isWriteResponsible(iterLocation, key));
+    private static NetworkLocation checkNullLocation(NetworkLocation networkLocation) throws ChordException {
+        if (networkLocation.equals(NetworkLocation.getNull()))
+            throw new ChordException("Supplied location '%s' was null location", networkLocation);
+        return networkLocation;
     }
 
-    private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
-        return Stream.iterate(networkLocation,
-                iterLocation -> {
-                    try {
-                        return messaging.getPredecessor(iterLocation);
-                    } catch (ChordException e) {
-                        LOGGER.error("Could not find predecessor of {}", iterLocation);
-                        throw new RuntimeException(e);
-                    }
-                })
-                .limit(Constants.NUMBER_OF_REPLICAS + 1)
-                .collect(
-                        Collectors.collectingAndThen(
-                                Collectors.toList(),
-                                collection -> {
-                                    Collections.reverse(collection);
-                                    return collection;
-                                }));
+    public boolean isReadResponsible(String key) throws ChordException {
+        if (!isReplicationActive()) return isWriteResponsible(this.ownLocation, key);
+
+        final var replicatedLocations = getReplicatedLocations(ownLocation);
+        if (replicatedLocations.isEmpty())
+            throw new ChordException("Could not find replicated locations for location %s", ownLocation);
+
+        return Try.sequence(replicatedLocations.stream()
+                        .map(iterLocation -> Try.of(() -> isWriteResponsible(iterLocation, key)))
+                        .collect(Collectors.toList())
+                ).getOrElseThrow(throwable -> new ChordException("Could not check write responsibility of replicated " +
+                        "locations", throwable))
+                .exists(Boolean::booleanValue);
+    }
+
+    private boolean isReplicationActive() {
+        return this.getSuccessorCount() == Constants.NUMBER_OF_REPLICAS;
+    }
+
+    private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) throws ChordException {
+        return Try.sequence(Stream.iterate(Try.success(networkLocation),
+                                        iterTry -> iterTry.mapTry(messaging::getPredecessor)
+                                                .mapTry(Chord::checkNullLocation)
+                                ).limit(Constants.NUMBER_OF_REPLICAS + 1L)
+                                .collect(Collectors.toList())
+                ).getOrElseThrow(failCause ->
+                        new ChordException("Caught exception while getting predecessors", failCause))
+                .reverse().toJavaList();
     }
 
     public NetworkLocation getWriteResponsibleNetworkLocation(String key) throws ChordException {
@@ -454,15 +453,12 @@ public class Chord {
     }
 
     public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) throws ChordException {
-        // TODO Check whether replication is actually active
         final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
-        
-        if(this.getSuccessorCount() < Constants.NUMBER_OF_REPLICAS) {
-            return new LinkedList<>(Arrays.asList(writeResponsibleNetworkLocation));
-        }
-        
+
+        if (!isReplicationActive()) return List.of(writeResponsibleNetworkLocation);
+
         return Stream.concat(Stream.of(writeResponsibleNetworkLocation),
-                messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
+                        messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
                 .collect(Collectors.toList());
     }
 

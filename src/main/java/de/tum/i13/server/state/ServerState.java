@@ -1,5 +1,6 @@
 package de.tum.i13.server.state;
 
+import de.tum.i13.server.ServerException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 
@@ -71,7 +72,7 @@ public interface ServerState {
      * @param key key to check
      * @return true if the server is responsible for the key
      */
-    boolean isWriteResponsible(String key);
+    boolean isWriteResponsible(String key) throws ServerException;
 
     /**
      * Check if a given key is the responsibility of the current server for reading
@@ -79,7 +80,7 @@ public interface ServerState {
      * @param key key to check
      * @return true if the server is responsible for the key
      */
-    boolean isReadResponsible(String key);
+    boolean isReadResponsible(String key) throws ServerException;
 
     List<NetworkLocation> getReadResponsibleNetworkLocation(String key);
 
