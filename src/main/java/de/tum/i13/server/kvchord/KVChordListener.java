@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,6 +26,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.function.Predicate.not;
 
 public class KVChordListener implements ChordListener {
 
@@ -176,68 +178,31 @@ public class KVChordListener implements ChordListener {
 
     @Override
     public void successorsChanged(List<NetworkLocation> previous, List<NetworkLocation> current) {
-        boolean wasReplicated = previous.size() >= Constants.NUMBER_OF_REPLICAS;
-        boolean isReplicated = current.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean wasReplicated = previous.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean isReplicated = current.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean replicationChangedOrOff = !(wasReplicated && isReplicated);
 
-        if (wasReplicated) {
-            // If not replicated, delete replicated ranges
-            if (!isReplicated) {
-                final var deletionTask = DELETION_EXECUTOR_SERVICE.schedule(
-                        () -> this.deleteReplicatedRanges(true), REPLICATION_DELETION_DELAY, MILLISECONDS);
-                DELETION_TASKS.add(deletionTask);
-                return;
-            }
-        } else {
-            // If just starte to be replicated, replicate to all
-            if (isReplicated) {
-                // TODO It might still be necessary to let the tasks to execute, if for example the previous
-                //  predecessor is different from the new predecessor
-                for (Iterator<ScheduledFuture<?>> iterator = DELETION_TASKS.iterator(); iterator.hasNext(); ) {
-                    iterator.next().cancel(true);
-                    iterator.remove();
-                }
-                LOGGER.info("Replicating full range");
-                List<Pair<String>> relevantElements;
-                try {
-                    relevantElements = this.getRelevantRangeFromStorage();
-                } catch (GetException e) {
-                    LOGGER.atError().withThrowable(e).log("Could not get range to replicate from storage");
-                    return;
-                }
-
-                // If new successors, send them range
-                for (NetworkLocation newSucc : current) {
-                    LOGGER.info("Sending {} keys to peers {}", relevantElements.size(), newSucc);
-                    (new Thread(new BulkReplicationHandler(newSucc, relevantElements))).start();
-                }
-            }
+        if (replicationChangedOrOff) {
+            if (wasReplicated) scheduleReplicationDeletion();
+            else if (isReplicated) replicateFullRange(current);
             return;
-        }
-
-        if (this.state.getCurNetworkLocation().getPort() == 25565) {
-            int i = 0;
         }
 
         Set<NetworkLocation> removals = (new HashSet<>(previous.subList(0, Constants.NUMBER_OF_REPLICAS)));
         removals.removeAll(current);
         Set<NetworkLocation> enters = (new HashSet<>(current.subList(0, Constants.NUMBER_OF_REPLICAS)));
         enters.removeAll(previous);
+        if (removals.isEmpty() && enters.isEmpty()) return;
 
-        if (removals.isEmpty() && enters.isEmpty()) {
-            return;
-        }
-        List<Pair<String>> relevantElements;
-        try {
-            relevantElements = this.getRelevantRangeFromStorage();
-        } catch (GetException e) {
-            LOGGER.atError().withThrowable(e).log("Could not get range to replicate from storage");
-            return;
-        }
+        var optRelevantElements = getRelevantElementsSafely();
+        if (optRelevantElements.isEmpty()) return;
 
-        if (relevantElements.isEmpty()) {
-            return;
-        }
+        var relevantElements = optRelevantElements.get();
+        sendChangesToSuccessors(removals, enters, relevantElements);
+    }
 
+    private void sendChangesToSuccessors(Set<NetworkLocation> removals, Set<NetworkLocation> enters,
+                                         List<Pair<String>> relevantElements) {
         // If new successors, send them range
         for (NetworkLocation newSucc : enters) {
             LOGGER.info("Sending {} keys to peers {}", relevantElements.size(), newSucc);
@@ -250,6 +215,47 @@ public class KVChordListener implements ChordListener {
             LOGGER.info("Deleting {} keys from peer {}", relevantElements.size(), oldSucc);
             (new Thread(new BulkReplicationHandler(oldSucc, relevantElements, true))).start();
         }
+    }
+
+    private Optional<List<Pair<String>>> getRelevantElementsSafely() {
+        try {
+            return Optional.of(this.getRelevantRangeFromStorage())
+                    .filter(not(List::isEmpty));
+        } catch (GetException e) {
+            LOGGER.atError().withThrowable(e).log("Could not get range to replicate from storage");
+            return Optional.empty();
+        }
+    }
+
+    private void replicateFullRange(List<NetworkLocation> current) {
+        // TODO It might still be necessary to let the tasks to execute, if for example the previous
+        //  predecessor is different from the new predecessor
+        LOGGER.info("Canceling potential previous deletion tasks");
+        for (Iterator<ScheduledFuture<?>> iterator = DELETION_TASKS.iterator(); iterator.hasNext(); ) {
+            iterator.next().cancel(true);
+            iterator.remove();
+        }
+
+        LOGGER.info("Replicating full range");
+        List<Pair<String>> relevantElements;
+        try {
+            relevantElements = this.getRelevantRangeFromStorage();
+        } catch (GetException e) {
+            LOGGER.atError().withThrowable(e).log("Could not get range to replicate from storage");
+            return;
+        }
+
+        // If new successors, send them range
+        for (NetworkLocation newSucc : current) {
+            LOGGER.info("Sending {} keys to peers {}", relevantElements.size(), newSucc);
+            (new Thread(new BulkReplicationHandler(newSucc, relevantElements))).start();
+        }
+    }
+
+    private void scheduleReplicationDeletion() {
+        final var deletionTask = DELETION_EXECUTOR_SERVICE.schedule(
+                () -> this.deleteReplicatedRanges(true), REPLICATION_DELETION_DELAY, MILLISECONDS);
+        DELETION_TASKS.add(deletionTask);
     }
 
 }
