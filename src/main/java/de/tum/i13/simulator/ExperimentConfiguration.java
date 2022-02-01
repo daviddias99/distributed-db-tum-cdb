@@ -16,14 +16,36 @@ public class ExperimentConfiguration {
     public static final int DEFAULT_BTREE_NODE_SIZE = 100;
     public static final CachingStrategy DEFAULT_SERVER_CACHE_STRATEGY = LFU;
     public static final String DEFAULT_STATS_NAME = "LFU";
+    public static final int DEFAULT_INITIAL_DELAY = 60;
 
     private final int startingServerCount;
     private final int startingClientCount;
     private final int finalServerCount;
     private final int finalClientCount;
+    private final int serverStartDelay;
+    private final int clientStartDelay;
+    private final int serverCacheSize;
+    private final int bTreeNodeSize;
+    private final CachingStrategy serverCachingStrategy;
+    private final String statsName;
+    private final int afterAdditionalClientsDelay;
+    private final int afterAdditionalServersDelay;
+    private final int initialDelay;
+
+    public int getAfterAdditionalClientsDelay() {
+        return afterAdditionalClientsDelay;
+    }
+
+    public int getAfterAdditionalServersDelay() {
+        return afterAdditionalServersDelay;
+    }
 
     public int getStartingServerCount() {
         return startingServerCount;
+    }
+
+    public int getInitialDelay() {
+        return initialDelay;
     }
 
     public int getStartingClientCount() {
@@ -62,13 +84,6 @@ public class ExperimentConfiguration {
         return statsName;
     }
 
-    private final int serverStartDelay;
-    private final int clientStartDelay;
-    private final int serverCacheSize;
-    private final int bTreeNodeSize;
-    private final CachingStrategy serverCachingStrategy;
-    private final String statsName;
-
     private ExperimentConfiguration(Builder builder) {
         startingServerCount = builder.startingServerCount;
         startingClientCount = builder.startingClientCount;
@@ -80,6 +95,9 @@ public class ExperimentConfiguration {
         bTreeNodeSize = builder.bTreeNodeSize;
         serverCachingStrategy = builder.serverCachingStrategy;
         statsName = builder.statsName;
+        afterAdditionalClientsDelay = builder.afterAdditionalClientsDelay;
+        afterAdditionalServersDelay = builder.afterAdditionalServersDelay;
+        initialDelay = builder.initialDelay;
     }
 
     public static Builder experimentConfiguration() {
@@ -99,6 +117,9 @@ public class ExperimentConfiguration {
         private int bTreeNodeSize;
         private CachingStrategy serverCachingStrategy;
         private String statsName;
+        private int afterAdditionalClientsDelay;
+        private int afterAdditionalServersDelay;
+        private int initialDelay;
 
         private Builder() {
             startingServerCount = DEFAULT_STARTING_SERVER_COUNT;
@@ -106,18 +127,18 @@ public class ExperimentConfiguration {
             finalServerCount = DEFAULT_FINAL_SERVER_COUNT;
             finalClientCount = DEFAULT_FINAL_CLIENT_COUNT;
             serverStartDelay = DEFAULT_SERVER_START_DELAY;
-            clientStartDelay = DEFAULT_SERVER_START_DELAY;
+            clientStartDelay = DEFAULT_CLIENT_START_DELAY;
             serverCacheSize = DEFAULT_SERVER_CACHE_SIZE;
             bTreeNodeSize = DEFAULT_BTREE_NODE_SIZE;
             serverCachingStrategy = DEFAULT_SERVER_CACHE_STRATEGY;
             statsName = DEFAULT_STATS_NAME;
+            initialDelay = DEFAULT_INITIAL_DELAY;
         }
 
         public Builder startingServerCount(int startingServerCount) {
             this.startingServerCount = startingServerCount;
             return this;
         }
-
         public Builder startingClientCount(int startingClientCount) {
             this.startingClientCount = startingClientCount;
             return this;
@@ -160,6 +181,21 @@ public class ExperimentConfiguration {
 
         public Builder statsName(String statsName) {
             this.statsName = statsName;
+            return this;
+        }
+
+        public Builder afterAdditionalClientsDelay(int afterAdditionalClientsDelay) {
+            this.afterAdditionalClientsDelay = afterAdditionalClientsDelay;
+            return this;
+        }
+
+        public Builder aAfterAdditionalServersDelay(int afterAdditionalServersDelay) {
+            this.afterAdditionalServersDelay = afterAdditionalServersDelay;
+            return this;
+        }
+
+        public Builder initialDelay(int initialDelay) {
+            this.initialDelay = initialDelay;
             return this;
         }
 

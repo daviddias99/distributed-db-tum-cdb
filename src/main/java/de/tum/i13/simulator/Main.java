@@ -15,41 +15,53 @@ public class Main {
 
     private static void cacheExperiment() throws InterruptedException, IOException {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
+                .afterAdditionalClientsDelay(120)
+                .aAfterAdditionalServersDelay(15)
                 .build();
-        final ExperimentManager experimentManager = startUpExperiment(experimentConfiguration);
+        final ExperimentManager experimentManager = startInitialExperiment(experimentConfiguration);
+        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
 
-        int base = 60;
+        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
 
-        int i = 0;
-
-        for (; i < experimentConfiguration.getFinalClientCount(); i++) {
-            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, experimentManager))).start();
-        }
-
-        base = base + i * experimentConfiguration.getClientStartDelay() + 120;
-
-        for (i = 0; i < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); i++) {
-            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, experimentManager))).start();
-        }
-        base = base + i * experimentConfiguration.getServerStartDelay() + 15;
-
-        (new Thread(new DelayedEvent(base, DelayedEvent.Type.STOP_PROGRAM, experimentManager))).start();
+        (new Thread(new DelayedEvent(timeOffSetFromZero, DelayedEvent.Type.STOP_PROGRAM, experimentManager))).start();
     }
 
-    private static ExperimentManager startUpExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
+    private static int startAdditionalServers(ExperimentConfiguration experimentConfiguration,
+                                              ExperimentManager experimentManager, int timeOffSetFromZero) {
+        int serverNumber;
+        for (serverNumber = 0; serverNumber < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); serverNumber++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, experimentManager))).start();
+        }
+        timeOffSetFromZero = timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay() + experimentConfiguration.getAfterAdditionalServersDelay();
+        return timeOffSetFromZero;
+    }
+
+    private static int startAdditionalClients(ExperimentConfiguration experimentConfiguration,
+                                              ExperimentManager experimentManager, int timeOffSetFromZero) {
+        int clientNum = 0;
+        // TODO Maybe the second value should be final count - stat count
+        for (; clientNum < experimentConfiguration.getFinalClientCount(); clientNum++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + clientNum * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, experimentManager))).start();
+        }
+        timeOffSetFromZero = timeOffSetFromZero + clientNum * experimentConfiguration.getClientStartDelay() + experimentConfiguration.getAfterAdditionalClientsDelay();
+        return timeOffSetFromZero;
+    }
+
+    private static ExperimentManager startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
         final var experimentManager = new ExperimentManager();
         startECS();
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        experimentManager.setServerManager(startServers(experimentConfiguration));
+        experimentManager.setServerManager(startInitialServers(experimentConfiguration));
         System.out.println("Waiting...");
         Thread.sleep(4000);
         experimentManager.setStatsAccumulator(new StatsAccumulator(experimentConfiguration));
-        experimentManager.setClientManager(startClients(experimentConfiguration, experimentManager));
+        experimentManager.setClientManager(startInitialClients(experimentConfiguration, experimentManager));
         return experimentManager;
     }
 
-    private static ServerManager startServers(ExperimentConfiguration experimentConfiguration) {
+    private static ServerManager startInitialServers(ExperimentConfiguration experimentConfiguration) {
         System.out.println("Starting Servers");
         final ServerManager manager = new ServerManager(experimentConfiguration);
         System.out.println("Started Servers");
@@ -68,32 +80,21 @@ public class Main {
                 .bTreeNodeSize(100)
                 .serverCachingStrategy(LFU)
                 .statsName("behavior")
+                .afterAdditionalClientsDelay(120)
+                .aAfterAdditionalServersDelay(120)
                 .build();
+        final ExperimentManager experimentManager = startInitialExperiment(experimentConfiguration);
+        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
 
-        final ExperimentManager experimentManager = startUpExperiment(experimentConfiguration);
+        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
 
-        int base = 60;
-
-        int i = 0;
-
-        for (; i < experimentConfiguration.getFinalClientCount(); i++) {
-            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, experimentManager))).start();
-        }
-
-        base = base + i * experimentConfiguration.getClientStartDelay() + 120;
-
-        for (i = 0; i < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); i++) {
-            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, experimentManager))).start();
-        }
-
-        base = base + i * experimentConfiguration.getServerStartDelay() + 120;
-
-        for (i = 0; i < experimentConfiguration.getFinalServerCount() - 1; i++) {
-            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, experimentManager))).start();
+        for (int i = 0; i < experimentConfiguration.getFinalServerCount() - 1; i++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, experimentManager))).start();
         }
     }
 
-    private static ClientManager startClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
+    private static ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         System.out.println("Creating clients");
         final ClientManager clientManager = new ClientManager(experimentConfiguration, experimentManager);
         System.out.println("Starting clients");
