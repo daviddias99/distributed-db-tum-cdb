@@ -1,33 +1,25 @@
 package de.tum.i13.simulator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
-import static de.tum.i13.server.cache.CachingStrategy.LFU;
-import static de.tum.i13.simulator.ExperimentConfiguration.experimentConfiguration;
+abstract class AbstractExperiment implements Experiment {
 
-abstract class AbstractExperiment {
+    private static final Logger LOGGER = LogManager.getLogger(AbstractExperiment.class);
 
-    private ExperimentManager experimentManager;
+    protected final ExperimentConfiguration experimentConfiguration;
+    protected ExperimentManager experimentManager;
 
-    public static void main(String[] args) throws InterruptedException, IOException {
-        // cacheExperiment("LFU");
-        // behaviourExperiment();
+    protected AbstractExperiment(ExperimentConfiguration experimentConfiguration) {
+        this.experimentConfiguration = experimentConfiguration;
     }
 
-    private void cacheExperiment() throws InterruptedException, IOException {
-        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
-                .afterAdditionalClientsDelay(120)
-                .aAfterAdditionalServersDelay(15)
-                .build();
-        int timeOffSetFromZero = startExperiment(experimentConfiguration);
-
-        (new Thread(new DelayedEvent(timeOffSetFromZero, DelayedEvent.Type.STOP_PROGRAM, experimentManager))).start();
-    }
-
-    private int startExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
+    private int startExperiment(ExperimentConfiguration experimentConfiguration, int initialTimeOffSetFromZero) throws IOException, InterruptedException {
         experimentManager = startInitialExperiment(experimentConfiguration);
-        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
+        int timeOffSetFromZero = initialTimeOffSetFromZero + experimentConfiguration.getInitialDelay();
 
         timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
         timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
@@ -75,28 +67,6 @@ abstract class AbstractExperiment {
         return manager;
     }
 
-    private void behaviourExperiment() throws InterruptedException, IOException {
-        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
-                .startingServerCount(1)
-                .startingClientCount(0)
-                .finalServerCount(10)
-                .finalClientCount(20)
-                .serverStartDelay(60)
-                .clientStartDelay(20)
-                .serverCacheSize(500)
-                .bTreeNodeSize(100)
-                .serverCachingStrategy(LFU)
-                .statsName("behavior")
-                .afterAdditionalClientsDelay(120)
-                .aAfterAdditionalServersDelay(120)
-                .build();
-        int timeOffSetFromZero = startExperiment(experimentConfiguration);
-
-        for (int i = 0; i < experimentConfiguration.getFinalServerCount() - 1; i++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, experimentManager))).start();
-        }
-    }
-
     private ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         System.out.println("Creating clients");
         final ClientManager clientManager = new ClientManager(experimentConfiguration, experimentManager);
@@ -114,6 +84,15 @@ abstract class AbstractExperiment {
         Process ecs = processBuilder.start();
         Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
         System.out.println("Started ECS");
+    }
+
+    @Override
+    public int scheduleRun(int timeOffsetFromZero) {
+        try {
+            return startExperiment(experimentConfiguration, timeOffsetFromZero);
+        } catch (IOException | InterruptedException e) {
+            throw new ExperimentException("Could not start experiment", e);
+        }
     }
 
 }
