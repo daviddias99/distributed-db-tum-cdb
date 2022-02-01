@@ -16,8 +16,12 @@ public class ClientManager {
     ServerManager servers;
     StatsAccumulator statsAcc;
 
-    ClientManager(ExperimentConfiguration experimentConfiguration, ServerManager servers, StatsAccumulator statsAcc) {
-        this(experimentConfiguration.getStartingClientCount(), servers, statsAcc);
+    ClientManager(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
+        this(
+                experimentConfiguration.getStartingClientCount(),
+                experimentManager.getServerManager(),
+                experimentManager.getStatsAccumulator()
+        );
     }
 
     public ClientManager(int count, ServerManager servers, StatsAccumulator statsAcc) {

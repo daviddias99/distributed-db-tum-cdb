@@ -7,6 +7,18 @@ public class DelayedEvent implements Runnable, TimeEvent {
     private final ServerManager sManager;
     private final ClientManager cManager;
     private final StatsAccumulator acc;
+
+    DelayedEvent(int timeSeconds, Type eType, ExperimentManager experimentManager) {
+        this(
+                timeSeconds,
+                eType,
+                experimentManager.getServerManager(),
+                experimentManager.getClientManager(),
+                experimentManager.getStatsAccumulator()
+        );
+    }
+
+
     public DelayedEvent(int timeSeconds, Type eType, ServerManager sManager, ClientManager cManager,
                         StatsAccumulator acc) {
 
