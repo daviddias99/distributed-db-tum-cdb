@@ -6,28 +6,35 @@ import java.lang.ProcessBuilder.Redirect;
 import static de.tum.i13.server.cache.CachingStrategy.LFU;
 import static de.tum.i13.simulator.ExperimentConfiguration.experimentConfiguration;
 
-public class Main {
+abstract class AbstractExperiment {
+
+    private ExperimentManager experimentManager;
 
     public static void main(String[] args) throws InterruptedException, IOException {
         // cacheExperiment("LFU");
-        behaviourExperiment();
+        // behaviourExperiment();
     }
 
-    private static void cacheExperiment() throws InterruptedException, IOException {
+    private void cacheExperiment() throws InterruptedException, IOException {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
                 .afterAdditionalClientsDelay(120)
                 .aAfterAdditionalServersDelay(15)
                 .build();
-        final ExperimentManager experimentManager = startInitialExperiment(experimentConfiguration);
-        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
-
-        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
-        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        int timeOffSetFromZero = startExperiment(experimentConfiguration);
 
         (new Thread(new DelayedEvent(timeOffSetFromZero, DelayedEvent.Type.STOP_PROGRAM, experimentManager))).start();
     }
 
-    private static int startAdditionalServers(ExperimentConfiguration experimentConfiguration,
+    private int startExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
+        experimentManager = startInitialExperiment(experimentConfiguration);
+        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
+
+        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        return timeOffSetFromZero;
+    }
+
+    private int startAdditionalServers(ExperimentConfiguration experimentConfiguration,
                                               ExperimentManager experimentManager, int timeOffSetFromZero) {
         int serverNumber;
         for (serverNumber = 0; serverNumber < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); serverNumber++) {
@@ -37,7 +44,7 @@ public class Main {
         return timeOffSetFromZero;
     }
 
-    private static int startAdditionalClients(ExperimentConfiguration experimentConfiguration,
+    private int startAdditionalClients(ExperimentConfiguration experimentConfiguration,
                                               ExperimentManager experimentManager, int timeOffSetFromZero) {
         int clientNum = 0;
         // TODO Maybe the second value should be final count - stat count
@@ -48,7 +55,7 @@ public class Main {
         return timeOffSetFromZero;
     }
 
-    private static ExperimentManager startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
+    private ExperimentManager startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
         final var experimentManager = new ExperimentManager();
         startECS();
         System.out.println("Waiting...");
@@ -61,14 +68,14 @@ public class Main {
         return experimentManager;
     }
 
-    private static ServerManager startInitialServers(ExperimentConfiguration experimentConfiguration) {
+    private ServerManager startInitialServers(ExperimentConfiguration experimentConfiguration) {
         System.out.println("Starting Servers");
         final ServerManager manager = new ServerManager(experimentConfiguration);
         System.out.println("Started Servers");
         return manager;
     }
 
-    private static void behaviourExperiment() throws InterruptedException, IOException {
+    private void behaviourExperiment() throws InterruptedException, IOException {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
                 .startingServerCount(1)
                 .startingClientCount(0)
@@ -83,18 +90,14 @@ public class Main {
                 .afterAdditionalClientsDelay(120)
                 .aAfterAdditionalServersDelay(120)
                 .build();
-        final ExperimentManager experimentManager = startInitialExperiment(experimentConfiguration);
-        int timeOffSetFromZero = experimentConfiguration.getInitialDelay();
-
-        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
-        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        int timeOffSetFromZero = startExperiment(experimentConfiguration);
 
         for (int i = 0; i < experimentConfiguration.getFinalServerCount() - 1; i++) {
             (new Thread(new DelayedEvent(timeOffSetFromZero + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, experimentManager))).start();
         }
     }
 
-    private static ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
+    private ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         System.out.println("Creating clients");
         final ClientManager clientManager = new ClientManager(experimentConfiguration, experimentManager);
         System.out.println("Starting clients");
@@ -102,7 +105,7 @@ public class Main {
         return clientManager;
     }
 
-    private static void startECS() throws IOException {
+    private void startECS() throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log " +
                 "-ll all").split(" "));
         processBuilder.redirectOutput(Redirect.DISCARD);

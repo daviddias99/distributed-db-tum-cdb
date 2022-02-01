@@ -132,7 +132,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>de.tum.i13.simulator.Main</mainClass>
+                                    <mainClass>de.tum.i13.simulator.AbstractExperiment</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
