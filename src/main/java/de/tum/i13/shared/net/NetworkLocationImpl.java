@@ -28,6 +28,14 @@ public class NetworkLocationImpl implements NetworkLocation {
         this.port = port;
     }
 
+    /**
+     * Creates a new null {@link NetworkLocation} with address "null" and port 0
+     */
+    NetworkLocationImpl() {
+        this.address = "null";
+        this.port = 0;
+    }
+
     @Override
     public String getAddress() {
         return this.address;

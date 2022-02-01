@@ -66,7 +66,7 @@ public class Chord {
         NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
                 this.hashingAlgorithm.hash(ownLocation));
 
-        if (successor.equals(NetworkLocation.getNull())) {
+        if (successor.equals(NetworkLocation.NULL)) {
             LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
             throw new ChordException(
                     String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
@@ -87,7 +87,7 @@ public class Chord {
         NetworkLocation nPrime = this.ownLocation;
         NetworkLocation nPrimeSuccessor = this.getSuccessor();
 
-        if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
+        if (nPrimeSuccessor.equals(NetworkLocation.NULL)) {
             return new NetworkLocation[]{nPrime, nPrime};
         }
 
@@ -99,7 +99,7 @@ public class Chord {
                 true)) {
             NetworkLocation newNPrime = this.messaging.closestPrecedingFinger(nPrime, key);
 
-            if (newNPrime.equals(NetworkLocation.getNull())) {
+            if (newNPrime.equals(NetworkLocation.NULL)) {
                 LOGGER.error("Could not get closest preceding finger from {}", nPrime);
                 throw new ChordException("Could not get closest preceding finger");
             }
@@ -112,7 +112,7 @@ public class Chord {
             nPrime = newNPrime;
             nPrimeSuccessor = this.messaging.getSuccessor(nPrime);
 
-            if (nPrimeSuccessor.equals(NetworkLocation.getNull())) {
+            if (nPrimeSuccessor.equals(NetworkLocation.NULL)) {
                 LOGGER.error("Could not get successor from {}", nPrime);
                 throw new ChordException("Could not get sucessor");
             }
@@ -156,7 +156,7 @@ public class Chord {
                 false,
                 false);
 
-        if (this.predecessor.equals(NetworkLocation.getNull()) || isBetweenKeys) {
+        if (this.predecessor.equals(NetworkLocation.NULL) || isBetweenKeys) {
             this.setPredecessor(peer);
         }
     }
@@ -165,7 +165,7 @@ public class Chord {
         while (true) {
             NetworkLocation successor = this.getSuccessor();
 
-            if (successor.equals(NetworkLocation.getNull())) {
+            if (successor.equals(NetworkLocation.NULL)) {
                 return null;
             }
 
@@ -190,8 +190,8 @@ public class Chord {
         NetworkLocation successor = this.getSuccessor();
 
         // Check if successor is self
-        if (successor.equals(this.ownLocation) || successor.equals(NetworkLocation.getNull())) {
-            if (!this.getPredecessor().equals(NetworkLocation.getNull()) && !this.getPredecessor().equals(this.ownLocation)) {
+        if (successor.equals(this.ownLocation) || successor.equals(NetworkLocation.NULL)) {
+            if (!this.getPredecessor().equals(NetworkLocation.NULL) && !this.getPredecessor().equals(this.ownLocation)) {
                 this.successors.setFirst(this.getPredecessor());
             }
             return;
@@ -218,7 +218,7 @@ public class Chord {
         // query
         successor = this.getSuccessor();
 
-        if (successorPredecessor.equals(NetworkLocation.getNull())) {
+        if (successorPredecessor.equals(NetworkLocation.NULL)) {
             messaging.notifyNode(successor);
             return;
         }
@@ -242,7 +242,7 @@ public class Chord {
         try {
             NetworkLocation newFinger = this.findSuccessor(toUpdate.getKey());
 
-            if (newFinger.equals(NetworkLocation.getNull())) {
+            if (newFinger.equals(NetworkLocation.NULL)) {
                 return;
             }
 
@@ -254,14 +254,14 @@ public class Chord {
     }
 
     private void checkPredecessor() {
-        if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.getNull())) {
+        if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.NULL)) {
             return;
         }
 
         boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
 
         if (!predecessorAlive) {
-            this.setPredecessor(NetworkLocation.getNull());
+            this.setPredecessor(NetworkLocation.NULL);
         }
     }
 
@@ -400,7 +400,7 @@ public class Chord {
     }
 
     private boolean isWriteResponsible(NetworkLocation networkLocation, String key) throws ChordException {
-        if (this.getPredecessor().equals(NetworkLocation.getNull())) {
+        if (this.getPredecessor().equals(NetworkLocation.NULL)) {
             return this.getSuccessorCount() == 0;
         }
 
@@ -413,7 +413,7 @@ public class Chord {
     }
 
     private static NetworkLocation checkNullLocation(NetworkLocation networkLocation) throws ChordException {
-        if (networkLocation.equals(NetworkLocation.getNull()))
+        if (networkLocation.equals(NetworkLocation.NULL))
             throw new ChordException("Supplied location '%s' was null location", networkLocation);
         return networkLocation;
     }
@@ -470,7 +470,7 @@ public class Chord {
         sb.append(String.format("Own: %s (%s)%n", this.ownLocation,
                 this.hashingAlgorithm.hash(this.ownLocation).toString(16)));
         sb.append(String.format("Predecessor: %s (%s)%n", this.predecessor,
-                this.predecessor.equals(NetworkLocation.getNull()) ? "N/A"
+                this.predecessor.equals(NetworkLocation.NULL) ? "N/A"
                         : this.hashingAlgorithm.hash(this.predecessor).toString(16)));
         sb.append("------\n");
         sb.append("Finger Table\n");

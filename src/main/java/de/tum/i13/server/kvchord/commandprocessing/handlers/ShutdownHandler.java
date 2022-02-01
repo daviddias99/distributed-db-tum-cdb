@@ -48,7 +48,7 @@ public class ShutdownHandler implements Runnable {
 
     this.state.writeLock();
 
-    if (destination.equals(upper) || lower.equals(NetworkLocation.getNull()) || destination.equals(NetworkLocation.getNull())) {
+      if (destination.equals(upper) || lower.equals(NetworkLocation.NULL) || destination.equals(NetworkLocation.NULL)) {
       return;
     }
     

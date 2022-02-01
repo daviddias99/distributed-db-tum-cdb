@@ -39,7 +39,7 @@ class ChordSuccessorList {
   }
 
   synchronized NetworkLocation getFirst() {
-    return this.successors.isEmpty() ? NetworkLocation.getNull() : this.successors.get(0);
+      return this.successors.isEmpty() ? NetworkLocation.NULL : this.successors.get(0);
   }
 
   synchronized List<NetworkLocation> get(int n) {
@@ -48,7 +48,7 @@ class ChordSuccessorList {
 
   synchronized NetworkLocation shift() {
     if (this.successors.isEmpty()) {
-      return NetworkLocation.getNull();
+        return NetworkLocation.NULL;
     }
 
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);

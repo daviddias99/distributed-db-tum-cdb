@@ -38,8 +38,8 @@ public class KVChordListener implements ChordListener {
         this.state = state;
         this.storage = storage;
         this.hashing = hashing;
-        this.predecessorChangeMemory = NetworkLocation.getNull();
-        this.lastPredecessor = NetworkLocation.getNull();
+        this.predecessorChangeMemory = NetworkLocation.NULL;
+        this.lastPredecessor = NetworkLocation.NULL;
     }
 
     @Override
@@ -50,19 +50,19 @@ public class KVChordListener implements ChordListener {
             return;
         }
 
-        if (current.equals(NetworkLocation.getNull())) {
+        if (current.equals(NetworkLocation.NULL)) {
             this.predecessorChangeMemory = previous;
             return;
         }
 
-        if (state.getCurNetworkLocation().equals(current) || previous.equals(NetworkLocation.getNull())) {
+        if (state.getCurNetworkLocation().equals(current) || previous.equals(NetworkLocation.NULL)) {
             return;
         }
 
         this.state.writeLock();
 
         String lowerBound = this.hashing
-                .hash(previous.equals(NetworkLocation.getNull()) ? this.predecessorChangeMemory : previous)
+                .hash(previous.equals(NetworkLocation.NULL) ? this.predecessorChangeMemory : previous)
                 .toString(16);
         String upperBound = this.hashing.hash(current).toString(16);
         LOGGER.info("Trying to execute handoff (async={}) of [{}-{}]", doAsyncHandoff, lowerBound, upperBound);
@@ -108,13 +108,13 @@ public class KVChordListener implements ChordListener {
     // TODO: split range
     private List<Pair<String>> getRelevantRangeFromStorage() throws GetException {
 
-        NetworkLocation bestEffortPredecesor = NetworkLocation.getNull();
+        NetworkLocation bestEffortPredecesor = NetworkLocation.NULL;
         for (int i = 0; i < this.maxRetryCount; i++) {
-            bestEffortPredecesor = NetworkLocation.getNull().equals(this.lastPredecessor)
+            bestEffortPredecesor = NetworkLocation.NULL.equals(this.lastPredecessor)
                     ? this.predecessorChangeMemory
                     : this.lastPredecessor;
 
-            if (!NetworkLocation.getNull().equals(bestEffortPredecesor)) {
+            if (!NetworkLocation.NULL.equals(bestEffortPredecesor)) {
                 break;
             }
             try {
@@ -125,7 +125,7 @@ public class KVChordListener implements ChordListener {
             }
         }
 
-        if (NetworkLocation.getNull().equals(bestEffortPredecesor)) {
+        if (NetworkLocation.NULL.equals(bestEffortPredecesor)) {
             return new LinkedList<>();
         }
 
@@ -139,7 +139,7 @@ public class KVChordListener implements ChordListener {
     }
 
     public void deleteReplicatedRanges(boolean async) {
-        NetworkLocation bestEffortPredecesor = NetworkLocation.getNull().equals(this.lastPredecessor)
+        NetworkLocation bestEffortPredecesor = NetworkLocation.NULL.equals(this.lastPredecessor)
                 ? this.predecessorChangeMemory
                 : this.lastPredecessor;
 

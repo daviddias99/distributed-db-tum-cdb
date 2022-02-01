@@ -6,6 +6,8 @@ package de.tum.i13.shared.net;
  */
 public interface NetworkLocation {
 
+    NetworkLocation NULL = new NetworkLocationImpl();
+
     /**
      * Returns the host address of the network location.
      *
@@ -22,6 +24,7 @@ public interface NetworkLocation {
 
     /**
      * Create a new {@link NetworkLocation} from a string
+     *
      * @param networkLocationString string containing a network location
      * @return a {@link NetworkLocation} object
      */
@@ -40,7 +43,4 @@ public interface NetworkLocation {
         return String.format("%s:%s", location.getAddress(), location.getPort());
     }
 
-    static NetworkLocation getNull() {
-        return new NullNetworkLocation();
-    }
 }
