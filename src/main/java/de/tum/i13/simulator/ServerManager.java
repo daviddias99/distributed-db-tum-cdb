@@ -1,6 +1,8 @@
 package de.tum.i13.simulator;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
@@ -9,6 +11,8 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class ServerManager {
+
+    private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
 
     LinkedList<Process> servers;
     LinkedList<String> addresses;
@@ -57,7 +61,7 @@ public class ServerManager {
 
     private void addServerHook() {
         Thread turnoffServersHook = new Thread(() -> {
-            System.out.println("Turning off services");
+            LOGGER.info("Turning off services");
             for (Process process : servers) {
                 try {
                     Runtime.getRuntime().exec("kill -SIGINT " + process.pid());
@@ -72,7 +76,7 @@ public class ServerManager {
 
     public void addServer() {
         try {
-            System.out.println("Launching server");
+            LOGGER.trace("Launching server");
             ProcessBuilder processBuilder = new ProcessBuilder(this.getServerCommand().split(" "));
             processBuilder.redirectOutput(Redirect.DISCARD);
             processBuilder.redirectError(Redirect.DISCARD);
@@ -86,7 +90,7 @@ public class ServerManager {
     }
 
     public void stopServer() {
-        System.out.println("Stopping server");
+        LOGGER.trace("Stopping server");
 
         if (this.servers.size() <= 1) {
             return;

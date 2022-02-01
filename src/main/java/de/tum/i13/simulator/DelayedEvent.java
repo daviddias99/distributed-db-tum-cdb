@@ -1,6 +1,11 @@
 package de.tum.i13.simulator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class DelayedEvent implements Runnable, TimeEvent {
+
+    private static final Logger LOGGER = LogManager.getLogger(DelayedEvent.class);
 
     private final int timeSeconds;
     private final Type eType;
@@ -43,7 +48,7 @@ public class DelayedEvent implements Runnable, TimeEvent {
             }
 
         } catch (InterruptedException e) {
-            System.out.println("Interrupted delayed event");
+            LOGGER.error("Interrupted delayed event");
             Thread.currentThread().interrupt();
         }
     }

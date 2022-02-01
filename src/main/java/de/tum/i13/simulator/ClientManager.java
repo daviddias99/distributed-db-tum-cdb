@@ -1,5 +1,8 @@
 package de.tum.i13.simulator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -7,6 +10,8 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class ClientManager {
+
+    private static final Logger LOGGER = LogManager.getLogger(ClientManager.class);
 
     LinkedList<Thread> clientThreads;
     LinkedList<ClientSimulator> clients;
@@ -80,7 +85,7 @@ public class ClientManager {
         } while (!path.toFile().exists() || path.toFile().listFiles().length < 15);
 
         this.addClient(path).start();
-        System.out.println("Launching client");
+        LOGGER.trace("Launching client");
     }
 
 }
