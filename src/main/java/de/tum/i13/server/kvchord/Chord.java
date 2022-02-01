@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,6 +24,13 @@ import java.util.stream.Stream;
 public class Chord {
 
     private static final Logger LOGGER = LogManager.getLogger(Chord.class);
+
+    public static final int STABILIZATION_INTERVAL = 1000;
+    public static final int FIX_FINGERS_INTERVAL = 1000;
+    public static final int CHECK_PREDECESSORS_INTERVAL = 1000;
+    public static final int STABILIZATION_START_OFFSET = 0;
+    public static final int FIX_FINGERS_START_OFFSET = 200;
+    public static final int CHECK_PREDECESSORS_START_OFFSET = 400;
 
     private final int TABLE_SIZE;
     private final int SUCCESSOR_LIST_SIZE = Constants.NUMBER_OF_REPLICAS;
@@ -265,28 +272,28 @@ public class Chord {
         }
     }
 
-    private void periodicFunction(Runnable function) {
-        try {
-            function.run();
-        } catch (Exception e) {
-            LOGGER.atError()
-                    .withThrowable(e)
-                    .log("Exception was caught during periodic thread execution");
-        }
+    private Runnable withExceptionsLogged(Runnable function) {
+        return () -> {
+            try {
+                function.run();
+            } catch (Exception e) {
+                LOGGER.atError()
+                        .withThrowable(e)
+                        .log("Exception was caught during periodic thread execution");
+            }
+        };
     }
 
     private void initThreads() {
-        final ScheduledThreadPoolExecutor periodicThreadPool = (ScheduledThreadPoolExecutor) Executors
-                .newScheduledThreadPool(3);
-
-        Runnable t1 = () -> periodicFunction(this::stabilize);
-        Runnable t2 = () -> periodicFunction(this::fixFingers);
-        Runnable t3 = () -> periodicFunction(this::checkPredecessor);
+        final ScheduledExecutorService periodicThreadPool = Executors.newScheduledThreadPool(3);
 
         // The threads are started with a delay to avoid them running at the same time
-        periodicThreadPool.scheduleWithFixedDelay(t1, 0, 1000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleWithFixedDelay(t2, 200, 1000, TimeUnit.MILLISECONDS);
-        periodicThreadPool.scheduleWithFixedDelay(t3, 400, 1000, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleWithFixedDelay(withExceptionsLogged(this::stabilize),
+                STABILIZATION_START_OFFSET, STABILIZATION_INTERVAL, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleWithFixedDelay(withExceptionsLogged(this::fixFingers),
+                FIX_FINGERS_START_OFFSET, FIX_FINGERS_INTERVAL, TimeUnit.MILLISECONDS);
+        periodicThreadPool.scheduleWithFixedDelay(withExceptionsLogged(this::checkPredecessor),
+                CHECK_PREDECESSORS_START_OFFSET, CHECK_PREDECESSORS_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     private void setPredecessor(NetworkLocation predecessor) {
