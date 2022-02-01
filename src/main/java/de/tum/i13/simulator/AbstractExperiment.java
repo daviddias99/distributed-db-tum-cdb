@@ -18,7 +18,7 @@ abstract class AbstractExperiment implements Experiment {
     }
 
     private int startExperiment(ExperimentConfiguration experimentConfiguration, int initialTimeOffSetFromZero) throws IOException, InterruptedException {
-        experimentManager = startInitialExperiment(experimentConfiguration);
+        startInitialExperiment(experimentConfiguration);
         int timeOffSetFromZero = initialTimeOffSetFromZero + experimentConfiguration.getInitialDelay();
 
         timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
@@ -47,30 +47,32 @@ abstract class AbstractExperiment implements Experiment {
         return timeOffSetFromZero;
     }
 
-    private ExperimentManager startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
-        final var experimentManager = new ExperimentManager();
+    private void startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
+        experimentManager = new ExperimentManager();
+
         startECS();
-        System.out.println("Waiting...");
+        LOGGER.debug("Waiting...");
         Thread.sleep(4000);
+
         experimentManager.setServerManager(startInitialServers(experimentConfiguration));
-        System.out.println("Waiting...");
+        LOGGER.debug("Waiting...");
         Thread.sleep(4000);
+
         experimentManager.setStatsAccumulator(new StatsAccumulator(experimentConfiguration));
         experimentManager.setClientManager(startInitialClients(experimentConfiguration, experimentManager));
-        return experimentManager;
     }
 
     private ServerManager startInitialServers(ExperimentConfiguration experimentConfiguration) {
-        System.out.println("Starting Servers");
+        LOGGER.info("Starting servers");
         final ServerManager manager = new ServerManager(experimentConfiguration);
-        System.out.println("Started Servers");
+        LOGGER.info("Started servers");
         return manager;
     }
 
     private ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
-        System.out.println("Creating clients");
+        LOGGER.info("Creating clients");
         final ClientManager clientManager = new ClientManager(experimentConfiguration, experimentManager);
-        System.out.println("Starting clients");
+        LOGGER.info("Starting clients");
         clientManager.startClients();
         return clientManager;
     }
@@ -80,10 +82,10 @@ abstract class AbstractExperiment implements Experiment {
                 "-ll all").split(" "));
         processBuilder.redirectOutput(Redirect.DISCARD);
         processBuilder.redirectError(Redirect.DISCARD);
-        System.out.println("Starting ECS");
+        LOGGER.info("Starting ECS");
         Process ecs = processBuilder.start();
         Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
-        System.out.println("Started ECS");
+        LOGGER.info("Started ECS");
     }
 
     @Override
