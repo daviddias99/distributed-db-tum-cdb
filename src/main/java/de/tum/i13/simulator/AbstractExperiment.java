@@ -10,75 +10,78 @@ abstract class AbstractExperiment implements Experiment {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractExperiment.class);
 
-    protected final ExperimentConfiguration experimentConfiguration;
-    protected ExperimentManager experimentManager;
+    protected final ExperimentConfiguration cfg;
+    protected ExperimentManager mgr;
 
-    protected AbstractExperiment(ExperimentConfiguration experimentConfiguration) {
-        this.experimentConfiguration = experimentConfiguration;
+    protected AbstractExperiment(ExperimentConfiguration cfg) {
+        this.cfg = cfg;
     }
 
-    private int startExperiment(ExperimentConfiguration experimentConfiguration, int initialTimeOffSetFromZero) throws IOException, InterruptedException {
-        startInitialExperiment(experimentConfiguration);
-        int timeOffSetFromZero = initialTimeOffSetFromZero + experimentConfiguration.getInitialDelay();
+    private int startExperiment(int initialTimeOffSetFromZero) throws IOException, InterruptedException {
+        startInitialExperiment();
+        int timeOffSetFromZero = initialTimeOffSetFromZero + cfg.getInitialDelay();
 
-        timeOffSetFromZero = startAdditionalClients(experimentConfiguration, experimentManager, timeOffSetFromZero);
-        timeOffSetFromZero = startAdditionalServers(experimentConfiguration, experimentManager, timeOffSetFromZero);
+        timeOffSetFromZero = startAdditionalClients(timeOffSetFromZero);
+        timeOffSetFromZero = startAdditionalServers(timeOffSetFromZero);
         return timeOffSetFromZero;
     }
 
-    private int startAdditionalServers(ExperimentConfiguration experimentConfiguration,
-                                              ExperimentManager experimentManager, int timeOffSetFromZero) {
+    private int startAdditionalServers(int timeOffSetFromZero) {
         int serverNumber;
-        for (serverNumber = 0; serverNumber < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); serverNumber++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, experimentManager))).start();
+        for (serverNumber = 0; serverNumber < cfg.getFinalServerCount() - cfg.getStartingServerCount(); serverNumber++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * cfg.getServerStartDelay(),
+                    DelayedEvent.Type.START_SERVER, mgr))).start();
         }
-        timeOffSetFromZero = timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay() + experimentConfiguration.getAfterAdditionalServersDelay();
+        timeOffSetFromZero =
+                timeOffSetFromZero + serverNumber * cfg.getServerStartDelay() + cfg.getAfterAdditionalServersDelay();
         return timeOffSetFromZero;
     }
 
-    private int startAdditionalClients(ExperimentConfiguration experimentConfiguration,
-                                              ExperimentManager experimentManager, int timeOffSetFromZero) {
+    private int startAdditionalClients(int timeOffSetFromZero) {
         int clientNum = 0;
         // TODO Maybe the second value should be final count - stat count
-        for (; clientNum < experimentConfiguration.getFinalClientCount(); clientNum++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + clientNum * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, experimentManager))).start();
+        for (; clientNum < cfg.getFinalClientCount(); clientNum++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + clientNum * cfg.getClientStartDelay(),
+                    DelayedEvent.Type.START_CLIENT, mgr))).start();
         }
-        timeOffSetFromZero = timeOffSetFromZero + clientNum * experimentConfiguration.getClientStartDelay() + experimentConfiguration.getAfterAdditionalClientsDelay();
+        timeOffSetFromZero =
+                timeOffSetFromZero + clientNum * cfg.getClientStartDelay() + cfg.getAfterAdditionalClientsDelay();
         return timeOffSetFromZero;
     }
 
-    private void startInitialExperiment(ExperimentConfiguration experimentConfiguration) throws IOException, InterruptedException {
-        experimentManager = new ExperimentManager();
+    private void startInitialExperiment() throws IOException, InterruptedException {
+        mgr = new ExperimentManager();
 
         startECS();
         LOGGER.debug("Waiting...");
         Thread.sleep(4000);
 
-        experimentManager.setServerManager(startInitialServers(experimentConfiguration));
+        mgr.setServerManager(startInitialServers());
         LOGGER.debug("Waiting...");
         Thread.sleep(4000);
 
-        experimentManager.setStatsAccumulator(new StatsAccumulator(experimentConfiguration));
-        experimentManager.setClientManager(startInitialClients(experimentConfiguration, experimentManager));
+        mgr.setStatsAccumulator(new StatsAccumulator(cfg));
+        mgr.setClientManager(startInitialClients());
     }
 
-    private ServerManager startInitialServers(ExperimentConfiguration experimentConfiguration) {
+    private ServerManager startInitialServers() {
         LOGGER.info("Starting servers");
-        final ServerManager manager = new ServerManager(experimentConfiguration);
+        final ServerManager manager = new ServerManager(cfg);
         LOGGER.info("Started servers");
         return manager;
     }
 
-    private ClientManager startInitialClients(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
+    private ClientManager startInitialClients() {
         LOGGER.info("Creating clients");
-        final ClientManager clientManager = new ClientManager(experimentConfiguration, experimentManager);
+        final ClientManager clientManager = new ClientManager(cfg, mgr);
         LOGGER.info("Starting clients");
         clientManager.startClients();
         return clientManager;
     }
 
     private void startECS() throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log " +
+        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log" +
+                " " +
                 "-ll all").split(" "));
         processBuilder.redirectOutput(Redirect.DISCARD);
         processBuilder.redirectError(Redirect.DISCARD);
@@ -91,7 +94,7 @@ abstract class AbstractExperiment implements Experiment {
     @Override
     public int scheduleRun(int timeOffsetFromZero) {
         try {
-            return startExperiment(experimentConfiguration, timeOffsetFromZero);
+            return startExperiment(timeOffsetFromZero);
         } catch (IOException | InterruptedException e) {
             throw new ExperimentException("Could not start experiment", e);
         }

@@ -14,10 +14,10 @@ class SoftShutdownExperiment extends AbstractExperiment {
     @Override
     public int scheduleAfterRun(int timeOffSetFromZero) {
         int serverNumber;
-        for (serverNumber = 0; serverNumber < experimentConfiguration.getFinalServerCount() - 1; serverNumber++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, experimentManager))).start();
+        for (serverNumber = 0; serverNumber < cfg.getFinalServerCount() - 1; serverNumber++) {
+            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * cfg.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, mgr))).start();
         }
-        return timeOffSetFromZero + serverNumber * experimentConfiguration.getServerStartDelay();
+        return timeOffSetFromZero + serverNumber * cfg.getServerStartDelay();
     }
 
 }
