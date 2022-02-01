@@ -14,7 +14,7 @@ class HardShutdownExperiment extends AbstractExperiment {
 
     @Override
     public int scheduleAfterRun(int timeOffSetFromZero) {
-        (new Thread(new DelayedEvent(timeOffSetFromZero, DelayedEvent.Type.STOP_PROGRAM, mgr))).start();
+        new DelayedEvent(timeOffSetFromZero, DelayedEvent.Type.STOP_PROGRAM, mgr).schedule();
         return timeOffSetFromZero;
     }
 

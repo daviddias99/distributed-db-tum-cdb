@@ -36,20 +36,10 @@ public class DelayedEvent implements Runnable, TimeEvent {
 
             acc.signalEvent(this);
             switch (this.eType) {
-                case START_SERVER:
-                    sManager.addServer();
-                    break;
-                case STOP_SERVER:
-                    sManager.stopServer();
-                    break;
-                case START_CLIENT:
-                    cManager.addAndStartClient();
-                    break;
-                case STOP_PROGRAM:
-                    System.exit(0);
-                    break;
-                default:
-                    break;
+                case START_SERVER -> sManager.addServer();
+                case STOP_SERVER -> sManager.stopServer();
+                case START_CLIENT -> cManager.addAndStartClient();
+                case STOP_PROGRAM -> System.exit(0);
             }
 
         } catch (InterruptedException e) {
@@ -66,6 +56,10 @@ public class DelayedEvent implements Runnable, TimeEvent {
     @Override
     public String toString() {
         return this.eType.name();
+    }
+
+    void schedule() {
+        new Thread(this).start();
     }
 
     public enum Type {

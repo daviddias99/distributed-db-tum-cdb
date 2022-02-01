@@ -6,6 +6,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
+import static de.tum.i13.simulator.DelayedEvent.Type.START_CLIENT;
+import static de.tum.i13.simulator.DelayedEvent.Type.START_SERVER;
+
 abstract class AbstractExperiment implements Experiment {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractExperiment.class);
@@ -29,8 +32,8 @@ abstract class AbstractExperiment implements Experiment {
     private int startAdditionalServers(int timeOffSetFromZero) {
         int serverNumber;
         for (serverNumber = 0; serverNumber < cfg.getFinalServerCount() - cfg.getStartingServerCount(); serverNumber++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + serverNumber * cfg.getServerStartDelay(),
-                    DelayedEvent.Type.START_SERVER, mgr))).start();
+            new DelayedEvent(timeOffSetFromZero + serverNumber * cfg.getServerStartDelay(), START_SERVER, mgr)
+                    .schedule();
         }
         timeOffSetFromZero =
                 timeOffSetFromZero + serverNumber * cfg.getServerStartDelay() + cfg.getAfterAdditionalServersDelay();
@@ -41,8 +44,8 @@ abstract class AbstractExperiment implements Experiment {
         int clientNum = 0;
         // TODO Maybe the second value should be final count - stat count
         for (; clientNum < cfg.getFinalClientCount(); clientNum++) {
-            (new Thread(new DelayedEvent(timeOffSetFromZero + clientNum * cfg.getClientStartDelay(),
-                    DelayedEvent.Type.START_CLIENT, mgr))).start();
+            new DelayedEvent(timeOffSetFromZero + clientNum * cfg.getClientStartDelay(), START_CLIENT, mgr)
+                    .schedule();
         }
         timeOffSetFromZero =
                 timeOffSetFromZero + clientNum * cfg.getClientStartDelay() + cfg.getAfterAdditionalClientsDelay();
