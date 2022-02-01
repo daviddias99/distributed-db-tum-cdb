@@ -53,6 +53,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
                 return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
             }
         } catch (ServerException e) {
+            LOGGER.error(e);
             return new KVMessageImpl(StatusType.ERROR);
         }
 
@@ -84,6 +85,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
                 if (!this.serverState.isWriteResponsible(key))
                     return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
             } catch (ServerException e) {
+                LOGGER.error(e);
                 return new KVMessageImpl(StatusType.ERROR);
             }
 
