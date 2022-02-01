@@ -3,6 +3,9 @@ package de.tum.i13.simulator;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 
+import static de.tum.i13.server.cache.CachingStrategy.LFU;
+import static de.tum.i13.simulator.ExperimentConfiguration.experimentConfiguration;
+
 public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
@@ -10,106 +13,93 @@ public class Main {
         behaviourExperiment();
     }
 
-    private static void cacheExperiment(String strat) throws InterruptedException, IOException {
-        final int STARTING_SERVER_COUNT = 1;
-        final int STARTING_CLIENT_COUNT = 0;
-        final int FINAL_SERVER_COUNT = 5;
-        final int FINAL_CLIENT_COUNT = 10;
-        final int SERVER_START_DELAY = 90;
-        final int CLIENT_START_DELAY = 20;
-
-        final int SERVER_CACHE_SIZE = 500;
-        final int BTREE_NODE_SIZE = 100;
-        final String SERVER_CACHE_STRAT = strat;
-        final String STATS_NAME = strat;
-
+    private static void cacheExperiment() throws InterruptedException, IOException {
+        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
+                .build();
         startECS();
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        final ServerManager manager = startServers(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
-                BTREE_NODE_SIZE);
+        final ServerManager manager = startServers(experimentConfiguration);
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        final StatsAccumulator acc = new StatsAccumulator(STATS_NAME);
-        final ClientManager clientManager = startClients(STARTING_CLIENT_COUNT, manager, acc);
+        final StatsAccumulator acc = new StatsAccumulator(experimentConfiguration);
+        final ClientManager clientManager = startClients(experimentConfiguration, manager, acc);
 
         int base = 60;
 
         int i = 0;
 
-        for (; i < FINAL_CLIENT_COUNT; i++) {
-            (new Thread(new DelayedEvent(base + i * CLIENT_START_DELAY, DelayedEvent.Type.START_CLIENT, manager,
+        for (; i < experimentConfiguration.getFinalClientCount(); i++) {
+            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, manager,
                     clientManager, acc))).start();
         }
 
-        base = base + i * CLIENT_START_DELAY + 120;
+        base = base + i * experimentConfiguration.getClientStartDelay() + 120;
 
-        for (i = 0; i < FINAL_SERVER_COUNT - STARTING_SERVER_COUNT; i++) {
-            (new Thread(new DelayedEvent(base + i * SERVER_START_DELAY, DelayedEvent.Type.START_SERVER, manager,
+        for (i = 0; i < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); i++) {
+            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, manager,
                     clientManager, acc))).start();
         }
-        base = base + i * SERVER_START_DELAY + 15;
+        base = base + i * experimentConfiguration.getServerStartDelay() + 15;
 
         (new Thread(new DelayedEvent(base, DelayedEvent.Type.STOP_PROGRAM, manager, clientManager, acc))).start();
     }
 
-    private static ServerManager startServers(int STARTING_SERVER_COUNT, int SERVER_CACHE_SIZE,
-                                              String SERVER_CACHE_STRAT, int BTREE_NODE_SIZE) {
+    private static ServerManager startServers(ExperimentConfiguration experimentConfiguration) {
         System.out.println("Starting Servers");
-        final ServerManager manager = new ServerManager(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
-                BTREE_NODE_SIZE);
+        final ServerManager manager = new ServerManager(experimentConfiguration);
         System.out.println("Started Servers");
         return manager;
     }
 
     private static void behaviourExperiment() throws InterruptedException, IOException {
-        final int STARTING_SERVER_COUNT = 1;
-        final int STARTING_CLIENT_COUNT = 0;
-        final int FINAL_SERVER_COUNT = 10;
-        final int FINAL_CLIENT_COUNT = 20;
-        final int SERVER_START_DELAY = 60;
-        final int CLIENT_START_DELAY = 20;
-
-        final int SERVER_CACHE_SIZE = 500;
-        final int BTREE_NODE_SIZE = 100;
-        final String SERVER_CACHE_STRAT = "LFU";
-        final String STATS_NAME = "behaviour";
+        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
+                .startingServerCount(1)
+                .startingClientCount(0)
+                .finalServerCount(10)
+                .finalClientCount(20)
+                .serverStartDelay(60)
+                .clientStartDelay(20)
+                .serverCacheSize(500)
+                .bTreeNodeSize(100)
+                .serverCachingStrategy(LFU)
+                .statsName("behavior")
+                .build();
 
         startECS();
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        final ServerManager manager = startServers(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
-                BTREE_NODE_SIZE);
+        final ServerManager manager = startServers(experimentConfiguration);
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        final StatsAccumulator acc = new StatsAccumulator(STATS_NAME);
-        final ClientManager clientManager = startClients(STARTING_CLIENT_COUNT, manager, acc);
+        final StatsAccumulator acc = new StatsAccumulator(experimentConfiguration);
+        final ClientManager clientManager = startClients(experimentConfiguration, manager, acc);
 
         int base = 60;
 
         int i = 0;
 
-        for (; i < FINAL_CLIENT_COUNT; i++) {
-            (new Thread(new DelayedEvent(base + i * CLIENT_START_DELAY, DelayedEvent.Type.START_CLIENT, manager,
+        for (; i < experimentConfiguration.getFinalClientCount(); i++) {
+            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getClientStartDelay(), DelayedEvent.Type.START_CLIENT, manager,
                     clientManager, acc))).start();
         }
 
-        base = base + i * CLIENT_START_DELAY + 120;
+        base = base + i * experimentConfiguration.getClientStartDelay() + 120;
 
-        for (i = 0; i < FINAL_SERVER_COUNT - STARTING_SERVER_COUNT; i++) {
-            (new Thread(new DelayedEvent(base + i * SERVER_START_DELAY, DelayedEvent.Type.START_SERVER, manager, clientManager, acc))).start();
+        for (i = 0; i < experimentConfiguration.getFinalServerCount() - experimentConfiguration.getStartingServerCount(); i++) {
+            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.START_SERVER, manager, clientManager, acc))).start();
         }
 
-        base = base + i * SERVER_START_DELAY + 120;
+        base = base + i * experimentConfiguration.getServerStartDelay() + 120;
 
-        for (i = 0; i < FINAL_SERVER_COUNT - 1; i++) {
-            (new Thread(new DelayedEvent(base + i * SERVER_START_DELAY, DelayedEvent.Type.STOP_SERVER, manager, clientManager, acc))).start();
+        for (i = 0; i < experimentConfiguration.getFinalServerCount() - 1; i++) {
+            (new Thread(new DelayedEvent(base + i * experimentConfiguration.getServerStartDelay(), DelayedEvent.Type.STOP_SERVER, manager, clientManager, acc))).start();
         }
     }
 
-    private static ClientManager startClients(int STARTING_CLIENT_COUNT, ServerManager manager, StatsAccumulator acc) {
+    private static ClientManager startClients(ExperimentConfiguration experimentConfiguration, ServerManager manager, StatsAccumulator acc) {
         System.out.println("Creating clients");
-        final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
+        final ClientManager clientManager = new ClientManager(experimentConfiguration, manager, acc);
         System.out.println("Starting clients");
         clientManager.startClients();
         return clientManager;

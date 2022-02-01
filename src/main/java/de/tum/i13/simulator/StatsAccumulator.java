@@ -17,6 +17,10 @@ public class StatsAccumulator implements Runnable {
     DelayedEvent event;
     String name;
 
+    StatsAccumulator(ExperimentConfiguration experimentConfiguration) {
+        this(experimentConfiguration.getStatsName());
+    }
+
     public StatsAccumulator(String name) {
         this.timeStats = new LinkedList<>();
         this.accStats = new ClientStats();

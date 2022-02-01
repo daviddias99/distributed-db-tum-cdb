@@ -1,5 +1,7 @@
 package de.tum.i13.simulator;
 
+import de.tum.i13.server.cache.CachingStrategy;
+
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Paths;
@@ -13,10 +15,19 @@ public class ServerManager {
     int port = 35660;
 
     int cacheSize;
-    String cacheStrategy;
+    CachingStrategy cacheStrategy;
     int bTreeNodeSize;
 
-    public ServerManager(int count, int cacheSize, String cacheStrategy, int bTreeNodeSize) {
+    ServerManager(ExperimentConfiguration experimentConfiguration) {
+        this(
+                experimentConfiguration.getStartingServerCount(),
+                experimentConfiguration.getServerCacheSize(),
+                experimentConfiguration.getServerCachingStrategy(),
+                experimentConfiguration.getbTreeNodeSize()
+        );
+    }
+
+    public ServerManager(int count, int cacheSize, CachingStrategy cacheStrategy, int bTreeNodeSize) {
 
         this.servers = new LinkedList<>();
         this.addresses = new LinkedList<>();

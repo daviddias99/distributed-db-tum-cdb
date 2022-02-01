@@ -16,6 +16,10 @@ public class ClientManager {
     ServerManager servers;
     StatsAccumulator statsAcc;
 
+    ClientManager(ExperimentConfiguration experimentConfiguration, ServerManager servers, StatsAccumulator statsAcc) {
+        this(experimentConfiguration.getStartingClientCount(), servers, statsAcc);
+    }
+
     public ClientManager(int count, ServerManager servers, StatsAccumulator statsAcc) {
         this.servers = servers;
         emailDirs = Paths.get("maildir").toFile().listFiles();
