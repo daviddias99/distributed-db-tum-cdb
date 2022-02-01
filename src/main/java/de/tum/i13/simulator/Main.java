@@ -21,28 +21,17 @@ public class Main {
         final int SERVER_CACHE_SIZE = 500;
         final int BTREE_NODE_SIZE = 100;
         final String SERVER_CACHE_STRAT = strat;
+        final String STATS_NAME = strat;
 
-        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log " +
-                "-ll all").split(" "));
-        processBuilder.redirectOutput(Redirect.DISCARD);
-        processBuilder.redirectError(Redirect.DISCARD);
-        System.out.println("Starting ECS");
-        Process ecs = processBuilder.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
-        System.out.println("Started ECS");
+        startECS();
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        System.out.println("Starting Servers");
-        final ServerManager manager = new ServerManager(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
+        final ServerManager manager = startServers(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
                 BTREE_NODE_SIZE);
-        System.out.println("Started Servers");
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        System.out.println("Creating clients");
-        StatsAccumulator acc = new StatsAccumulator(strat);
-        final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
-        System.out.println("Starting clients");
-        clientManager.startClients();
+        final StatsAccumulator acc = new StatsAccumulator(STATS_NAME);
+        final ClientManager clientManager = startClients(STARTING_CLIENT_COUNT, manager, acc);
 
         int base = 60;
 
@@ -64,6 +53,15 @@ public class Main {
         (new Thread(new DelayedEvent(base, DelayedEvent.Type.STOP_PROGRAM, manager, clientManager, acc))).start();
     }
 
+    private static ServerManager startServers(int STARTING_SERVER_COUNT, int SERVER_CACHE_SIZE,
+                                              String SERVER_CACHE_STRAT, int BTREE_NODE_SIZE) {
+        System.out.println("Starting Servers");
+        final ServerManager manager = new ServerManager(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
+                BTREE_NODE_SIZE);
+        System.out.println("Started Servers");
+        return manager;
+    }
+
     private static void behaviourExperiment() throws InterruptedException, IOException {
         final int STARTING_SERVER_COUNT = 1;
         final int STARTING_CLIENT_COUNT = 0;
@@ -75,28 +73,17 @@ public class Main {
         final int SERVER_CACHE_SIZE = 500;
         final int BTREE_NODE_SIZE = 100;
         final String SERVER_CACHE_STRAT = "LFU";
+        final String STATS_NAME = "behaviour";
 
-        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log " +
-                "-ll all").split(" "));
-        processBuilder.redirectOutput(Redirect.DISCARD);
-        processBuilder.redirectError(Redirect.DISCARD);
-        System.out.println("Starting ECS");
-        Process ecs = processBuilder.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
-        System.out.println("Started ECS");
+        startECS();
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        System.out.println("Starting Servers");
-        final ServerManager manager = new ServerManager(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
+        final ServerManager manager = startServers(STARTING_SERVER_COUNT, SERVER_CACHE_SIZE, SERVER_CACHE_STRAT,
                 BTREE_NODE_SIZE);
-        System.out.println("Started Servers");
         System.out.println("Waiting...");
         Thread.sleep(4000);
-        System.out.println("Creating clients");
-        StatsAccumulator acc = new StatsAccumulator("behaviour");
-        final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
-        System.out.println("Starting clients");
-        clientManager.startClients();
+        final StatsAccumulator acc = new StatsAccumulator(STATS_NAME);
+        final ClientManager clientManager = startClients(STARTING_CLIENT_COUNT, manager, acc);
 
         int base = 60;
 
@@ -118,6 +105,25 @@ public class Main {
         for (i = 0; i < FINAL_SERVER_COUNT - 1; i++) {
             (new Thread(new DelayedEvent(base + i * SERVER_START_DELAY, DelayedEvent.Type.STOP_SERVER, manager, clientManager, acc))).start();
         }
+    }
+
+    private static ClientManager startClients(int STARTING_CLIENT_COUNT, ServerManager manager, StatsAccumulator acc) {
+        System.out.println("Creating clients");
+        final ClientManager clientManager = new ClientManager(STARTING_CLIENT_COUNT, manager, acc);
+        System.out.println("Starting clients");
+        clientManager.startClients();
+        return clientManager;
+    }
+
+    private static void startECS() throws IOException {
+        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log " +
+                "-ll all").split(" "));
+        processBuilder.redirectOutput(Redirect.DISCARD);
+        processBuilder.redirectError(Redirect.DISCARD);
+        System.out.println("Starting ECS");
+        Process ecs = processBuilder.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
+        System.out.println("Started ECS");
     }
 
 }
