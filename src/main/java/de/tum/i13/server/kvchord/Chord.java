@@ -300,9 +300,7 @@ public class Chord {
         NetworkLocation oldPredecessor = this.predecessor;
         this.predecessor = predecessor;
 
-        for (ChordListener list : this.listeners) {
-            list.predecessorChanged(oldPredecessor, predecessor);
-        }
+        this.listeners.forEach(list -> list.predecessorChanged(oldPredecessor, predecessor));
     }
 
     /* HELPER */

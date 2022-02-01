@@ -1,15 +1,5 @@
 package de.tum.i13.server.kvchord;
 
-import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.commandprocessing.handlers.AsyncDeleteHandler;
 import de.tum.i13.server.kv.commandprocessing.handlers.BulkReplicationHandler;
 import de.tum.i13.server.kvchord.commandprocessing.handlers.HandoffHandler;
@@ -20,10 +10,29 @@ import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class KVChordListener implements ChordListener {
 
     private static final Logger LOGGER = LogManager.getLogger(KVChordListener.class);
+    private static final ScheduledExecutorService DELETION_EXECUTOR_SERVICE =
+            Executors.newSingleThreadScheduledExecutor();
+    private static final Set<ScheduledFuture<?>> DELETION_TASKS = new HashSet<>();
+    public static final int REPLICATION_DELETION_DELAY = 5000;
 
     private ChordServerState state;
     private boolean doAsyncHandoff = false;
@@ -139,6 +148,7 @@ public class KVChordListener implements ChordListener {
     }
 
     public void deleteReplicatedRanges(boolean async) {
+        LOGGER.info("Deleting replicated ranges");
         NetworkLocation bestEffortPredecesor = NetworkLocation.NULL.equals(this.lastPredecessor)
                 ? this.predecessorChangeMemory
                 : this.lastPredecessor;
@@ -172,13 +182,20 @@ public class KVChordListener implements ChordListener {
         if (wasReplicated) {
             // If not replicated, delete replicated ranges
             if (!isReplicated) {
-                LOGGER.info("Deleting replicated ranges");
-                this.deleteReplicatedRanges(true);
+                final var deletionTask = DELETION_EXECUTOR_SERVICE.schedule(
+                        () -> this.deleteReplicatedRanges(true), REPLICATION_DELETION_DELAY, MILLISECONDS);
+                DELETION_TASKS.add(deletionTask);
                 return;
             }
         } else {
             // If just starte to be replicated, replicate to all
             if (isReplicated) {
+                // TODO It might still be necessary to let the tasks to execute, if for example the previous
+                //  predecessor is different from the new predecessor
+                for (Iterator<ScheduledFuture<?>> iterator = DELETION_TASKS.iterator(); iterator.hasNext(); ) {
+                    iterator.next().cancel(true);
+                    iterator.remove();
+                }
                 LOGGER.info("Replicating full range");
                 List<Pair<String>> relevantElements;
                 try {
@@ -197,7 +214,7 @@ public class KVChordListener implements ChordListener {
             return;
         }
 
-        if(this.state.getCurNetworkLocation().getPort() == 25565) {
+        if (this.state.getCurNetworkLocation().getPort() == 25565) {
             int i = 0;
         }
 
@@ -234,4 +251,5 @@ public class KVChordListener implements ChordListener {
             (new Thread(new BulkReplicationHandler(oldSucc, relevantElements, true))).start();
         }
     }
+
 }
