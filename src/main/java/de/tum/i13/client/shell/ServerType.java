@@ -3,7 +3,7 @@ package de.tum.i13.client.shell;
 /**
  * The type of server a client can connect to.
  */
-enum ServerType {
+public enum ServerType {
     /**
      * A type of server that is controlled by an {@link de.tum.i13.ecs.ExternalConfigurationServer}.
      * Supports the {@link de.tum.i13.server.kv.KVMessage.StatusType#KEYRANGE} command.

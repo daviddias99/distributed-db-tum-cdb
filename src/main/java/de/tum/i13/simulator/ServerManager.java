@@ -17,21 +17,26 @@ public class ServerManager {
     LinkedList<Process> servers;
     LinkedList<String> addresses;
     int port = 35660;
+    String ecsAddress = "127.0.0.1:25670";
 
     int cacheSize;
     CachingStrategy cacheStrategy;
     int bTreeNodeSize;
+    int replicationFactor;
+    boolean useChord;
 
     ServerManager(ExperimentConfiguration experimentConfiguration) {
         this(
                 experimentConfiguration.getStartingServerCount(),
                 experimentConfiguration.getServerCacheSize(),
                 experimentConfiguration.getServerCachingStrategy(),
-                experimentConfiguration.getbTreeNodeSize()
+                experimentConfiguration.getbTreeNodeSize(),
+                experimentConfiguration.useChord(),
+                experimentConfiguration.getReplicationFactor()
         );
     }
 
-    public ServerManager(int count, int cacheSize, CachingStrategy cacheStrategy, int bTreeNodeSize) {
+    public ServerManager(int count, int cacheSize, CachingStrategy cacheStrategy, int bTreeNodeSize, boolean useChord, int replicationFactor) {
 
         this.servers = new LinkedList<>();
         this.addresses = new LinkedList<>();
@@ -39,6 +44,8 @@ public class ServerManager {
         this.cacheSize = cacheSize;
         this.cacheStrategy = cacheStrategy;
         this.bTreeNodeSize = bTreeNodeSize;
+        this.useChord = useChord;
+        this.replicationFactor = replicationFactor;
 
         for (int i = 0; i < count; i++) {
             this.addServer();
@@ -54,9 +61,23 @@ public class ServerManager {
 
     private String getServerCommand() {
         String dataDir = Paths.get("data", Integer.toString(port)).toString();
-        return String.format("java -jar target/kv-server.jar -b 127.0.0.1:25670 -ll TRACE -t %d -p %d -s %s -c %d -d " +
-                        "%s -l logs/server_%d.log", this.bTreeNodeSize, this.port,
-                this.cacheStrategy, this.cacheSize, dataDir, this.port);
+        Random rand = new Random();
+        String bootstrap = "";
+
+        if(this.useChord) {
+            if (!this.addresses.isEmpty()) {
+                String address = this.addresses.get(rand.nextInt(this.addresses.size()));
+                bootstrap = String.format(" -b %s", String.join(":",address.split(" ")) ); 
+            }
+        } else {
+            bootstrap = String.format(" -b %s", ecsAddress);
+        }
+
+        String jar = String.format("target/kv-server%s.jar", this.useChord ? "-chord" : "");
+
+        return String.format("java -jar %s%s -ll TRACE -t %d -p %d -s %s -c %d -d " +
+                        "%s -l logs/server_%d.log -r %d", jar, bootstrap, this.bTreeNodeSize, this.port,
+                this.cacheStrategy, this.cacheSize, dataDir, this.port, this.replicationFactor);
     }
 
     private void addServerHook() {
@@ -76,8 +97,10 @@ public class ServerManager {
 
     public void addServer() {
         try {
-            LOGGER.trace("Launching server");
-            ProcessBuilder processBuilder = new ProcessBuilder(this.getServerCommand().split(" "));
+            String commString = this.getServerCommand();
+            LOGGER.trace("Launching server: {}", commString);
+            System.out.println(String.format("Launching server: %s", commString));
+            ProcessBuilder processBuilder = new ProcessBuilder(commString.split(" "));
             processBuilder.redirectOutput(Redirect.DISCARD);
             processBuilder.redirectError(Redirect.DISCARD);
             Process server = processBuilder.start();

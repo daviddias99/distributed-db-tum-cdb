@@ -26,7 +26,7 @@ public class Chord {
     private static final Logger LOGGER = LogManager.getLogger(Chord.class);
 
     public static final int STABILIZATION_INTERVAL = 1000;
-    public static final int FIX_FINGERS_INTERVAL = 1000;
+    public static final int FIX_FINGERS_INTERVAL = 500;
     public static final int CHECK_PREDECESSORS_INTERVAL = 1000;
     public static final int STABILIZATION_START_OFFSET = 0;
     public static final int FIX_FINGERS_START_OFFSET = 200;

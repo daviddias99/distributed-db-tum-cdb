@@ -3,6 +3,7 @@ package de.tum.i13.simulator;
 import de.tum.i13.client.shell.CLICommands;
 import de.tum.i13.client.shell.ExitCode;
 import de.tum.i13.client.shell.ExitCodeMapper;
+import de.tum.i13.client.shell.ServerType;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import picocli.CommandLine;
@@ -25,11 +26,13 @@ public class ClientSimulator implements Runnable {
     boolean stop = false;
     CommandLine cmd;
     ClientStats stats;
+    private boolean useChord;
 
-    public ClientSimulator(Path emailDir, String serverAddress, int serverPort) {
+    public ClientSimulator(Path emailDir, String serverAddress, int serverPort, boolean useChord) {
         this.serverAddress = serverAddress;
         this.serverPort = serverPort;
         this.stats = new ClientStats();
+        this.useChord = useChord;
 
         this.setupEmails(emailDir);
     }
@@ -39,7 +42,7 @@ public class ClientSimulator implements Runnable {
 
         for (File file : files) {
             Pair<String> parsedEmail = EmailParser.parseEmail(file.toPath());
-
+            
             if (parsedEmail != null) {
                 toSend.push(EmailParser.parseEmail(file.toPath()));
             }
@@ -49,7 +52,7 @@ public class ClientSimulator implements Runnable {
 
     private void setupConnection() {
         try (PrintWriter temp = new PrintWriter("temp.txt")) {
-            final CLICommands commands = new CLICommands();
+            final CLICommands commands = new CLICommands(this.useChord ? ServerType.CHORD : ServerType.ECS);
             cmd = new CommandLine(commands)
                     .setOut(temp)
                     .setErr(temp)

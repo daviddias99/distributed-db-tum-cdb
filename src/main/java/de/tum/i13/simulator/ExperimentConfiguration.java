@@ -17,6 +17,8 @@ public class ExperimentConfiguration {
     public static final CachingStrategy DEFAULT_SERVER_CACHE_STRATEGY = LFU;
     public static final String DEFAULT_STATS_NAME = "LFU";
     public static final int DEFAULT_INITIAL_DELAY = 60;
+    public static final int DEFAULT_REPLICATION_FACTOR = 0;
+    public static final boolean DEFAULT_USE_CHORD = false;
 
     private final int startingServerCount;
     private final int startingClientCount;
@@ -31,6 +33,8 @@ public class ExperimentConfiguration {
     private final int afterAdditionalClientsDelay;
     private final int afterAdditionalServersDelay;
     private final int initialDelay;
+    private final int replicationFactor;
+    private final boolean useChord;
 
     public int getAfterAdditionalClientsDelay() {
         return afterAdditionalClientsDelay;
@@ -84,6 +88,14 @@ public class ExperimentConfiguration {
         return statsName;
     }
 
+    public int getReplicationFactor() {
+        return replicationFactor;
+    }
+
+    public boolean useChord() {
+        return useChord;
+    }
+
     private ExperimentConfiguration(Builder builder) {
         startingServerCount = builder.startingServerCount;
         startingClientCount = builder.startingClientCount;
@@ -98,6 +110,8 @@ public class ExperimentConfiguration {
         afterAdditionalClientsDelay = builder.afterAdditionalClientsDelay;
         afterAdditionalServersDelay = builder.afterAdditionalServersDelay;
         initialDelay = builder.initialDelay;
+        replicationFactor = builder.replicationFactor;
+        useChord = builder.useChord;
     }
 
     public static Builder experimentConfiguration() {
@@ -120,6 +134,8 @@ public class ExperimentConfiguration {
         private int afterAdditionalClientsDelay;
         private int afterAdditionalServersDelay;
         private int initialDelay;
+        private int replicationFactor;
+        private boolean useChord;
 
         private Builder() {
             startingServerCount = DEFAULT_STARTING_SERVER_COUNT;
@@ -133,6 +149,8 @@ public class ExperimentConfiguration {
             serverCachingStrategy = DEFAULT_SERVER_CACHE_STRATEGY;
             statsName = DEFAULT_STATS_NAME;
             initialDelay = DEFAULT_INITIAL_DELAY;
+            replicationFactor = DEFAULT_REPLICATION_FACTOR;
+            useChord = DEFAULT_USE_CHORD;
         }
 
         public Builder startingServerCount(int startingServerCount) {
@@ -196,6 +214,16 @@ public class ExperimentConfiguration {
 
         public Builder initialDelay(int initialDelay) {
             this.initialDelay = initialDelay;
+            return this;
+        }
+
+        public Builder replicationFactor(int replicationFactor) {
+            this.replicationFactor = replicationFactor;
+            return this;
+        }
+
+        public Builder useChord() {
+            this.useChord = true;
             return this;
         }
 

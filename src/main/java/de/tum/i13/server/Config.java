@@ -66,6 +66,12 @@ public class Config extends BaseConfig {
     public int cacheSize;
 
     /**
+     * Number of replicas
+     */
+    @CommandLine.Option(names = "-r", description = "Number of replicas of each element. Default: ${DEFAULT-VALUE}", defaultValue = "0")
+    public int replicationFactor;
+
+    /**
      * Caching strategy
      */
     @CommandLine.Option(names = "-s", description = "Cache displacement strategy. Default: ${DEFAULT-VALUE}", defaultValue = "FIFO")
@@ -119,6 +125,7 @@ public class Config extends BaseConfig {
                 ", logfile=" + logfile +
                 ", btreeMinDegree=" + minimumDegree +
                 ", usageHelp=" + usageHelp +
+                ", replicationFactor=" + replicationFactor +
                 '}';
     }
 

@@ -50,17 +50,17 @@ class ECSCommandProcessor implements CommandProcessor<String> {
         try {
             int port = Integer.parseInt(portString);
             LOGGER.trace("Starting new heartbeat thread for '{}:{}'", address, port);
-            new ECSHeartbeatThread(new NetworkLocationImpl(address, port))
-                    .run();
+            // new ECSHeartbeatThread(new NetworkLocationImpl(address, port))
+            //         .run();
             LOGGER.trace("Adding server '{}:{}' to {}",
                     address, port, ExternalConfigurationService.class.getSimpleName());
             ExternalConfigurationService.addServer(address, port);
 
             return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT, new KVMessageImpl(StatusType.ECS_ACK));
-        } catch (IOException ex) {
-            LOGGER.atFatal()
-                    .withThrowable(ex)
-                    .log("Caught exception while trying to connect to {}:{}", address, portString);
+        // } catch (IOException ex) {
+        //     LOGGER.atFatal()
+        //             .withThrowable(ex)
+        //             .log("Caught exception while trying to connect to {}:{}", address, portString);
         } catch (NumberFormatException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)

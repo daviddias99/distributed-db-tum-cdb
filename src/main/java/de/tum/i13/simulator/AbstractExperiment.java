@@ -55,10 +55,11 @@ abstract class AbstractExperiment implements Experiment {
     private void startInitialExperiment() throws IOException, InterruptedException {
         mgr = new ExperimentManager();
 
-        startECS();
-        LOGGER.debug("Waiting...");
-        Thread.sleep(4000);
-
+        if(!cfg.useChord()) {
+            startECS();
+            LOGGER.debug("Waiting...");
+            Thread.sleep(4000);
+        }
         mgr.setServerManager(startInitialServers());
         LOGGER.debug("Waiting...");
         Thread.sleep(4000);

@@ -52,7 +52,7 @@ public class ClientStats implements TimeEvent {
         System.out.println(">> STATE");
         System.out.printf("GET(%d, %d, %f)%n", getCount, getFailCount, getTime);
         System.out.printf("PUT(%d, %d, %f)%n", putCount, putFailCount, putTime);
-        System.out.printf("DELETE(%d, %d, %f)%n", deleteCount, deleteFailCount, deleteTime);
+        System.out.printf("DEL(%d, %d, %f)%n", deleteCount, deleteFailCount, deleteTime);
     }
 
     public void add(ClientStats c) {

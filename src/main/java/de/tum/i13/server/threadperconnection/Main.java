@@ -14,6 +14,7 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHa
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.net.CommunicationClient;
 import de.tum.i13.shared.net.CommunicationClientException;
@@ -44,6 +45,9 @@ public class Main {
     public static void main(String[] args) {
         Config cfg = Config.parseCommandlineArgs(args); // Do not change this
         setupLogging(cfg.logfile, cfg.logLevel);
+
+        // TODO: Not really a good practice
+        Constants.NUMBER_OF_REPLICAS = cfg.replicationFactor;
 
         try {
             // Setup storage

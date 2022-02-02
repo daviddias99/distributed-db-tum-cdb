@@ -21,15 +21,18 @@ public class ClientManager {
     ServerManager servers;
     StatsAccumulator statsAcc;
 
+    private boolean useChord;
+
     ClientManager(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         this(
                 experimentConfiguration.getStartingClientCount(),
+                experimentConfiguration.useChord(),
                 experimentManager.getServerManager(),
                 experimentManager.getStatsAccumulator()
         );
     }
 
-    public ClientManager(int count, ServerManager servers, StatsAccumulator statsAcc) {
+    public ClientManager(int count, boolean useChord, ServerManager servers, StatsAccumulator statsAcc) {
         this.servers = servers;
         emailDirs = Paths.get("maildir").toFile().listFiles();
 
@@ -37,6 +40,7 @@ public class ClientManager {
         this.clients = new LinkedList<>();
         this.clientCount = count;
         this.statsAcc = statsAcc;
+        this.useChord = useChord;
         this.createClients();
     }
 
@@ -71,7 +75,7 @@ public class ClientManager {
         Random random = new Random();
         int serverIndex = random.nextInt(servers.servers.size());
         int port = Integer.parseInt(servers.addresses.get(serverIndex).split(" ")[1]);
-        ClientSimulator newClient = new ClientSimulator(emailsPath, "127.0.0.1", port);
+        ClientSimulator newClient = new ClientSimulator(emailsPath, "127.0.0.1", port, this.useChord);
         this.clients.add(newClient);
         Thread clientThread = new Thread(newClient);
         this.clientThreads.add(clientThread);
@@ -86,6 +90,7 @@ public class ClientManager {
 
         this.addClient(path).start();
         LOGGER.trace("Launching client");
+        System.out.println("Launching client");
     }
 
 }

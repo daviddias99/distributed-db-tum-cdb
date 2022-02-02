@@ -14,18 +14,42 @@ class Experiments {
         scheduleExperiment(experiment);
     }
 
+    static void smallExperiment() {
+        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
+                .startingServerCount(1)
+                .startingClientCount(0)
+                .initialDelay(10)
+                .finalServerCount(5)
+                .finalClientCount(5)
+                .serverStartDelay(20)
+                .clientStartDelay(20)
+                .serverCacheSize(500)
+                .bTreeNodeSize(100)
+                .serverCachingStrategy(LFU)
+                .statsName("small")
+                .useChord()
+                .replicationFactor(2)
+                .afterAdditionalClientsDelay(60)
+                .aAfterAdditionalServersDelay(60)
+                .build();
+        final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
+        scheduleExperiment(experiment);
+    }
+
     static void behaviorExperiment() {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
                 .startingServerCount(1)
                 .startingClientCount(0)
+                .initialDelay(10)
                 .finalServerCount(10)
                 .finalClientCount(20)
-                .serverStartDelay(60)
+                .serverStartDelay(20)
                 .clientStartDelay(20)
                 .serverCacheSize(500)
                 .bTreeNodeSize(100)
                 .serverCachingStrategy(LFU)
                 .statsName("behavior")
+                .replicationFactor(2)
                 .afterAdditionalClientsDelay(120)
                 .aAfterAdditionalServersDelay(120)
                 .build();
@@ -40,7 +64,7 @@ class Experiments {
     }
 
     public static void main(String[] args) {
-        cacheExperiment();
+        smallExperiment();
     }
 
 }

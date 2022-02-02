@@ -48,7 +48,7 @@ class ECSHeartbeatThread extends ECSThread {
                     .withThrowable(ex)
                     .log("Caught exception while establishing connection to {}.", getSocket());
         }
-        scheduledExecutor.scheduleAtFixedRate(this::heartBeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
+        scheduledExecutor.scheduleWithFixedDelay(this::heartBeatTask, 0, Constants.SECONDS_PER_PING, TimeUnit.SECONDS);
     }
 
     private void heartBeatTask() {

@@ -33,7 +33,7 @@ public class Constants {
     public static final String THROWING_EXCEPTION_LOG_MESSAGE = "Throwing exception";
     public static final int CORE_POOL_SIZE = 3;
     public static final int SERVER_POOL_SIZE = 3;
-    public static final int HEARTBEAT_TIMEOUT_MILLISECONDS = 700;
+    public static final int HEARTBEAT_TIMEOUT_MILLISECONDS = 30000;
     public static final int SECONDS_PER_PING = 10;
     public static final String EXIT_LOG_MESSAGE_FORMAT = "Returning message {}";
     public static final String SENDING_AND_EXPECTING_MESSAGE = "Sending '{}' message to successor and expecting '{}' " +
@@ -41,7 +41,7 @@ public class Constants {
     public static final int METADATA_UPDATE_TIMEOUT = 5;
     public static final int MD5_HASH_HEX_STRING_SIZE = 16;
     public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", MD5_HASH_HEX_STRING_SIZE);
-    public static final int NUMBER_OF_REPLICAS = 2;
+    public static int NUMBER_OF_REPLICAS = 2;
 
     private Constants() {
     }

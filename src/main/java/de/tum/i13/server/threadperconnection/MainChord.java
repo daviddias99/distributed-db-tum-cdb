@@ -14,8 +14,10 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHa
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.state.ChordServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.DebugHashAlgorithm;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
@@ -43,9 +45,12 @@ public class MainChord {
         Config cfg = Config.parseCommandlineArgs(args); // Do not change this
         setupLogging(cfg.logfile, cfg.logLevel);
 
+        // TODO: Not really a good practice
+        Constants.NUMBER_OF_REPLICAS = cfg.replicationFactor;
+
         try {
             // Setup storage
-            final HashingAlgorithm hashingAlgorithm = new DebugHashAlgorithm();
+            final HashingAlgorithm hashingAlgorithm = new MD5HashAlgorithm();
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy,
                     cfg.cacheSize, hashingAlgorithm);
 
@@ -104,8 +109,6 @@ public class MainChord {
                 dataDir.toString(),
                 false);
 
-        // TODO: is using MD5 by default, should somehow be configured with the one used
-        // in the Ring
         BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, hashAlg);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
