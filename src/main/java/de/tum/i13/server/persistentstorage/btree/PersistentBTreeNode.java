@@ -13,6 +13,7 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 import de.tum.i13.shared.Preconditions;
 
 /**
@@ -771,5 +772,15 @@ public class PersistentBTreeNode<V> implements Serializable {
      */
     void setChunk(Chunk<V> chunk) throws StorageException {
         this.chunkStorageInterface.storeChunk(chunk);
+    }
+
+    public void setAndPropagateChangeListenerAndStorageHandler(ChangeListener listener, PersistentBTreeStorageHandler<V> sHandler) {
+        this.chunkStorageInterface.setListener(listener);
+        this.treeStorageInterface = sHandler;
+        for (PersistentBTreeNode<V> persistentBTreeNode : children) {
+            if (persistentBTreeNode != null) {
+                persistentBTreeNode.setAndPropagateChangeListenerAndStorageHandler(listener, sHandler);
+            }
+        }
     }
 }

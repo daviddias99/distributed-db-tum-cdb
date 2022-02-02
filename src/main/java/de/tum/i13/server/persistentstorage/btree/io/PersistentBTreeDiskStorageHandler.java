@@ -165,7 +165,14 @@ public class PersistentBTreeDiskStorageHandler<V>
                 Paths.get(this.storageFolder, "root"));
         this.endTransaction();
         // Read new root and return it
-        return StorageUtils.readObject(Paths.get(this.storageFolder, "root"));
+
+        PersistentBTreeNode<V> newRoot = StorageUtils.readObject(Paths.get(this.storageFolder, "root"));
+
+        if (newRoot != null) {
+            newRoot.setAndPropagateChangeListenerAndStorageHandler(this.cListener, this);
+        }
+
+        return newRoot;
     }
 
     @Override

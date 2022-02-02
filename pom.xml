@@ -89,6 +89,26 @@
                         </goals>
                     </execution>
                     <execution>
+                        <id>kv-server-chord</id>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>de.tum.i13.server.threadperconnection.MainChord
+                                    </mainClass> <!-- Point this to your implementation-->
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>kv-server-chord</finalName> <!-- Do not change this name-->
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>echo-client</id>
                         <configuration>
                             <appendAssemblyId>false</appendAssemblyId>

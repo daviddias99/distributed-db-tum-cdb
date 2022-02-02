@@ -116,7 +116,6 @@ public class KVChordListener implements ChordListener {
         return result;
     }
 
-    // TODO: split range
     private List<Pair<String>> getRelevantRangeFromStorage() throws GetException {
 
         NetworkLocation bestEffortPredecesor = NetworkLocation.NULL;

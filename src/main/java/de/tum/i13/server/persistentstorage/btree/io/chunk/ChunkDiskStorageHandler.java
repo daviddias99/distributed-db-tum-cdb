@@ -73,4 +73,9 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             throw storageException;
         }
     }
+
+    @Override
+    public void setListener(ChangeListener listener) {
+        this.cListener = listener;
+    }
 }

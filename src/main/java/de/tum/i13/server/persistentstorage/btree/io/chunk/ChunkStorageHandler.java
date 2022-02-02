@@ -2,6 +2,7 @@ package de.tum.i13.server.persistentstorage.btree.io.chunk;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 
 /**
  * Handles storage of {@link Chunk}s.
@@ -40,4 +41,6 @@ public interface ChunkStorageHandler<V> {
      *                          to store or delete the chunk
      */
     public void createChunk(Chunk<V> chunk) throws StorageException;
+
+    public void setListener(ChangeListener listener);
 }

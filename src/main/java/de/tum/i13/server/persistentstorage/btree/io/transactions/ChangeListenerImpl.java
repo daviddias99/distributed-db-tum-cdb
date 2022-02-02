@@ -24,9 +24,9 @@ public class ChangeListenerImpl implements ChangeListener {
     // These fields are static because, reading nodes from file leads to new
     // references being created which caused nodes to access different transaction
     // handlers. This way, the datastructure-references remain constant for all.
-    private static Set<String> changedChunks = new HashSet<>(); // chunks that changed since the beginning of the
+    private Set<String> changedChunks = new HashSet<>(); // chunks that changed since the beginning of the
                                                                 // transaction
-    private static Set<String> createdChunks = new HashSet<>(); // chunks created since the beggining of the transaction
+    private Set<String> createdChunks = new HashSet<>(); // chunks created since the beggining of the transaction
 
     private String storageFolder;
     private String backupFolder = DEFAULT_DIRECTORY;
@@ -81,12 +81,12 @@ public class ChangeListenerImpl implements ChangeListener {
 
     @Override
     public Set<String> getChangedChunks() {
-        return ChangeListenerImpl.changedChunks;
+        return this.changedChunks;
     }
 
     @Override
     public Set<String> getCreatedChunks() {
-        return ChangeListenerImpl.createdChunks;
+        return this.createdChunks;
     }
 
     @Override

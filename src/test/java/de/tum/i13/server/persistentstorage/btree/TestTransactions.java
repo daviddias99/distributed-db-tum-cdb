@@ -46,12 +46,22 @@ public class TestTransactions {
         String before, after;
         // Transaction 1
         before = display.traverseSpecial(tree);
+        // System.out.println(before);
         sHandler.beginTransaction();
         tree.insert(key, value);
+        // System.out.println(display.traverseSpecial(tree));
         PersistentBTreeNode<String> newRoot = sHandler.rollbackTransaction();
         tree.setRoot(newRoot);
         after = display.traverseSpecial(tree);
-        assertThat(TreeValidator.validTree(tree)).isTrue();
+        boolean validTree = TreeValidator.validTree(tree);
+
+        // if(!validTree) {
+        //     int i = 1;
+        //     System.out.println(before);
+        //     System.out.println(after);
+        // }
+
+        assertThat(validTree).isTrue();
         assertThat(after).isEqualTo(before);
         tree.insert(key, value);
         cHandler.reset();
@@ -91,6 +101,7 @@ public class TestTransactions {
     void rollbackOnInsertStressTest() throws StorageException, PersistentBTreeException {
 
         String letters = "abcdefghijklmnopqrstuvwxyz";
+        // String letters = "clhotmdvkyxwgnapjqisfezurb";
 
         for (int i = 0; i < letters.length(); i++) {
             String sub = letters.substring(i);
@@ -101,6 +112,20 @@ public class TestTransactions {
                 assertThat(TreeValidator.validTree(tree)).isTrue();
             }
         }
+        // // for (int i = 0; i < letters.length(); i++) {
+        // //     String sub = letters.substring(i);
+        //     List<Character> alphabet = letters.chars().mapToObj(e -> (char) e).collect(Collectors.toList());
+        // //     Collections.shuffle(alphabet);
+        //     for (char c : alphabet) {
+        //         if(c == 'w') {
+        //             int i = 1;
+        //         }
+        //         doManualInsTransRolTransCycle(c + "", c + "");
+
+
+        //         assertThat(TreeValidator.validTree(tree)).isTrue();
+        //     }
+        // // }
     }
 
     @Test
