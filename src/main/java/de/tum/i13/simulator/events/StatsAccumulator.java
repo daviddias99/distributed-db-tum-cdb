@@ -63,7 +63,7 @@ public class StatsAccumulator implements Runnable {
                 }
             }
 
-            if (i % 50 == 0) {
+            if (i % 30 == 0) {
                 this.accStats.print();
             }
 

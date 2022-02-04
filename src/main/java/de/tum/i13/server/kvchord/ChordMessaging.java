@@ -174,7 +174,7 @@ public class ChordMessaging {
         
             LOGGER.debug("Peer {} returned list with {} successors", peer, result.size());
 
-        return result;
+        return new LinkedList<>(result);
     }
 
     public void notifyNode(NetworkLocation peer) {

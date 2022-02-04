@@ -264,7 +264,7 @@ public class Chord {
         if (this.ownLocation.equals(this.predecessor) || this.predecessor.equals(NetworkLocation.NULL)) {
             return;
         }
-
+        LOGGER.info("Sending (self: {}) heartbeat to {}", this.ownLocation, this.predecessor);
         boolean predecessorAlive = this.messaging.isNodeAlive(this.predecessor);
 
         if (!predecessorAlive) {
@@ -460,11 +460,13 @@ public class Chord {
     public List<NetworkLocation> getReadResponsibleNetworkLocation(String key) throws ChordException {
         final NetworkLocation writeResponsibleNetworkLocation = getWriteResponsibleNetworkLocation(key);
 
-        if (!isReplicationActive()) return List.of(writeResponsibleNetworkLocation);
+        if (!isReplicationActive()) return new LinkedList<>(List.of(writeResponsibleNetworkLocation));
 
-        return Stream.concat(Stream.of(writeResponsibleNetworkLocation),
+        List<NetworkLocation> result = Stream.concat(Stream.of(writeResponsibleNetworkLocation),
                         messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
                 .collect(Collectors.toList());
+
+        return new LinkedList<>(result);
     }
 
 

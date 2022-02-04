@@ -74,6 +74,7 @@ public class HandoffHandler implements Runnable {
     } catch (GetException e) {
       LOGGER.error("Error while getting key range during handoff.", e);
     }
+    LOGGER.info("Handoff of {} items to {}", itemsToSend.size(), peer);
 
     // Send items to peer
     for (Pair<String> item : itemsToSend) {
@@ -91,6 +92,8 @@ public class HandoffHandler implements Runnable {
         LOGGER.error("Could not send item with key {} to peer {}.", item.key, peer, e);
       }
     }
+    LOGGER.info("Finished handoff");
+
     this.state.executeStoredDeletes(storage);
   }
 

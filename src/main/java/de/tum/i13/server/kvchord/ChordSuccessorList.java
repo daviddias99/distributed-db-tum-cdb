@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +25,11 @@ class ChordSuccessorList {
   private final int tableSize;
   private final List<ChordListener> listeners;
 
+  private ReadWriteLock readWriteLock = new ReentrantReadWriteLock(); // used to ensure concurrent reads, and
+  // exclusive
+  // access writes
+
+
   ChordSuccessorList(int tableSize, NetworkLocation ownLocation,
       ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable, HashingAlgorithm hashingAlgorithm,
       List<ChordListener> listeners) {
@@ -34,28 +41,41 @@ class ChordSuccessorList {
     this.listeners = listeners;
   }
 
-  synchronized int count() {
-    return this.successors.size();
+  int count() {
+    readWriteLock.readLock().lock();
+    int size = this.successors.size(); 
+    readWriteLock.readLock().unlock();
+    return size;
   }
 
-  synchronized NetworkLocation getFirst() {
-      return this.successors.isEmpty() ? NetworkLocation.NULL : this.successors.get(0);
+  NetworkLocation getFirst() {
+    readWriteLock.readLock().lock();
+    NetworkLocation res = this.successors.isEmpty() ? NetworkLocation.NULL : this.successors.get(0);
+    readWriteLock.readLock().unlock();
+    return res;
   }
 
-  synchronized List<NetworkLocation> get(int n) {
-    return new LinkedList<>(this.successors.subList(0, Math.min(n, this.successors.size())));
+  List<NetworkLocation> get(int n) {
+    readWriteLock.readLock().lock();
+    List<NetworkLocation> res = new LinkedList<>(this.successors.subList(0, Math.min(n, this.successors.size())));
+    readWriteLock.readLock().unlock();
+
+    return res;
   }
 
-  synchronized NetworkLocation shift() {
+  NetworkLocation shift() {
     if (this.successors.isEmpty()) {
         return NetworkLocation.NULL;
     }
 
+    readWriteLock.writeLock().lock();
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
     NetworkLocation oldSuccessor = this.successors.remove(0);
+
     for (ChordListener listener : this.listeners) {
       listener.successorsChanged(oldSuccList, this.successors);
     }
+    readWriteLock.writeLock().unlock();
 
     this.fingerTable.remove(this.hashing.hash(this.getFirst()));
     this.fingerTable.remove(this.hashing.hash(oldSuccessor));
@@ -63,13 +83,16 @@ class ChordSuccessorList {
     return oldSuccessor;
   }
 
-  synchronized NetworkLocation setFirst(NetworkLocation newSuccessor) {
+  NetworkLocation setFirst(NetworkLocation newSuccessor) {
+    readWriteLock.writeLock().lock();
+
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
     if (this.successors.isEmpty()) {
       this.successors.add(newSuccessor);
       for (ChordListener listener : this.listeners) {
         listener.successorsChanged(oldSuccList, new LinkedList<>(this.successors));
       }
+      readWriteLock.writeLock().unlock();
       return null;
     }
 
@@ -80,10 +103,11 @@ class ChordSuccessorList {
     for (ChordListener listener : this.listeners) {
       listener.successorsChanged(oldSuccList, this.successors);
     }
+    readWriteLock.writeLock().unlock();
     return oldSuccessor;
   }
 
-  synchronized void update(List<NetworkLocation> successorsUpdate) {
+  void update(List<NetworkLocation> successorsUpdate) {
 
     if (successorsUpdate.isEmpty()) {
       return;
@@ -95,6 +119,7 @@ class ChordSuccessorList {
     if(this.successors.subList(1, this.successors.size()).equals(testEquality)) {
       return;
     }
+    readWriteLock.writeLock().lock();
 
     List<NetworkLocation> oldSuccList = new LinkedList<>(this.successors);
 
@@ -120,6 +145,7 @@ class ChordSuccessorList {
     for (ChordListener listener : this.listeners) {
       listener.successorsChanged(oldSuccList, new LinkedList<>(this.successors));
     }
+    readWriteLock.writeLock().unlock();
   }
 
   synchronized String getStateStr() {

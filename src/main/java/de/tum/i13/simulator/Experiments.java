@@ -10,14 +10,14 @@ import java.nio.file.Files;
 import de.tum.i13.simulator.experiments.Experiment;
 import de.tum.i13.simulator.experiments.ExperimentConfiguration;
 import de.tum.i13.simulator.experiments.HardShutdownExperiment;
-import de.tum.i13.simulator.experiments.SoftShutdownExperiment;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration.Builder;
 
 public class Experiments {
 
     static void cacheExperiment() {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
                 .afterAdditionalClientsDelay(120)
-                .aAfterAdditionalServersDelay(15)
+                .afterAdditionalServersDelay(15)
                 .build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
         scheduleExperiment(experiment);
@@ -39,30 +39,77 @@ public class Experiments {
                 .useChord()
                 .replicationFactor(2)
                 .afterAdditionalClientsDelay(60)
-                .aAfterAdditionalServersDelay(60)
+                .afterAdditionalServersDelay(60)
                 .build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
         scheduleExperiment(experiment);
     }
 
-    static void behaviorExperiment() {
-        final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
+    static void reallySmall(boolean useChord) {
+        final Builder experimentBuilder = experimentConfiguration()
                 .startingServerCount(1)
                 .startingClientCount(0)
                 .initialDelay(10)
-                .finalServerCount(10)
-                .finalClientCount(20)
+                .finalServerCount(2)
+                .finalClientCount(2)
                 .serverStartDelay(20)
                 .clientStartDelay(20)
                 .serverCacheSize(500)
                 .bTreeNodeSize(100)
                 .serverCachingStrategy(LFU)
-                .statsName("behavior")
+                .statsName("really_small")
                 .replicationFactor(2)
+                .afterAdditionalClientsDelay(20)
+                .afterAdditionalServersDelay(300);
+
+        Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
+    }
+
+    static void replicationExperiment(boolean useChord, int replicaCount) {
+        Builder experimentBuilder = experimentConfiguration()
+                .initialDelay(10)
+                .startingServerCount(5)
+                .startingClientCount(0)
+                .finalServerCount(5)
+                .finalClientCount(10)
+                .afterAdditionalServersDelay(120)
+                .clientStartDelay(5)
+                .serverCacheSize(500)
+                .bTreeNodeSize(200)
+                .serverCachingStrategy(LFU)
+                .replicationFactor(replicaCount)
+                .statsName(String.format("repl_%s_%d", useChord ? "chord" : "normal", replicaCount));
+
+        Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
+    }
+
+    static void behaviorExperiment(boolean useChord) {
+        Builder experimentBuilder = experimentConfiguration()
+                .initialDelay(10)
+                .startingServerCount(1)
+                .startingClientCount(0)
+                .finalServerCount(10)
+                .finalClientCount(20)
                 .afterAdditionalClientsDelay(120)
-                .aAfterAdditionalServersDelay(120)
-                .build();
-        final Experiment experiment = new SoftShutdownExperiment(experimentConfiguration);
+                .afterAdditionalServersDelay(120)
+                .serverStartDelay(120)
+                .clientStartDelay(20)
+                .serverCacheSize(500)
+                .bTreeNodeSize(200)
+                .serverCachingStrategy(LFU)
+                .replicationFactor(1)
+                .statsName(String.format("behaviour_%s", useChord ? "chord" : "normal"));
+
+        Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
+    }
+
+    private static void optionalChordHardShutdownExperiment(Builder experimentBuilder, boolean useChord) {
+        if (useChord) {
+            experimentBuilder = experimentBuilder.useChord();
+        }
+
+        final ExperimentConfiguration experimentConfiguration = experimentBuilder.build();
+        final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
         scheduleExperiment(experiment);
     }
 
@@ -71,14 +118,25 @@ public class Experiments {
         final int offSetRun = experiment.scheduleRun(offSetBeforeRun);
         return experiment.scheduleAfterRun(offSetRun);
     }
-
     public static void main(String[] args) {
-        Experiments.deleteFolder(new File("logs"));
-        Experiments.deleteFolder(new File("data"));
-        smallExperiment();
+
+        resetFolders();
+        behaviorExperiment(true);
+        // behaviorExperiment(false);
+        // replicationExperiment(true, 0);
+        // replicationExperiment(true, 2);
+        // replicationExperiment(true, 5);
+        // replicationExperiment(false, 0);
+        // replicationExperiment(false, 2);
+        // replicationExperiment(false, 5);
     }
 
-    public static void deleteFolder(File folder) {
+    private static void resetFolders() {
+        Experiments.deleteFolder(new File("logs"));
+        Experiments.deleteFolder(new File("data"));
+    }
+
+    private static void deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
             for(File f: files) {

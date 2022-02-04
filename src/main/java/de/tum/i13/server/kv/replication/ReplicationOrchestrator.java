@@ -41,7 +41,7 @@ public class ReplicationOrchestrator {
             .stream()
             .map(e -> e.key)
             .collect(Collectors.toList());
-        toDelete.addAll(keys);
+        toDelete.addAll(new LinkedList<>(keys));
       } catch (GetException e) {
         LOGGER.error("Could not fetch range for deletion.", e);
       }
@@ -173,7 +173,7 @@ public class ReplicationOrchestrator {
         .filter(replicator -> !oldReplicators.contains(replicator))
         .collect(Collectors.toList()) : newReplicators;
 
-    this.replicateToNewSuccessors(newSuccessors, newRing.getWriteRange(curNetworkLocation));
+    this.replicateToNewSuccessors(new LinkedList<>(newSuccessors), newRing.getWriteRange(curNetworkLocation));
 
     // If old replicator, update only with new range
     if (oldReplicatorCount > 0 && oldRing.isReplicationActive()) {

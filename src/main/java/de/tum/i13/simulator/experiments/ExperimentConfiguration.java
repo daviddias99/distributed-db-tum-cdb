@@ -207,7 +207,7 @@ public class ExperimentConfiguration {
             return this;
         }
 
-        public Builder aAfterAdditionalServersDelay(int afterAdditionalServersDelay) {
+        public Builder afterAdditionalServersDelay(int afterAdditionalServersDelay) {
             this.afterAdditionalServersDelay = afterAdditionalServersDelay;
             return this;
         }
