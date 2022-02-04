@@ -1,17 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+
+    <Properties>
+        <Property name="LOG_PATTERN">%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n</Property>
+    </Properties>
+
     <Appenders>
         <Console name="Console" target="SYSTEM_ERR">
-            <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+        <Console name="SimulatorConsole" target="SYSTEM_ERR">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ContextMapFilter onMatch="ACCEPT" onMismatch="DENY" operator="or">
+                <KeyValuePair key="SIMULATOR" value="true"/>
+            </ContextMapFilter>
         </Console>
         <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
-            <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
         </File>
     </Appenders>
     <Loggers>
         <Root level="all">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="LogFile"/>
+            <ContextMapFilter onMatch="DENY" onMismatch="ACCEPT" operator="or">
+                <KeyValuePair key="SIMULATOR" value="true"/>
+            </ContextMapFilter>
         </Root>
+        <Logger name="de.tum.i13.server" level="warn">
+            <AppenderRef ref="SimulatorConsole"/>
+        </Logger>
+        <Logger name="de.tum.i13.client" level="warn">
+            <AppenderRef ref="SimulatorConsole"/>
+        </Logger>
     </Loggers>
 </Configuration>

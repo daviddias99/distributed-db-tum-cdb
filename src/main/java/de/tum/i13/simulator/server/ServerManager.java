@@ -17,6 +17,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
+import static de.tum.i13.simulator.WarnLoggingRunnable.wrapWarnLogging;
+
 public class ServerManager {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
@@ -103,8 +105,8 @@ public class ServerManager {
     private Future<?> startServer(List<String> parameters) {
         LOGGER.trace("Launching server with the config: {}", parameters);
         final String[] cliArgs = parameters.toArray(String[]::new);
-        if (this.useChord) return EXECUTOR_SERVICE.submit(() -> MainChord.main(cliArgs));
-        else return EXECUTOR_SERVICE.submit(() -> Main.main(cliArgs));
+        if (this.useChord) return EXECUTOR_SERVICE.submit(wrapWarnLogging(() -> MainChord.main(cliArgs)));
+        else return EXECUTOR_SERVICE.submit(wrapWarnLogging(() -> Main.main(cliArgs)));
     }
 
     public void stopServer() {

@@ -8,12 +8,18 @@ import de.tum.i13.simulator.server.ServerManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static de.tum.i13.simulator.WarnLoggingRunnable.wrapWarnLogging;
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_CLIENT;
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_SERVER;
 
 abstract class AbstractExperiment implements Experiment {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractExperiment.class);
+
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
 
     protected final ExperimentConfiguration cfg;
     protected ExperimentManager mgr;
@@ -86,12 +92,11 @@ abstract class AbstractExperiment implements Experiment {
     }
 
     private void startECS() {
-        final Thread ecsThread = new Thread(() -> ExternalConfigurationServer.main(new String[]{
+        LOGGER.info("Starting ECS");
+        EXECUTOR_SERVICE.submit(wrapWarnLogging(() -> ExternalConfigurationServer.main(new String[]{
                 "-p", "25670",
                 "-l", "logs/ec.log"
-        }));
-        LOGGER.info("Starting ECS");
-        ecsThread.start();
+        })));
         LOGGER.info("Started ECS");
     }
 

@@ -1,15 +1,20 @@
 package de.tum.i13.simulator.events;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.simulator.client.ClientManager;
 import de.tum.i13.simulator.experiments.ExperimentManager;
 import de.tum.i13.simulator.server.ServerManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DelayedEvent implements Runnable, TimeEvent {
 
     private static final Logger LOGGER = LogManager.getLogger(DelayedEvent.class);
+
+    private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(20);
 
     private final int timeSeconds;
     private final Type eType;
@@ -40,20 +45,13 @@ public class DelayedEvent implements Runnable, TimeEvent {
 
     @Override
     public void run() {
-        try {
-            Thread.sleep((long) timeSeconds * 1000);
-
-            acc.signalEvent(this);
-            switch (this.eType) {
-                case START_SERVER -> sManager.addServer();
-                case STOP_SERVER -> sManager.stopServer();
-                case START_CLIENT -> cManager.addAndStartClient();
-                case STOP_PROGRAM -> System.exit(0);
-            }
-
-        } catch (InterruptedException e) {
-            LOGGER.error("Interrupted delayed event");
-            Thread.currentThread().interrupt();
+        LOGGER.trace("Running scheduled event: '{}'", this);
+        acc.signalEvent(this);
+        switch (this.eType) {
+            case START_SERVER -> sManager.addServer();
+            case STOP_SERVER -> sManager.stopServer();
+            case START_CLIENT -> cManager.addAndStartClient();
+            case STOP_PROGRAM -> System.exit(0);
         }
     }
 
@@ -64,11 +62,14 @@ public class DelayedEvent implements Runnable, TimeEvent {
 
     @Override
     public String toString() {
-        return this.eType.name();
+        return "DelayedEvent{" +
+                "type=" + this.eType.name() +
+                ", timeSeconds=" + this.timeSeconds +
+                "}";
     }
 
     public void schedule() {
-        new Thread(this).start();
+        EXECUTOR_SERVICE.schedule(this, timeSeconds, TimeUnit.SECONDS);
     }
 
     public enum Type {
