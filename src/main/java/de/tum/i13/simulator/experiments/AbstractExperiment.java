@@ -1,18 +1,15 @@
 package de.tum.i13.simulator.experiments;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import de.tum.i13.ecs.ExternalConfigurationServer;
 import de.tum.i13.simulator.client.ClientManager;
 import de.tum.i13.simulator.events.DelayedEvent;
 import de.tum.i13.simulator.events.StatsAccumulator;
 import de.tum.i13.simulator.server.ServerManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_CLIENT;
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_SERVER;
-
-import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 
 abstract class AbstractExperiment implements Experiment {
 
@@ -25,7 +22,7 @@ abstract class AbstractExperiment implements Experiment {
         this.cfg = cfg;
     }
 
-    private int startExperiment(int initialTimeOffSetFromZero) throws IOException, InterruptedException {
+    private int startExperiment(int initialTimeOffSetFromZero) throws InterruptedException {
         startInitialExperiment();
         int timeOffSetFromZero = initialTimeOffSetFromZero + cfg.getInitialDelay();
 
@@ -57,16 +54,16 @@ abstract class AbstractExperiment implements Experiment {
         return timeOffSetFromZero;
     }
 
-    private void startInitialExperiment() throws IOException, InterruptedException {
+    private void startInitialExperiment() throws InterruptedException {
         mgr = new ExperimentManager();
 
         if(!cfg.useChord()) {
             startECS();
-            LOGGER.debug("Waiting...");
+            LOGGER.debug("Waiting 4s...");
             Thread.sleep(4000);
         }
         mgr.setServerManager(startInitialServers());
-        LOGGER.debug("Waiting...");
+        LOGGER.debug("Waiting 4s...");
         Thread.sleep(4000);
 
         mgr.setStatsAccumulator(new StatsAccumulator(cfg));
@@ -88,15 +85,13 @@ abstract class AbstractExperiment implements Experiment {
         return clientManager;
     }
 
-    private void startECS() throws IOException {
-        ProcessBuilder processBuilder = new ProcessBuilder(("java -jar target/ecs-server.jar -p 25670 -l logs/ecs.log" +
-                " " +
-                "-ll all").split(" "));
-        processBuilder.redirectOutput(Redirect.DISCARD);
-        processBuilder.redirectError(Redirect.DISCARD);
+    private void startECS() {
+        final Thread ecsThread = new Thread(() -> ExternalConfigurationServer.main(new String[]{
+                "-p", "25670",
+                "-l", "logs/ec.log"
+        }));
         LOGGER.info("Starting ECS");
-        Process ecs = processBuilder.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(ecs::destroy));
+        ecsThread.start();
         LOGGER.info("Started ECS");
     }
 
@@ -104,7 +99,7 @@ abstract class AbstractExperiment implements Experiment {
     public int scheduleRun(int timeOffsetFromZero) {
         try {
             return startExperiment(timeOffsetFromZero);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             throw new ExperimentException("Could not start experiment", e);
         }
     }

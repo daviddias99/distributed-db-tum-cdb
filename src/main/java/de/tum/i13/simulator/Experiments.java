@@ -114,7 +114,6 @@ public class Experiments {
     }
 
     public static void main(String[] args) {
-
         resetFolders();
         behaviorExperiment(true);
         // behaviorExperiment(false);

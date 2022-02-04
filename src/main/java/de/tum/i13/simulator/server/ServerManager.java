@@ -1,23 +1,31 @@
 package de.tum.i13.simulator.server;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import de.tum.i13.server.threadperconnection.Main;
+import de.tum.i13.server.threadperconnection.MainChord;
 import de.tum.i13.simulator.experiments.ExperimentConfiguration;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 public class ServerManager {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
 
-    public LinkedList<Process> servers;
-    public LinkedList<String> addresses;
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    public static final Random RANDOM = new Random();
+
+    public List<Future<?>> servers;
+    public List<String> addresses;
     int port = 35660;
     String ecsAddress = "127.0.0.1:25670";
 
@@ -57,61 +65,46 @@ public class ServerManager {
                 Thread.currentThread().interrupt();
             }
         }
-
-        this.addServerHook();
     }
 
-    private String getServerCommand() {
-        String dataDir = Paths.get("data", Integer.toString(port)).toString();
-        Random rand = new Random();
-        String bootstrap = "";
+    private List<String> getServerParameters() {
+        final List<String> parameters = new ArrayList<>();
+        final String dataDir = Paths.get("data", Integer.toString(port)).toString();
 
-        if(this.useChord) {
-            if (!this.addresses.isEmpty()) {
-                String address = this.addresses.get(rand.nextInt(this.addresses.size()));
-                bootstrap = String.format(" -b %s", String.join(":",address.split(" ")) ); 
-            }
-        } else {
-            bootstrap = String.format(" -b %s", ecsAddress);
+        if (!this.useChord) {
+            Stream.of("-b", ecsAddress)
+                    .forEachOrdered(parameters::add);
+        } else if (!this.addresses.isEmpty()) {
+            String address = this.addresses.get(RANDOM.nextInt(this.addresses.size()));
+            Stream.of("-b", address.replace(" ", ":"))
+                    .forEachOrdered(parameters::add);
         }
-
-        String jar = String.format("target/kv-server%s.jar", this.useChord ? "-chord" : "");
-
-        return String.format("java -jar %s%s -ll ALL -t %d -p %d -s %s -c %d -d " +
-                        "%s -l logs/server_%d.log -r %d", jar, bootstrap, this.bTreeNodeSize, this.port,
-                this.cacheStrategy, this.cacheSize, dataDir, this.port, this.replicationFactor);
-    }
-
-    private void addServerHook() {
-        Thread turnoffServersHook = new Thread(() -> {
-            LOGGER.info("Turning off services");
-            for (Process process : servers) {
-                try {
-                    Runtime.getRuntime().exec("kill -SIGINT " + process.pid());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                process.destroy();
-            }
-        });
-        Runtime.getRuntime().addShutdownHook(turnoffServersHook);
+        Stream.of(
+                "-ll", "ALL",
+                "-t", bTreeNodeSize,
+                "-p", port,
+                "-s", cacheStrategy,
+                "-c", cacheSize,
+                "-d", dataDir,
+                "-l", String.format("logs/server_%d.log", port),
+                "-r", replicationFactor
+        ).map(String::valueOf)
+                .forEachOrdered(parameters::add);
+        return parameters;
     }
 
     public void addServer() {
-        try {
-            String commString = this.getServerCommand();
-            LOGGER.trace("Launching server: {}", commString);
-            System.out.println(String.format("Launching server: %s", commString));
-            ProcessBuilder processBuilder = new ProcessBuilder(commString.split(" "));
-            processBuilder.redirectOutput(Redirect.DISCARD);
-            processBuilder.redirectError(Redirect.DISCARD);
-            Process server = processBuilder.start();
-            servers.add(server);
-            this.addresses.push(String.format("127.0.0.1 %d", port));
-            port++;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        final Future<?> server = startServer(getServerParameters());
+        servers.add(server);
+        this.addresses.add(String.format("127.0.0.1 %d", port));
+        port++;
+    }
+
+    private Future<?> startServer(List<String> parameters) {
+        LOGGER.trace("Launching server with the config: {}", parameters);
+        final String[] cliArgs = parameters.toArray(String[]::new);
+        if (this.useChord) return EXECUTOR_SERVICE.submit(() -> MainChord.main(cliArgs));
+        else return EXECUTOR_SERVICE.submit(() -> Main.main(cliArgs));
     }
 
     public void stopServer() {
@@ -121,17 +114,9 @@ public class ServerManager {
             return;
         }
 
-        Random rand = new Random();
-        int index = rand.nextInt(this.servers.size());
-        Process server = servers.get(index);
+        int index = RANDOM.nextInt(this.servers.size());
 
-        server.destroy();
-        // try {
-        //   // Process p = Runtime.getRuntime().exec("kill -SIGINT" + server.pid());
-        // } catch (IOException e) {
-        //   e.printStackTrace();
-        // }
-
+        servers.get(index).cancel(true);
         servers.remove(index);
         addresses.remove(index);
     }

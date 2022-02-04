@@ -59,8 +59,8 @@ public class ClientSimulator implements Runnable {
                     .setErr(temp)
                     .setExitCodeExceptionMapper(new ExitCodeMapper())
                     .setCaseInsensitiveEnumValuesAllowed(true);
-            int exitCode = cmd.execute(KVMessage.extractTokens("logLevel off"));
-            exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress, serverPort)));
+            int exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress,
+                    serverPort)));
 
             if (exitCode != ExitCode.SUCCESS.getValue()) {
                 Thread.currentThread().interrupt();
