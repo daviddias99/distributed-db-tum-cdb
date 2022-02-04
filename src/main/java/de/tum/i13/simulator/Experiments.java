@@ -1,16 +1,16 @@
 package de.tum.i13.simulator;
 
-import static de.tum.i13.server.cache.CachingStrategy.LFU;
-import static de.tum.i13.simulator.experiments.ExperimentConfiguration.experimentConfiguration;
+import de.tum.i13.simulator.experiments.Experiment;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration.Builder;
+import de.tum.i13.simulator.experiments.HardShutdownExperiment;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import de.tum.i13.simulator.experiments.Experiment;
-import de.tum.i13.simulator.experiments.ExperimentConfiguration;
-import de.tum.i13.simulator.experiments.HardShutdownExperiment;
-import de.tum.i13.simulator.experiments.ExperimentConfiguration.Builder;
+import static de.tum.i13.server.cache.CachingStrategy.LFU;
+import static de.tum.i13.simulator.experiments.ExperimentConfiguration.experimentConfiguration;
 
 public class Experiments {
 
@@ -20,7 +20,7 @@ public class Experiments {
                 .afterAdditionalServersDelay(15)
                 .build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
-        scheduleExperiment(experiment);
+        experiment.scheduleExperiment();
     }
 
     static void smallExperiment() {
@@ -42,7 +42,7 @@ public class Experiments {
                 .afterAdditionalServersDelay(60)
                 .build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
-        scheduleExperiment(experiment);
+        experiment.scheduleExperiment();
     }
 
     static void reallySmall(boolean useChord) {
@@ -110,14 +110,9 @@ public class Experiments {
 
         final ExperimentConfiguration experimentConfiguration = experimentBuilder.build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
-        scheduleExperiment(experiment);
+        experiment.scheduleExperiment();
     }
 
-    private static int scheduleExperiment(Experiment experiment) {
-        final int offSetBeforeRun = experiment.scheduleBeforeRun();
-        final int offSetRun = experiment.scheduleRun(offSetBeforeRun);
-        return experiment.scheduleAfterRun(offSetRun);
-    }
     public static void main(String[] args) {
 
         resetFolders();
