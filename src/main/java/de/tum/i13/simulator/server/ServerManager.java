@@ -1,6 +1,8 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.server;
 
 import de.tum.i13.server.cache.CachingStrategy;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,8 +16,8 @@ public class ServerManager {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
 
-    LinkedList<Process> servers;
-    LinkedList<String> addresses;
+    public LinkedList<Process> servers;
+    public LinkedList<String> addresses;
     int port = 35660;
     String ecsAddress = "127.0.0.1:25670";
 
@@ -25,7 +27,7 @@ public class ServerManager {
     int replicationFactor;
     boolean useChord;
 
-    ServerManager(ExperimentConfiguration experimentConfiguration) {
+    public ServerManager(ExperimentConfiguration experimentConfiguration) {
         this(
                 experimentConfiguration.getStartingServerCount(),
                 experimentConfiguration.getServerCacheSize(),
@@ -75,7 +77,7 @@ public class ServerManager {
 
         String jar = String.format("target/kv-server%s.jar", this.useChord ? "-chord" : "");
 
-        return String.format("java -jar %s%s -ll TRACE -t %d -p %d -s %s -c %d -d " +
+        return String.format("java -jar %s%s -ll ALL -t %d -p %d -s %s -c %d -d " +
                         "%s -l logs/server_%d.log -r %d", jar, bootstrap, this.bTreeNodeSize, this.port,
                 this.cacheStrategy, this.cacheSize, dataDir, this.port, this.replicationFactor);
     }

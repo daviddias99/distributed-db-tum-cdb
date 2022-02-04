@@ -1,9 +1,18 @@
 package de.tum.i13.simulator;
 
 import static de.tum.i13.server.cache.CachingStrategy.LFU;
-import static de.tum.i13.simulator.ExperimentConfiguration.experimentConfiguration;
+import static de.tum.i13.simulator.experiments.ExperimentConfiguration.experimentConfiguration;
 
-class Experiments {
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+import de.tum.i13.simulator.experiments.Experiment;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+import de.tum.i13.simulator.experiments.HardShutdownExperiment;
+import de.tum.i13.simulator.experiments.SoftShutdownExperiment;
+
+public class Experiments {
 
     static void cacheExperiment() {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
@@ -64,7 +73,30 @@ class Experiments {
     }
 
     public static void main(String[] args) {
+        Experiments.deleteFolder(new File("logs"));
+        Experiments.deleteFolder(new File("data"));
         smallExperiment();
     }
 
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    try {
+                        Files.delete(f.toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        try {
+            Files.delete(folder.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

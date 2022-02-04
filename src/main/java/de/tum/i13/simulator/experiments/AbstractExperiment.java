@@ -1,13 +1,18 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.experiments;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.tum.i13.simulator.client.ClientManager;
+import de.tum.i13.simulator.events.DelayedEvent;
+import de.tum.i13.simulator.events.StatsAccumulator;
+import de.tum.i13.simulator.server.ServerManager;
+
+import static de.tum.i13.simulator.events.DelayedEvent.Type.START_CLIENT;
+import static de.tum.i13.simulator.events.DelayedEvent.Type.START_SERVER;
+
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
-
-import static de.tum.i13.simulator.DelayedEvent.Type.START_CLIENT;
-import static de.tum.i13.simulator.DelayedEvent.Type.START_SERVER;
 
 abstract class AbstractExperiment implements Experiment {
 

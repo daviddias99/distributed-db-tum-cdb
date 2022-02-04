@@ -1,6 +1,10 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.experiments;
 
-class ExperimentManager {
+import de.tum.i13.simulator.client.ClientManager;
+import de.tum.i13.simulator.events.StatsAccumulator;
+import de.tum.i13.simulator.server.ServerManager;
+
+public class ExperimentManager {
 
     private ServerManager serverManager;
     private StatsAccumulator statsAccumulator;

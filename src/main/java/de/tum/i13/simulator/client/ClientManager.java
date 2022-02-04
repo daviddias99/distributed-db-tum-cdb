@@ -1,7 +1,12 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.client;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import de.tum.i13.simulator.events.StatsAccumulator;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+import de.tum.i13.simulator.experiments.ExperimentManager;
+import de.tum.i13.simulator.server.ServerManager;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -18,12 +23,12 @@ public class ClientManager {
     File[] emailDirs;
     int counter = 0;
     int clientCount;
-    ServerManager servers;
+    public ServerManager servers;
     StatsAccumulator statsAcc;
 
     private boolean useChord;
 
-    ClientManager(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
+    public ClientManager(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         this(
                 experimentConfiguration.getStartingClientCount(),
                 experimentConfiguration.useChord(),

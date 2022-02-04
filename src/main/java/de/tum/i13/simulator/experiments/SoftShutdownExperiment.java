@@ -1,10 +1,12 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.experiments;
 
-import static de.tum.i13.simulator.DelayedEvent.Type.STOP_SERVER;
+import static de.tum.i13.simulator.events.DelayedEvent.Type.STOP_SERVER;
 
-class SoftShutdownExperiment extends AbstractExperiment {
+import de.tum.i13.simulator.events.DelayedEvent;
 
-    SoftShutdownExperiment(ExperimentConfiguration experimentConfiguration) {
+public class SoftShutdownExperiment extends AbstractExperiment {
+
+    public SoftShutdownExperiment(ExperimentConfiguration experimentConfiguration) {
         super(experimentConfiguration);
     }
 

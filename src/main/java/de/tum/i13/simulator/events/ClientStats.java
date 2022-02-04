@@ -1,4 +1,4 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.events;
 
 public class ClientStats implements TimeEvent {
 

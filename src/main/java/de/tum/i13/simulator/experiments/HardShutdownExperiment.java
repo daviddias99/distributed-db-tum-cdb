@@ -1,8 +1,11 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.experiments;
 
-class HardShutdownExperiment extends AbstractExperiment {
+import de.tum.i13.simulator.events.DelayedEvent;
+import de.tum.i13.simulator.events.DelayedEvent.Type;
 
-    HardShutdownExperiment(ExperimentConfiguration experimentConfiguration) {
+public class HardShutdownExperiment extends AbstractExperiment {
+
+    public HardShutdownExperiment(ExperimentConfiguration experimentConfiguration) {
         super(experimentConfiguration);
     }
 

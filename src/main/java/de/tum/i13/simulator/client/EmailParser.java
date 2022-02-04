@@ -1,4 +1,4 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.client;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 

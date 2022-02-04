@@ -1,7 +1,11 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.events;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import de.tum.i13.simulator.client.ClientManager;
+import de.tum.i13.simulator.experiments.ExperimentManager;
+import de.tum.i13.simulator.server.ServerManager;
 
 public class DelayedEvent implements Runnable, TimeEvent {
 
@@ -13,7 +17,7 @@ public class DelayedEvent implements Runnable, TimeEvent {
     private final ClientManager cManager;
     private final StatsAccumulator acc;
 
-    DelayedEvent(int timeSeconds, Type eType, ExperimentManager experimentManager) {
+    public DelayedEvent(int timeSeconds, Type eType, ExperimentManager experimentManager) {
         this(
                 timeSeconds,
                 eType,
@@ -63,7 +67,7 @@ public class DelayedEvent implements Runnable, TimeEvent {
         return this.eType.name();
     }
 
-    void schedule() {
+    public void schedule() {
         new Thread(this).start();
     }
 

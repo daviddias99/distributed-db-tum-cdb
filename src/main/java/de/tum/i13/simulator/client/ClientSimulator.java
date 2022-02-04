@@ -1,4 +1,4 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.client;
 
 import de.tum.i13.client.shell.CLICommands;
 import de.tum.i13.client.shell.ExitCode;
@@ -6,6 +6,7 @@ import de.tum.i13.client.shell.ExitCodeMapper;
 import de.tum.i13.client.shell.ServerType;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+import de.tum.i13.simulator.events.ClientStats;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class ClientSimulator implements Runnable {
     int serverPort;
     boolean stop = false;
     CommandLine cmd;
-    ClientStats stats;
+    public ClientStats stats;
     private boolean useChord;
 
     public ClientSimulator(Path emailDir, String serverAddress, int serverPort, boolean useChord) {

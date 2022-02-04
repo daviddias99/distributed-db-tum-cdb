@@ -1,6 +1,6 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.experiments;
 
-interface Experiment {
+public interface Experiment {
 
     int scheduleBeforeRun();
 

@@ -1,13 +1,17 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.events;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
+
+import de.tum.i13.simulator.client.ClientSimulator;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
 
 public class StatsAccumulator implements Runnable {
 
@@ -17,7 +21,7 @@ public class StatsAccumulator implements Runnable {
     DelayedEvent event;
     String name;
 
-    StatsAccumulator(ExperimentConfiguration experimentConfiguration) {
+    public StatsAccumulator(ExperimentConfiguration experimentConfiguration) {
         this(experimentConfiguration.getStatsName());
     }
 
@@ -81,9 +85,7 @@ public class StatsAccumulator implements Runnable {
             directory.mkdir();
         }
 
-        Random random = new Random();
-
-        File fout = new File(String.format("stats/out_%s_%d.csv", this.name, random.nextInt()));
+        File fout = new File(String.format("stats/out_%s_%s.csv", this.name,new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())));
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))) {
             bw.write("timeStep,getCount,getFailCount,getTime,putCount,putFailCount,putTime,deleteCount," +
                     "deleteFailCount,deleteTime,totalSucc,event\n");
