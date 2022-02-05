@@ -1,5 +1,6 @@
 package de.tum.i13.simulator.events;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.tum.i13.simulator.client.ClientManager;
 import de.tum.i13.simulator.experiments.ExperimentManager;
 import de.tum.i13.simulator.server.ServerManager;
@@ -14,7 +15,10 @@ public class DelayedEvent implements Runnable, TimeEvent {
 
     private static final Logger LOGGER = LogManager.getLogger(DelayedEvent.class);
 
-    private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(20);
+    private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(
+            20,
+            new ThreadFactoryBuilder().setNameFormat("delayed-event-pool_%d").build()
+    );
 
     private final int timeSeconds;
     private final Type eType;

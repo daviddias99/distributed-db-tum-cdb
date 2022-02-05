@@ -1,5 +1,6 @@
 package de.tum.i13.simulator.experiments;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.tum.i13.ecs.ExternalConfigurationServer;
 import de.tum.i13.simulator.client.ClientManager;
 import de.tum.i13.simulator.events.DelayedEvent;
@@ -19,7 +20,9 @@ abstract class AbstractExperiment implements Experiment {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractExperiment.class);
 
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().setNameFormat("ecs-pool_%d").build()
+    );
 
     protected final ExperimentConfiguration cfg;
     protected ExperimentManager mgr;

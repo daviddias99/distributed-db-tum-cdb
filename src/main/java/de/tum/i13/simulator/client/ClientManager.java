@@ -1,5 +1,6 @@
 package de.tum.i13.simulator.client;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.tum.i13.simulator.events.StatsAccumulator;
 import de.tum.i13.simulator.experiments.ExperimentConfiguration;
 import de.tum.i13.simulator.experiments.ExperimentManager;
@@ -22,7 +23,9 @@ public class ClientManager {
 
     private static final Logger LOGGER = LogManager.getLogger(ClientManager.class);
 
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().setNameFormat("client-pool_%d").build()
+    );
     private static final Random RANDOM = new Random();
 
     List<ClientSimulator> clients;

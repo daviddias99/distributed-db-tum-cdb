@@ -1,5 +1,6 @@
 package de.tum.i13.simulator.server;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.tum.i13.server.cache.CachingStrategy;
 import de.tum.i13.server.threadperconnection.Main;
 import de.tum.i13.server.threadperconnection.MainChord;
@@ -23,7 +24,9 @@ public class ServerManager {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
 
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().setNameFormat("server-pool_%d").build()
+    );
     public static final Random RANDOM = new Random();
 
     public List<Future<?>> servers;
