@@ -1,12 +1,14 @@
 package de.tum.i13.shared.hashing;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 /**
@@ -19,35 +21,33 @@ public class MD5HashAlgorithm implements HashingAlgorithm {
 
     private static final Logger LOGGER = LogManager.getLogger(MD5HashAlgorithm.class);
 
-    private final MessageDigest messageDigest;
+    private final HashFunction hashFunction;
+    private final BigInteger max;
 
     /**
      * Creates a new {@link MD5HashAlgorithm}
      *
      * @throws IllegalStateException if the MD5 hashing algorithm is not available
      */
+    @SuppressWarnings("deprecation")
     public MD5HashAlgorithm() {
-        try {
-            messageDigest = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            final var exception = new IllegalStateException("Could not find MD5 hashing algorithm");
-            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
+        hashFunction = Hashing.md5();
+        max = BigInteger.TWO
+                .pow(hashFunction.bits())
+                .subtract(BigInteger.ONE);
     }
 
     @Override
     public BigInteger hash(String string) {
         LOGGER.trace("Hashing the string '{}'", string);
 
-        final byte[] bytes = string.getBytes(Constants.TELNET_ENCODING);
-        final byte[] digest = messageDigest.digest(bytes);
-        return new BigInteger(1, digest);
+        final HashCode hashCode = hashFunction.hashString(string, Constants.TELNET_ENCODING);
+        return new BigInteger(1, hashCode.asBytes());
     }
 
     @Override
     public BigInteger getMax() {
-        return Constants.MD5_HASH_MAX_VALUE;
+        return max;
     }
 
     @Override
