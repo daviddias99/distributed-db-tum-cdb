@@ -16,7 +16,7 @@ public class DelayedEvent implements Runnable, TimeEvent {
     private static final Logger LOGGER = LogManager.getLogger(DelayedEvent.class);
 
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(
-            20,
+            5,
             new ThreadFactoryBuilder().setNameFormat("delayed-event-pool_%d").build()
     );
 
