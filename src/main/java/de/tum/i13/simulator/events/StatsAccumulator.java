@@ -1,5 +1,10 @@
 package de.tum.i13.simulator.events;
 
+import de.tum.i13.simulator.client.ClientSimulator;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,10 +15,9 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.tum.i13.simulator.client.ClientSimulator;
-import de.tum.i13.simulator.experiments.ExperimentConfiguration;
-
 public class StatsAccumulator implements Runnable {
+
+    private static final Logger LOGGER = LogManager.getLogger(StatsAccumulator.class);
 
     List<ClientSimulator> clients;
     LinkedList<ClientStats> timeStats;
@@ -95,7 +99,7 @@ public class StatsAccumulator implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Caught exception while saving stats", e);
         }
     }
 

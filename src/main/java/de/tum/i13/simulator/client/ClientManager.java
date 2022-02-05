@@ -96,7 +96,6 @@ public class ClientManager {
 
         startClient(this.addClient(path));
         LOGGER.trace("Launching client");
-        System.out.println("Launching client");
     }
 
     private void startClient(ClientSimulator clientSimulator) {

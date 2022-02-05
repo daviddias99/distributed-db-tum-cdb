@@ -4,6 +4,8 @@ import de.tum.i13.simulator.experiments.Experiment;
 import de.tum.i13.simulator.experiments.ExperimentConfiguration;
 import de.tum.i13.simulator.experiments.ExperimentConfiguration.Builder;
 import de.tum.i13.simulator.experiments.HardShutdownExperiment;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +15,8 @@ import static de.tum.i13.server.cache.CachingStrategy.LFU;
 import static de.tum.i13.simulator.experiments.ExperimentConfiguration.experimentConfiguration;
 
 public class Experiments {
+
+    private static final Logger LOGGER = LogManager.getLogger(Experiments.class);
 
     static void cacheExperiment() {
         final ExperimentConfiguration experimentConfiguration = experimentConfiguration()
@@ -140,7 +144,7 @@ public class Experiments {
                     try {
                         Files.delete(f.toPath());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        LOGGER.error("Caught exception while deleting file or folder", e);
                     }
                 }
             }
@@ -148,7 +152,7 @@ public class Experiments {
         try {
             Files.delete(folder.toPath());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Caught exception while deleting file or folder folder", e);
         }
     }
 }

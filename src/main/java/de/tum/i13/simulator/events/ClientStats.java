@@ -1,6 +1,11 @@
 package de.tum.i13.simulator.events;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ClientStats implements TimeEvent {
+
+    private static final Logger LOGGER = LogManager.getLogger(ClientStats.class);
 
     public double putTime = 0;
     public double getTime = 0;
@@ -49,10 +54,12 @@ public class ClientStats implements TimeEvent {
     }
 
     public void print() {
-        System.out.println(">> STATE");
-        System.out.printf("GET(%d, %d, %f)%n", getCount, getFailCount, getTime);
-        System.out.printf("PUT(%d, %d, %f)%n", putCount, putFailCount, putTime);
-        System.out.printf("DEL(%d, %d, %f)%n", deleteCount, deleteFailCount, deleteTime);
+        LOGGER.info(
+                "Client stats state\n    GET({}, {} {})\n    PUT({}, {}, {})\n    DEL({}, {}, {})",
+                getCount, getFailCount, getTime,
+                putCount, putFailCount, putTime,
+                deleteCount, deleteFailCount, deleteTime
+        );
     }
 
     public void add(ClientStats c) {

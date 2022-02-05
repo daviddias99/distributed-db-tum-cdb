@@ -7,6 +7,8 @@ import de.tum.i13.client.shell.ServerType;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.simulator.events.ClientStats;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -17,6 +19,8 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class ClientSimulator implements Runnable {
+
+    private static final Logger LOGGER = LogManager.getLogger(ClientSimulator.class);
 
     private static final double NANOS_PER_SECOND = 1000000000;
     LinkedList<Pair<String>> toSend = new LinkedList<>();
@@ -67,7 +71,7 @@ public class ClientSimulator implements Runnable {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("Caught exception while setting up connectino",e);
         }
     }
 
