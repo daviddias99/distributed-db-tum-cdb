@@ -2,6 +2,7 @@ package de.tum.i13.shared;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.spi.StandardLevel;
@@ -12,6 +13,8 @@ import java.nio.file.Path;
  * Sets up the logging in the application
  */
 public class LogSetup {
+
+    private static final Logger LOGGER = LogManager.getLogger(LogSetup.class);
 
     private LogSetup() {}
 
@@ -31,6 +34,7 @@ public class LogSetup {
         getLoggerContext().reconfigure();
 
         setRootLoggerLevel(logLevel);
+        LOGGER.info("Setup logging to file '{}' and level '{}'", logfile, logLevel);
     }
 
     /**

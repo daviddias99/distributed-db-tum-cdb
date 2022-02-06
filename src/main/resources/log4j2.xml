@@ -27,11 +27,13 @@
                 <KeyValuePair key="SIMULATOR" value="true"/>
             </ContextMapFilter>
         </Root>
-        <Logger name="de.tum.i13.server" level="warn">
-            <AppenderRef ref="SimulatorConsole"/>
+        <Logger name="de.tum.i13.server" level="all">
+            <AppenderRef ref="SimulatorConsole" level="warn"/>
+            <AppenderRef ref="LogFile"/>
         </Logger>
-        <Logger name="de.tum.i13.client" level="warn">
-            <AppenderRef ref="SimulatorConsole"/>
+        <Logger name="de.tum.i13.client" level="all">
+            <AppenderRef ref="SimulatorConsole" level="warn"/>
+            <AppenderRef ref="LogFile"/>
         </Logger>
     </Loggers>
 </Configuration>
