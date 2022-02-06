@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
-import static de.tum.i13.simulator.WarnLoggingRunnable.wrapWarnLogging;
+import static de.tum.i13.simulator.SimulatorUtils.wrapWarnLogging;
 
 public class ServerManager {
 

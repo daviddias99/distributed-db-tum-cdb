@@ -17,7 +17,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static de.tum.i13.simulator.WarnLoggingRunnable.wrapWarnLogging;
+import static de.tum.i13.simulator.SimulatorUtils.wrapWarnLogging;
 
 public class ClientManager {
 

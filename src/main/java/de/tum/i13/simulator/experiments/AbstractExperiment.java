@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static de.tum.i13.simulator.WarnLoggingRunnable.wrapWarnLogging;
+import static de.tum.i13.simulator.SimulatorUtils.wrapWarnLogging;
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_CLIENT;
 import static de.tum.i13.simulator.events.DelayedEvent.Type.START_SERVER;
 
