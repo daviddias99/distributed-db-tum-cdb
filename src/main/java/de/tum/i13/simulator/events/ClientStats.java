@@ -87,7 +87,7 @@ public class ClientStats implements TimeEvent {
         builder.append(this.deleteFailCount).append(",");
         builder.append(this.deleteTime).append(",");
         builder.append(putCount - putFailCount + getCount - getFailCount + deleteCount - deleteFailCount).append(",");
-        builder.append(this.periodEvent == null ? "" : this.periodEvent).append("\n");
+        builder.append(this.periodEvent == null ? "" : this.periodEvent.getType()).append("\n");
 
         return builder.toString();
     }

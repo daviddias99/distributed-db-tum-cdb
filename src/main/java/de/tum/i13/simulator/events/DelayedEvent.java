@@ -72,6 +72,10 @@ public class DelayedEvent implements Runnable, TimeEvent {
                 "}";
     }
 
+    public Type getType() {
+        return eType;
+    }
+
     public void schedule() {
         EXECUTOR_SERVICE.schedule(this, timeSeconds, TimeUnit.SECONDS);
     }
