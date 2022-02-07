@@ -76,9 +76,7 @@ public class Chord {
                 this.hashingAlgorithm.hash(ownLocation));
 
         if (successor.equals(NetworkLocation.NULL)) {
-            LOGGER.error("Could not boostrap chord instance with {}", bootstrapNode);
-            throw new ChordException(
-                    String.format("An error occured while boostrapping Chord with %s", bootstrapNode));
+            throw new ChordException("An error occurred while bootstrapping Chord with %s", bootstrapNode);
         }
 
         this.successors.setFirst(successor);
@@ -109,8 +107,7 @@ public class Chord {
             NetworkLocation newNPrime = this.messaging.closestPrecedingFinger(nPrime, key);
 
             if (newNPrime.equals(NetworkLocation.NULL)) {
-                LOGGER.error("Could not get closest preceding finger from {}", nPrime);
-                throw new ChordException("Could not get closest preceding finger");
+                throw new ChordException("Could not get closest preceding finger from %s", nPrime);
             }
 
             // Avoid infinite loop
@@ -122,8 +119,7 @@ public class Chord {
             nPrimeSuccessor = this.messaging.getSuccessor(nPrime);
 
             if (nPrimeSuccessor.equals(NetworkLocation.NULL)) {
-                LOGGER.error("Could not get successor from {}", nPrime);
-                throw new ChordException("Could not get sucessor");
+                throw new ChordException("Could not get successor from %s", nPrime);
             }
         }
 
