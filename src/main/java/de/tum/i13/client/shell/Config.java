@@ -20,6 +20,15 @@ class Config extends BaseConfig {
     public ServerType serverType;
 
     /**
+     * Number of replicas
+     */
+    @CommandLine.Option(
+            names = {"-r", "--replication-factor"},
+            description = "Number of replicas of each element. Default: ${DEFAULT-VALUE}",
+            defaultValue = "0")
+    public int replicationFactor;
+
+    /**
      * Parse the command line arguments into a Config object
      *
      * @param args command line arguments

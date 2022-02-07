@@ -31,6 +31,9 @@ public class Shell {
     public static void main(String[] args) {
         Config cfg = Config.parseCommandlineArgs(args);
 
+        // TODO Quick and dirty fix, should not be done like this in production
+        Constants.NUMBER_OF_REPLICAS = cfg.replicationFactor;
+
         final CLICommands commands = new CLICommands(cfg.serverType);
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
