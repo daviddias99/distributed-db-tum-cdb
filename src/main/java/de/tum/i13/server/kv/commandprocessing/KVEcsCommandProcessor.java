@@ -96,7 +96,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       this.serverState.start();
     }
 
-    (new Thread(withExceptionsLogged(() -> this.serverState.executeStoredDeletes(storage)))).start();
+    // (new Thread(withExceptionsLogged(() -> this.serverState.executeStoredDeletes(storage)))).start();
 
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }

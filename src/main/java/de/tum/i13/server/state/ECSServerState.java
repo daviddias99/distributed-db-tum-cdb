@@ -6,12 +6,16 @@ import de.tum.i13.shared.net.NetworkLocation;
 
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Class that represents the server's state. It contains the actual state, the
  * ring metadata and the location of the ECS.
  */
 public class ECSServerState extends AbstractServerState {
 
+  private static final Logger LOGGER = LogManager.getLogger(ECSServerState.class);
 
   private ConsistentHashRing ringMetadata;
   private final NetworkLocation curNetworkLocation;
@@ -80,7 +84,7 @@ public class ECSServerState extends AbstractServerState {
   }
 
   @Override
-  public synchronized boolean isWriteResponsible(String key) {
+  public boolean isWriteResponsible(String key) {
     return ringMetadata.isWriteResponsible(curNetworkLocation, key);
   }
 
@@ -113,15 +117,19 @@ public class ECSServerState extends AbstractServerState {
     return ringMetadata.isReplicationActive();
   }
 
-  public synchronized void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {
+  public void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {
+    LOGGER.info("Entered key change handler on server state");
     if (this.replicationOrchestrator == null) {
+      LOGGER.info("Left key change handler on server state");
+
       return;
     }
-
+    
     this.replicationOrchestrator.handleKeyRangeChange(oldMetadata, newMetadata);
+    LOGGER.info("Left key change handler on server state after changes");
   }
 
-  public synchronized void deleteReplicatedRanges() {
+  public void deleteReplicatedRanges() {
     if (this.replicationOrchestrator == null) {
       return;
     }

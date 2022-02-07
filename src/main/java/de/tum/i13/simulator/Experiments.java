@@ -115,16 +115,16 @@ public class Experiments {
                 .initialDelay(10)
                 .startingServerCount(1)
                 .startingClientCount(0)
-                .finalServerCount(2)
-                .finalClientCount(20)
+                .finalServerCount(3)
+                .finalClientCount(15)
                 .afterAdditionalClientsDelay(10)
-                .afterAdditionalServersDelay(120)
-                .serverStartDelay(30)
+                .afterAdditionalServersDelay(240)
+                .serverStartDelay(90)
                 .clientStartDelay(5)
                 .serverCacheSize(500)
                 .bTreeNodeSize(200)
                 .serverCachingStrategy(LFU)
-                .replicationFactor(3)
+                .replicationFactor(2)
                 .statsName(String.format("behaviour_%s", useChord ? "chord" : "normal"));
 
         Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
@@ -160,7 +160,8 @@ public class Experiments {
 
     public static void main(String[] args) {
         resetFolders();
-        noReplicationExperiment(false);
+        // noReplicationExperiment(false);
+        replicationExperiment(false);
         // behaviorExperiment(false);
         // replicationExperiment(true, 0);
         // replicationExperiment(true, 2);

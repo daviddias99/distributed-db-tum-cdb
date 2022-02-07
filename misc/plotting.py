@@ -13,7 +13,7 @@ def plot_v_line(ax, data, color, label):
       ax.axvline(data[i], alpha=0.5, linestyle='--', color=color)
 
 CSV_FOLDER = path.join(dirname(__file__), '..', 'stats')
-CSV_FILE = 'out_really_small_20220204195500.csv'
+CSV_FILE = 'out_behaviour_normal_20220207150925.csv'
 ROLLING_AVG_WINDOW_SIZE = 10
 TITLE='FIFO Cache (size=100 elements)'
 
@@ -43,4 +43,4 @@ ax.set_ylabel('Operations')
 ax.set_title(TITLE)
 ax.legend()
 # ax.show()
-fig.savefig(path.join('misc', 'plots', CSV_FILE + '.png'))
+fig.savefig(path.join(dirname(__file__), 'plots', CSV_FILE + '.png'), format='png')

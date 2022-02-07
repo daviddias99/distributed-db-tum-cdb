@@ -85,6 +85,14 @@ public class ReplicationOrchestrator {
   }
 
   private void replicateToNewSuccessors(List<NetworkLocation> newSuccessors, RingRange range) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("Replicating range %s to new successors:%n", range));
+
+    for (NetworkLocation networkLocation : newSuccessors) {
+      sb.append(String.format("- %s%n", networkLocation));
+    }
+
+    LOGGER.info(sb);
     List<Pair<String>> toAdd = new LinkedList<>();
 
     for (RingRange splitRange : range.getAsNonWrapping()) {
@@ -111,6 +119,7 @@ public class ReplicationOrchestrator {
 
     // TODO: this won't work for real-life data situations (whole range can't
     // probably fit in memory)
+    LOGGER.trace("Getting range {} from storage", range);
     return this.storage.getRange(lowerBound, upperBound);
   }
 
@@ -139,7 +148,7 @@ public class ReplicationOrchestrator {
         if (toAdd.isEmpty())
           return;
 
-        LOGGER.info("Sending {} keys to peers", toAdd.size());
+        LOGGER.info("Sending {} keys ({}) to {}", toAdd.size(), ringRange, peer);
         (new Thread(withExceptionsLogged(new BulkReplicationHandler(peer, toAdd)))).start();
       } catch (GetException e) {
         LOGGER.error("Could not fetch range for replication.");
@@ -147,7 +156,7 @@ public class ReplicationOrchestrator {
     }
   }
 
-  public synchronized void handleKeyRangeChange(ConsistentHashRing oldRing, ConsistentHashRing newRing) {
+  public void handleKeyRangeChange(ConsistentHashRing oldRing, ConsistentHashRing newRing) {
     this.oldRing = oldRing;
     this.newRing = newRing;
 

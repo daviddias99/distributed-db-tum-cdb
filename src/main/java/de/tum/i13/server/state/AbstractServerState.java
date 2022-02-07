@@ -69,7 +69,7 @@ public abstract class AbstractServerState implements ServerState {
         this.currentState = state;
     }
 
-    public synchronized void executeStoredDeletes(PersistentStorage storage) {
+    public void executeStoredDeletes(PersistentStorage storage) {
         for (String key : nodesToDelete) {
           try {
             LOGGER.info("Trying to delete item with key {}.", key);

@@ -59,6 +59,7 @@ public class BulkReplicationHandler implements Runnable{
         LOGGER.atError().withThrowable(e).log("Could not send item with key {} to peer {}.  (delete={})", item.key, peer, this.isDelete);
       }
     }
-    
+
+    LOGGER.info("Finished bulk replication to {}", peer);
   }
 }

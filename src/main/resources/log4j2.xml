@@ -15,7 +15,7 @@
                 <ContextMapFilter onMatch="NEUTRAL" onMismatch="DENY" operator="or">
                     <KeyValuePair key="SIMULATOR" value="true"/>
                 </ContextMapFilter>
-                <ThresholdFilter level="WARN" onMatch="NEUTRAL" onMismatch="DENY"/>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="DENY"/>
             </Filters>
         </Console>
         <Routing name="KeyRouting">

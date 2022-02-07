@@ -60,7 +60,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
 
     private String normalizeKey(String key) {
         String intermediate = this.hashAlg.hash(key).toString(16);
-        return "0".repeat(this.hashAlg.getHashSizeBits()/4).substring(intermediate.length()) + intermediate;
+        return HashingAlgorithm.padLeftZeros(intermediate, this.hashAlg.getHashSizeBits()/4) ;
     }
 
     @Override

@@ -19,14 +19,14 @@ public class EmailParser {
     public static Pair<String> parseEmail(Path emailPath) {
         try {
             String content = Files.readString(emailPath, StandardCharsets.US_ASCII).replaceAll("[\\t\\n\\r]+", " ");
-            return new Pair<>(getIdFromEmail(content), content);
+            return new Pair<>(getIdFromEmail(content), "content");
         } catch (IOException e) {
-            LOGGER.atWarn()
-                    .withThrowable(e)
-                    .log("Caught exception while parsing E-Mail with path {}", emailPath);
+            // LOGGER.atWarn()
+            //         .withThrowable(e)
+            //         .log("Caught exception while parsing E-Mail with path {}", emailPath);
+            return null;
         }
 
-        return null;
     }
 
     private static String getIdFromEmail(String email) {

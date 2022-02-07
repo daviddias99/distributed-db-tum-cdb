@@ -82,7 +82,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
     }
 
     protected KVMessage put(String key, String value) {
-        synchronized (this.kvStore) {
+        // synchronized (this.kvStore) {
             try {
                 if (!this.serverState.isWriteResponsible(key))
                     return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
@@ -96,7 +96,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
             }
 
             return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
-        }
+        // }
     }
 
     private KVMessage putWithoutChecks(String key, String value, boolean forceReplicate, boolean avoidReplicate) {
