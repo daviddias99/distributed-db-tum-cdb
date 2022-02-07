@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
+
 public class Chord {
 
     private static final Logger LOGGER = LogManager.getLogger(Chord.class);
@@ -270,18 +272,6 @@ public class Chord {
         if (!predecessorAlive) {
             this.setPredecessor(NetworkLocation.NULL);
         }
-    }
-
-    private Runnable withExceptionsLogged(Runnable function) {
-        return () -> {
-            try {
-                function.run();
-            } catch (Exception e) {
-                LOGGER.atError()
-                        .withThrowable(e)
-                        .log("Exception was caught during periodic thread execution");
-            }
-        };
     }
 
     private void initThreads() {

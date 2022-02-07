@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import java.nio.file.Path;
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 /**
  * The main class responsible for stating the database server.
@@ -74,9 +75,9 @@ public class Main {
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
+            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor)));
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state)));
+            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state))));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(500);

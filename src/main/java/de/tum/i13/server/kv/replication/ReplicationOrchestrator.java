@@ -50,7 +50,7 @@ public class ReplicationOrchestrator {
     if (toDelete.isEmpty()) {
       return;
     }
-    (new Thread(new AsyncDeleteHandler(storage, toDelete))).start();
+    (new Thread(withExceptionsLogged(new AsyncDeleteHandler(storage, toDelete)))).start();
   }
 
   private void deleteReplicatedRanges() {
@@ -99,7 +99,7 @@ public class ReplicationOrchestrator {
 
     LOGGER.info("Sending {} keys to peers", toAdd.size());
     for (NetworkLocation peer : newSuccessors) {
-      (new Thread(new BulkReplicationHandler(peer, toAdd))).start();
+      (new Thread(withExceptionsLogged(new BulkReplicationHandler(peer, toAdd)))).start();
     }
   }
 
@@ -138,7 +138,7 @@ public class ReplicationOrchestrator {
           return;
 
         LOGGER.info("Sending {} keys to peers", toAdd.size());
-        (new Thread(new BulkReplicationHandler(peer, toAdd))).start();
+        (new Thread(withExceptionsLogged(new BulkReplicationHandler(peer, toAdd)))).start();
       } catch (GetException e) {
         LOGGER.error("Could not fetch range for replication.");
       }

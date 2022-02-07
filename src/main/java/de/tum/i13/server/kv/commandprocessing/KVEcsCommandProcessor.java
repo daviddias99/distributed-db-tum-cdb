@@ -1,8 +1,5 @@
 package de.tum.i13.server.kv.commandprocessing;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.commandprocessing.handlers.HandoffHandler;
@@ -12,6 +9,10 @@ import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 /**
  * Command processor for ECS KVMessages
@@ -95,7 +96,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
       this.serverState.start();
     }
 
-    (new Thread(() -> this.serverState.executeStoredDeletes(storage))).start();
+    (new Thread(withExceptionsLogged(() -> this.serverState.executeStoredDeletes(storage)))).start();
 
     return new KVMessageImpl(KVMessage.StatusType.SERVER_ACK);
   }
@@ -117,7 +118,7 @@ public class KVEcsCommandProcessor implements CommandProcessor<KVMessage> {
         asyncHandoff, this.serverState, this.serverState.getRingMetadata().getHashingAlgorithm());
 
     if (asyncHandoff) {
-      Thread handoffProcess = new Thread(handoff);
+      Thread handoffProcess = new Thread(withExceptionsLogged(handoff));
       handoffProcess.start();
       LOGGER.info("Started async handoff process, returing acknowlegement to ECS");
       return new KVMessageImpl(KVMessage.StatusType.SERVER_HANDOFF_ACK);

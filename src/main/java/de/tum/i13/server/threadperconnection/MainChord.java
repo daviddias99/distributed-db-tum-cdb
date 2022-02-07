@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import java.nio.file.Path;
 
 import static de.tum.i13.shared.LogSetup.setupLogging;
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 /**
  * The main class responsible for stating the database server.
@@ -73,10 +74,10 @@ public class MainChord {
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
+            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor)));
 
             // Setup shutdown procedure (handoff)
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(listeningThread, chord, state, storage, chordListener)));
+            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(listeningThread, chord, state, storage, chordListener))));
 
             listeningThread.start();
             Thread.sleep(600);

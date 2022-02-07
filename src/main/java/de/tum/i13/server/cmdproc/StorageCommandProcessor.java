@@ -16,6 +16,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
+
 public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     private static final Logger LOGGER = LogManager.getLogger(StorageCommandProcessor.class);
@@ -75,7 +77,7 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
         // Replicate on each successor
         for (NetworkLocation networkLocation : readResponsible) {
             LOGGER.info("Replicating '{}' to {}", key, networkLocation);
-            (new Thread(new PutDeleteReplicationHandler(networkLocation, key, value))).start();
+            ((new Thread(withExceptionsLogged(new PutDeleteReplicationHandler(networkLocation, key, value))))).start();
         }
     }
 

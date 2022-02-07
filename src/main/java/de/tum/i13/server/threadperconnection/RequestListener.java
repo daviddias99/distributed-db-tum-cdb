@@ -13,6 +13,8 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
+
 public class RequestListener implements Runnable {
   private static final Logger LOGGER = LogManager.getLogger(RequestListener.class);
 
@@ -59,8 +61,8 @@ public class RequestListener implements Runnable {
           LOGGER.debug("New connection at {}", clientSocket);
 
           // start a new Thread for this connection
-          executorService.submit(new ConnectionHandleThread(commandProcessor, cHandler, clientSocket,
-              (InetSocketAddress) serverSocket.getLocalSocketAddress()));
+          executorService.submit(withExceptionsLogged(new ConnectionHandleThread(commandProcessor, cHandler, clientSocket,
+              (InetSocketAddress) serverSocket.getLocalSocketAddress())));
         }
       } catch (IOException ex) {
         LOGGER.fatal("Caught exception while accepting client request", ex);

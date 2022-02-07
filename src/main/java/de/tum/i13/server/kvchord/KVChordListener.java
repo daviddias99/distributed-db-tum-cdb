@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Predicate.not;
 
@@ -81,7 +82,7 @@ public class KVChordListener implements ChordListener {
         Runnable handoff = new HandoffHandler(current, lowerBound, upperBound, this.storage, this.state, this.hashing);
 
         if (doAsyncHandoff) {
-            Thread handoffProcess = new Thread(handoff);
+            Thread handoffProcess = new Thread(withExceptionsLogged(handoff));
             handoffProcess.start();
             LOGGER.info("Started async handoff process");
         } else {
@@ -166,7 +167,7 @@ public class KVChordListener implements ChordListener {
                     .map(e -> e.key)
                     .collect(Collectors.toList());
             if (async) {
-                (new Thread(new AsyncDeleteHandler(storage, toDelete))).start();
+                (new Thread(withExceptionsLogged(new AsyncDeleteHandler(storage, toDelete)))).start();
             } else {
                 (new AsyncDeleteHandler(storage, toDelete)).run();
             }
@@ -205,14 +206,14 @@ public class KVChordListener implements ChordListener {
         // If new successors, send them range
         for (NetworkLocation newSucc : enters) {
             LOGGER.info("Sending {} keys to peers {}", relevantElements.size(), newSucc);
-            (new Thread(new BulkReplicationHandler(newSucc, relevantElements))).start();
+            (new Thread(withExceptionsLogged(new BulkReplicationHandler(newSucc, relevantElements)))).start();
         }
 
         // If old successors, send them delete notice (if possible)
         // TODO: can be much more efficient using a DELETE_RANGE
         for (NetworkLocation oldSucc : removals) {
             LOGGER.info("Deleting {} keys from peer {}", relevantElements.size(), oldSucc);
-            (new Thread(new BulkReplicationHandler(oldSucc, relevantElements, true))).start();
+            (new Thread(withExceptionsLogged(new BulkReplicationHandler(oldSucc, relevantElements, true)))).start();
         }
     }
 
@@ -247,13 +248,13 @@ public class KVChordListener implements ChordListener {
         // If new successors, send them range
         for (NetworkLocation newSucc : current) {
             LOGGER.info("Sending {} keys to peers {}", relevantElements.size(), newSucc);
-            (new Thread(new BulkReplicationHandler(newSucc, relevantElements))).start();
+            (new Thread(withExceptionsLogged(new BulkReplicationHandler(newSucc, relevantElements)))).start();
         }
     }
 
     private void scheduleReplicationDeletion() {
         final var deletionTask = DELETION_EXECUTOR_SERVICE.schedule(
-                () -> this.deleteReplicatedRanges(true), REPLICATION_DELETION_DELAY, MILLISECONDS);
+                withExceptionsLogged(() -> this.deleteReplicatedRanges(true)), REPLICATION_DELETION_DELAY, MILLISECONDS);
         DELETION_TASKS.add(deletionTask);
     }
 
