@@ -11,7 +11,7 @@ import picocli.CommandLine;
 /**
  * Handles {@link KVException} thrown by the {@link NetworkPersistentStorage}
  */
-class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
+public class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionExceptionHandler.class);
 
