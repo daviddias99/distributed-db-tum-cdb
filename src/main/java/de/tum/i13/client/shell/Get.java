@@ -46,7 +46,7 @@ class Get implements Callable<Integer> {
             out.printf("Retrieved value '%s' for key '%s'%n", value, key);
             return ExitCode.SUCCESS.getValue();
         } else if (storageStatus == KVMessage.StatusType.GET_ERROR) {
-            LOGGER.info("Remote storage returned error while getting key '{}'", key);
+            LOGGER.warn("Remote storage returned error while getting key '{}'", key);
             out.printf("Could not retrieve key '%s' from remote storage%n", key);
             return ExitCode.STORAGE_ERROR.getValue();
         } else if (storageStatus == KVMessage.StatusType.ERROR) {

@@ -12,7 +12,7 @@ class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandle
 
     @Override
     public int handleParseException(CommandLine.ParameterException ex, String[] args) {
-        LOGGER.info("Command parsing failed", ex);
+        LOGGER.warn("Command parsing failed", ex);
 
         final CommandLine cmd = ex.getCommandLine();
         final PrintWriter out = cmd.getOut();
