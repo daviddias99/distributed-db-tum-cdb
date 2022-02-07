@@ -134,25 +134,20 @@ public class Experiments {
         Experiments.deleteFolder(new File("data"));
     }
 
-    private static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    try {
-                        Files.delete(f.toPath());
-                    } catch (IOException e) {
-                        LOGGER.error("Caught exception while deleting file or folder", e);
-                    }
-                }
-            }
+    private static void deleteFolder(File files) {
+        if (files.isDirectory()) {
+            Stream.ofNullable(files.listFiles()) //some JVMs return null for empty dirs
+                    .flatMap(Arrays::stream)
+                    .forEach(Experiments::deleteFolder);
         }
         try {
-            Files.delete(folder.toPath());
+            LOGGER.debug("Trying to delete file {}", files);
+            Files.delete(files.toPath());
         } catch (IOException e) {
-            LOGGER.error("Caught exception while deleting file or folder folder", e);
+            LOGGER.atWarn()
+                    .withThrowable(e)
+                    .log("Couldn't delete file {}", files);
         }
     }
+
 }
