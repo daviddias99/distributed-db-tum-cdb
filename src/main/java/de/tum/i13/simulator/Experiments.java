@@ -132,6 +132,7 @@ public class Experiments {
     }
 
     private static void deleteFolder(File files) {
+        if (!files.exists()) return;
         if (files.isDirectory()) {
             Stream.ofNullable(files.listFiles()) //some JVMs return null for empty dirs
                     .flatMap(Arrays::stream)
