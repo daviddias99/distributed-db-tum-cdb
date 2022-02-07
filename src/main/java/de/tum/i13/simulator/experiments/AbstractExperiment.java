@@ -101,7 +101,7 @@ abstract class AbstractExperiment implements Experiment {
         LOGGER.info("Starting ECS");
         EXECUTOR_SERVICE.submit(wrapWarnLogging(() -> ExternalConfigurationServer.main(new String[]{
                 "-p", "25670",
-                "-l", "logs/ec.log"
+                "-l", "logs/ecs.log"
         })));
         LOGGER.info("Started ECS");
     }

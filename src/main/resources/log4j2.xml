@@ -11,11 +11,14 @@
         </Console>
         <Console name="SimulatorConsole" target="SYSTEM_ERR">
             <PatternLayout pattern="${LOG_PATTERN}"/>
-            <ContextMapFilter onMatch="ACCEPT" onMismatch="DENY" operator="or">
-                <KeyValuePair key="SIMULATOR" value="true"/>
-            </ContextMapFilter>
+            <Filters>
+                <ContextMapFilter onMatch="NEUTRAL" onMismatch="DENY" operator="or">
+                    <KeyValuePair key="SIMULATOR" value="true"/>
+                </ContextMapFilter>
+                <ThresholdFilter level="WARN" onMatch="NEUTRAL" onMismatch="DENY"/>
+            </Filters>
         </Console>
-        <Routing name="Routing">
+        <Routing name="KeyRouting">
             <Routes pattern="$${ctx:ROUTINGKEY}">
                 <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
                 <Route key="$${ctx:ROUTINGKEY}">
@@ -33,22 +36,18 @@
                 </Route>
             </Routes>
         </Routing>
+        <Routing name="SimulatorRouting">
+            <Routes pattern="$${ctx:SIMULATOR}">
+                <Route key="true" ref="SimulatorConsole"/>
+                <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
+                <Route ref="Console"/>
+            </Routes>
+        </Routing>
     </Appenders>
     <Loggers>
         <Root level="all">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="Routing"/>
-            <ContextMapFilter onMatch="DENY" onMismatch="ACCEPT" operator="or">
-                <KeyValuePair key="SIMULATOR" value="true"/>
-            </ContextMapFilter>
+            <AppenderRef ref="KeyRouting"/>
+            <AppenderRef ref="SimulatorRouting"/>
         </Root>
-        <Logger name="de.tum.i13.server" level="all">
-            <AppenderRef ref="SimulatorConsole" level="warn"/>
-            <AppenderRef ref="Routing"/>
-        </Logger>
-        <Logger name="de.tum.i13.client" level="all">
-            <AppenderRef ref="SimulatorConsole" level="warn"/>
-            <AppenderRef ref="Routing"/>
-        </Logger>
     </Loggers>
 </Configuration>
