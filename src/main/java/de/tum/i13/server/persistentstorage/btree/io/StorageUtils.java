@@ -1,6 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
-import de.tum.i13.shared.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -84,19 +83,13 @@ public class StorageUtils {
             objectIn.close();
             return obj;
         } catch (FileNotFoundException e) {
-            StorageException storageException = new StorageException(e,
+            throw new StorageException(e,
                     "Throwing exception because the file %s could not be found.", filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while reading object from memory %s", filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            throw new StorageException(e, "I/O error while reading object from memory %s", filePath);
         } catch (ClassNotFoundException e) {
-            StorageException storageException = new StorageException(e,
+            throw new StorageException(e,
                     "Unknown error while reading object from memory");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
         }
     }
 
@@ -114,14 +107,10 @@ public class StorageUtils {
             objectOut.writeObject(obj);
             objectOut.close();
         } catch (FileNotFoundException e) {
-            StorageException storageException = new StorageException(e,
+            throw new StorageException(e,
                     "Throwing exception because the file %s could not be found.", filePath);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while writing object to disk");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            throw new StorageException(e, "I/O error while writing object to disk");
         }
     }
 
@@ -142,9 +131,7 @@ public class StorageUtils {
             Files.deleteIfExists(filePath);
             LOGGER.debug("Deleted chunk ({}) from disk.", filePath);
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while deleting file from disk");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            throw new StorageException(e, "I/O error while deleting file from disk");
         }
     }
 }

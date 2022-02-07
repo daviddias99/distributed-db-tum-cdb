@@ -1,17 +1,16 @@
 package de.tum.i13.server.persistentstorage.btree.io.chunk;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.*;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
-import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * Implements {@link ChunkStorageHandler} by storing chunks of type
@@ -68,9 +67,7 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             Files.delete(Paths.get(storageFolder, chunkId));
             LOGGER.debug("Deleted chunk ({}) from disk.", Paths.get(storageFolder, chunkId));
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while deleting chunk from disk");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            throw new StorageException(e, "I/O error while deleting chunk from disk");
         }
     }
 

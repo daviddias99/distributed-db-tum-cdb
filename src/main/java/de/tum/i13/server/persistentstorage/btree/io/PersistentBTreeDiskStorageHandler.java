@@ -1,21 +1,19 @@
 package de.tum.i13.server.persistentstorage.btree.io;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.persistentstorage.btree.PersistentBTree;
 import de.tum.i13.server.persistentstorage.btree.PersistentBTreeNode;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListenerImpl;
-import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Implements {@link ChunkStorageHandler} by storing chunks of type
@@ -152,11 +150,9 @@ public class PersistentBTreeDiskStorageHandler<V>
             try {
                 Files.delete(Paths.get(this.storageFolder, chunkId));
             } catch (IOException e) {
-                StorageException ex = new StorageException(e,
-                        "An error occured while deleting newly created chunk on rollback");
-                LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
                 this.endTransaction();
-                throw ex;
+                throw new StorageException(e,
+                        "An error occured while deleting newly created chunk on rollback");
             }
         }
 
@@ -216,9 +212,7 @@ public class PersistentBTreeDiskStorageHandler<V>
             StorageUtils.copyAndReplaceFile(src, dst);
 
         } catch (IOException e) {
-            StorageException ex = new StorageException(e, "An error occured during chunk transfer");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
+            throw new StorageException(e, "An error occured during chunk transfer");
         }
     }
 }

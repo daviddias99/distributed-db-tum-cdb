@@ -4,8 +4,9 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Closeable;
 import java.io.Serializable;
@@ -14,9 +15,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * This class represents a BTree (https://en.wikipedia.org/wiki/B-tree) that can
@@ -125,10 +123,8 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         Preconditions.notNull(key);
 
         if (treeClosed.get()) {
-            PersistentBTreeException ex = new PersistentBTreeException(
+            throw new PersistentBTreeException(
                     "Could not perform operation because tree is closed");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
         }
 
         if (root == null)
@@ -175,10 +171,8 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         Preconditions.notNull(key);
 
         if (treeClosed.get()) {
-            PersistentBTreeException ex = new PersistentBTreeException(
+            throw new PersistentBTreeException(
                     "Could not perform operation because tree is closed");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
         }
 
         this.readWriteLock.readLock().lock();
@@ -207,10 +201,8 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         Preconditions.check(lowerBound.compareTo(upperBound) <= 0);
 
         if (treeClosed.get()) {
-            PersistentBTreeException ex = new PersistentBTreeException(
+            throw new PersistentBTreeException(
                     "Could not perform operation because tree is closed");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
         }
 
         this.readWriteLock.readLock().lock();
@@ -241,10 +233,8 @@ public class PersistentBTree<V> implements Serializable, Closeable {
         Preconditions.notNull(value);
 
         if (treeClosed.get()) {
-            PersistentBTreeException ex = new PersistentBTreeException(
+            throw new PersistentBTreeException(
                     "Could not perform operation because tree is closed");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
         }
 
         try {

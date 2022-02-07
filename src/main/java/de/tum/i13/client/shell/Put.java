@@ -78,13 +78,11 @@ class Put implements Callable<Integer> {
             out.printf("Remote storage returned an error with message: %s", storageResponse);
             return ExitCode.STORAGE_ERROR.getValue();
         } else {
-            final PutException putException = new PutException(
+            throw new PutException(
                     "Remote storage returned unprocessable status code %s while putting key '%s'",
                     storageStatus,
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         }
     }
 

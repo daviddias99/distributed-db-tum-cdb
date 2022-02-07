@@ -4,7 +4,6 @@ import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
-import org.apache.logging.log4j.LogManager;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -45,32 +44,26 @@ public interface ConsistentHashRing {
 
     private static void checkKVStoreData(String[] kvStoreData) {
         if (kvStoreData.length != 3) {
-            final IllegalArgumentException exception = new IllegalArgumentException(
+            throw new IllegalArgumentException(
                     String.format(
                             "Could not convert metadata to a '%s'. %s data '%s' was malformed",
                             ConsistentHashRing.class.getSimpleName(),
                             KVStore.class.getSimpleName(),
                             Arrays.toString(kvStoreData)
                     ));
-            LogManager.getLogger(ConsistentHashRing.class)
-                    .error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
         }
     }
 
     private static NetworkLocation extractNetworkLocation(String networkLocationString) {
         final String[] networkLocationData = networkLocationString.split(":");
         if (networkLocationData.length != 2) {
-            final IllegalArgumentException exception = new IllegalArgumentException(
+            throw new IllegalArgumentException(
                     String.format(
                             "Could not convert metadata to a '%s'. %s data '%s' was malformed",
                             ConsistentHashRing.class.getSimpleName(),
                             NetworkLocation.class.getSimpleName(),
                             Arrays.toString(networkLocationData)
                     ));
-            LogManager.getLogger(ConsistentHashRing.class)
-                    .error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
         }
         final String address = networkLocationData[0];
         final String port = networkLocationData[1];

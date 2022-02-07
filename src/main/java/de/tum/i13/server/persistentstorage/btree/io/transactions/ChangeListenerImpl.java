@@ -1,17 +1,15 @@
 package de.tum.i13.server.persistentstorage.btree.io.transactions;
 
+import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.server.persistentstorage.btree.io.StorageException;
-import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
-import de.tum.i13.shared.Constants;
 
 /**
  * An implementation of a {@link ChangeListener}
@@ -56,9 +54,7 @@ public class ChangeListenerImpl implements ChangeListener {
             StorageUtils.copyAndReplaceFile(src, dst);
 
         } catch (IOException e) {
-            StorageException ex = new StorageException(e, "An error occured during chunk transfer");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, ex);
-            throw ex;
+            throw new StorageException(e, "An error occured during chunk transfer");
         }
     }
 

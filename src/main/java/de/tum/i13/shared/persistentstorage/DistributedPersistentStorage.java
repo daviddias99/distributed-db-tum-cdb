@@ -60,11 +60,8 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         try {
             return processResponseResiliently(key, RequestType.GET, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
-            final GetException getException = new GetException(exception,
+            throw new GetException(exception,
                     EXCEPTION_FORMAT, exception.getMessage());
-            LOGGER.error("Caught exception while getting. Wrapping the exception.",
-                    getException);
-            throw getException;
         }
     }
 
@@ -81,11 +78,8 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         try {
             return processResponseResiliently(key, RequestType.PUT, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
-            final PutException putException = new PutException(exception,
+            throw new PutException(exception,
                     EXCEPTION_FORMAT, exception.getMessage());
-            LOGGER.error("Caught exception while getting. Wrapping the exception.",
-                    putException);
-            throw putException;
         }
     }
 
@@ -120,14 +114,12 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
                 return serverCallable.call();
             }));
         } catch (MaxRetriesExceededException ex) {
-            var exception = new CommunicationClientException(ex, "Reached maximum number of retries while " +
-                    "communicating with server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(
+                    ex,
+                    "Reached maximum number of retries while communicating with server"
+            );
         } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex, "The storage encountered an error" + ex.getMessage());
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(ex, "The storage encountered an error" + ex.getMessage());
         }
     }
 
@@ -195,19 +187,13 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
             final KVMessage newResponse = serverCallable.call();
             return handleSecondServerResponse(serverCallable, key, requestType, newResponse);
         } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex,
-                    "The storage encountered an error. " + ex.getMessage());
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(ex, "The storage encountered an error. " + ex.getMessage());
         }
     }
 
     private NetworkLocation getRandomNetworkLocation(List<NetworkLocation> networkLocations) throws CommunicationClientException {
         if (networkLocations.isEmpty()) {
-            var exception = new CommunicationClientException("Could not find server responsible for " +
-                    "data");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException("Could not find server responsible for data");
         }
         if (networkLocations.size() == 1) {
             return networkLocations.get(0);
@@ -225,9 +211,7 @@ public abstract class DistributedPersistentStorage implements NetworkPersistentS
         LOGGER.debug("Second server indicated status {}", newStatus);
 
         if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
-            final var exception = new CommunicationClientException("Could not find responsible server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException("Could not find responsible server");
         } else return processResponseResiliently(key, requestType, serverCallable, newResponse);
     }
 

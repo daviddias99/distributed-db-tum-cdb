@@ -6,12 +6,11 @@ import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkMessageServer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * A {@link PersistentStorage} that is connected remotely to a server via a
@@ -58,10 +57,8 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         LOGGER.info("Trying to get value of key '{}'", key);
 
         if (getByteLength(key) >= Constants.MAX_KEY_SIZE_BYTES) {
-            final GetException getException = new GetException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
+            throw new GetException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
                     Constants.MAX_KEY_SIZE_BYTES);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-            throw getException;
         }
 
         final KVMessageImpl getMessage = new KVMessageImpl(key, KVMessage.StatusType.GET);
@@ -81,17 +78,13 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         // exception that cannot be handled
         // in a common method
         if (getByteLength(key) >= Constants.MAX_KEY_SIZE_BYTES) {
-            final PutException putException = new PutException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
+            throw new PutException(KEY_MAX_LENGTH_EXCEPTION_FORMAT, key,
                     Constants.MAX_KEY_SIZE_BYTES);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         }
 
         if (value != null && getByteLength(value) >= Constants.MAX_VALUE_SIZE_BYTES) {
-            final PutException putException = new PutException("Value '%s' exceeded maximum byte length of %s",
+            throw new PutException("Value '%s' exceeded maximum byte length of %s",
                     value, Constants.MAX_VALUE_SIZE_BYTES);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         }
 
         return value == null ? deleteKey(key) : putKey(key, value);

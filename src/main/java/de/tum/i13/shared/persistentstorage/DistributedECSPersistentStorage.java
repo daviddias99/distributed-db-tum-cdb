@@ -2,7 +2,6 @@ package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
 import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.net.CommunicationClientException;
@@ -44,17 +43,13 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
         if (keyRangeStatus == KVMessage.StatusType.SERVER_STOPPED) {
             retryWithBackOff(getKeyRangeFunction);
         } else if (keyRangeStatus != KVMessage.StatusType.KEYRANGE_SUCCESS) {
-            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException("Server did not respond with appropriate server metadata");
         }
 
         try {
             hashRing = ConsistentHashRing.unpackMetadata(keyRangeResponse.getKey());
         } catch (IllegalArgumentException ex) {
-            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(ex, "Could not unpack server metadata");
         }
     }
 
@@ -67,9 +62,7 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
             case PUT -> hashRing.getWriteResponsibleNetworkLocation(key)
                     .map(List::of)
                     .orElseThrow(() -> {
-                        var exception = new CommunicationClientException("Could not find server responsible for data");
-                        LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-                        return exception;
+                        return new CommunicationClientException("Could not find server responsible for data");
                     });
             case GET -> hashRing.getReadResponsibleNetworkLocation(key);
         };

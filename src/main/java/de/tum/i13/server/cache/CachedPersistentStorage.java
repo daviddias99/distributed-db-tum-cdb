@@ -1,15 +1,13 @@
 package de.tum.i13.server.cache;
 
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.kv.KVMessage.StatusType;
+import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,14 +56,12 @@ public class CachedPersistentStorage implements PersistentStorage {
             else return finalizePuttingKeyToValue(key, value, storageStatus);
 
         } catch (PutException exception) {
-            final PutException putException = new PutException(
+            throw new PutException(
                     exception,
                     "Could not put key %s with value %s into persistent storage",
                     key,
                     value
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw putException;
         }
     }
 
@@ -77,27 +73,23 @@ public class CachedPersistentStorage implements PersistentStorage {
         final Set<StatusType> permittedStatuses = Set.of(StatusType.PUT_UPDATE, StatusType.PUT_SUCCESS,
                 StatusType.PUT_ERROR);
         if (!permittedStatuses.contains(storageStatus)) {
-            final PutException putException = new PutException(
+            throw new PutException(
                     "Persistent storage returned unprocessable status code %s while putting key %s to value %s",
                     storageStatus,
                     key,
                     value
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         } else if (storageStatus == StatusType.PUT_ERROR) {
             return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
         } else {
             final StatusType cacheStatus = cache.put(key, value).getStatus();
             if (!permittedStatuses.contains(cacheStatus)) {
-                final PutException putException = new PutException(
+                throw new PutException(
                         "Cache storage returned unprocessable status code %s while putting key %s to value %s",
                         storageStatus,
                         key,
                         value
                 );
-                LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-                throw putException;
             }
             // Note that if an error happens the cache and the storage might diverge from each other
             else if (cacheStatus == StatusType.PUT_ERROR) return new KVMessageImpl(key, value, StatusType.PUT_ERROR);
@@ -111,25 +103,21 @@ public class CachedPersistentStorage implements PersistentStorage {
     private KVMessageImpl finalizeDeletingKey(String key, StatusType storageStatus) throws PutException {
         LOGGER.debug("Deleting key {}", key);
         if (storageStatus != StatusType.DELETE_SUCCESS && storageStatus != StatusType.DELETE_ERROR) {
-            final PutException putException = new PutException(
+            throw new PutException(
                     "Persistent storage returned unprocessable status code %s while deleting key %s",
                     storageStatus,
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         } else if (storageStatus == StatusType.DELETE_ERROR) {
             return new KVMessageImpl(key, StatusType.DELETE_ERROR);
         } else {
             final StatusType cacheStatus = cache.put(key, null).getStatus();
             if (cacheStatus != StatusType.DELETE_SUCCESS && cacheStatus != StatusType.DELETE_ERROR) {
-                final PutException putException = new PutException(
+                throw new PutException(
                         "Cache storage returned unprocessable status code %s while deleting key %s",
                         storageStatus,
                         key
                 );
-                LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-                throw putException;
             }
             else return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
         }
@@ -148,13 +136,11 @@ public class CachedPersistentStorage implements PersistentStorage {
         } else if (cacheGetStatus == StatusType.GET_ERROR) {
             return handleCacheMiss(key);
         } else {
-            final GetException getException = new GetException(
+            throw new GetException(
                     "Cache returned unprocessable status code %s while getting key %s",
                     cacheGetStatus,
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-            throw getException;
         }
     }
 
@@ -174,22 +160,18 @@ public class CachedPersistentStorage implements PersistentStorage {
                 LOGGER.debug("Did not found key {} in persistent storage", key);
                 return new KVMessageImpl(key, StatusType.GET_ERROR);
             } else {
-                final GetException getException = new GetException(
+                throw new GetException(
                         "Persistent storage returned unprocessable status code %s while getting key %s",
                         storageStatus,
                         key
                 );
-                LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-                throw getException;
             }
         } catch (GetException exception) {
-            final GetException getException = new GetException(
+            throw new GetException(
                     exception,
                     "Could not get key %s from persistent storage",
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-            throw getException;
         }
     }
 
@@ -204,14 +186,12 @@ public class CachedPersistentStorage implements PersistentStorage {
             LOGGER.debug("Successfully updated cache with key {} and value {}", key, storageValue);
             return new KVMessageImpl(key, storageValue, StatusType.GET_SUCCESS);
         } else {
-            final GetException getException = new GetException(
+            throw new GetException(
                     "Cache returned unprocessable status code %s while putting key %s with value %s",
                     cachePutStatus,
                     key,
                     storageValue
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-            throw getException;
         }
     }
 

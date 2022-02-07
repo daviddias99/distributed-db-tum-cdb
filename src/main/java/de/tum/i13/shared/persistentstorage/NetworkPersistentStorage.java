@@ -1,7 +1,6 @@
 package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkMessageServer;
 import org.apache.logging.log4j.LogManager;
@@ -34,9 +33,7 @@ public interface NetworkPersistentStorage extends PersistentStorage, NetworkMess
         try {
             return KVMessage.unpackMessage(response);
         } catch (IllegalArgumentException ex) {
-            var exception = new CommunicationClientException(ex, "Could not unpack message received by the server");
-            logger.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(ex, "Could not unpack message received by the server");
         }
     }
 

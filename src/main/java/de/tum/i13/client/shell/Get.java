@@ -55,13 +55,11 @@ class Get implements Callable<Integer> {
             out.printf("Remote storage returned an error with message: %s", storageResponse);
             return ExitCode.STORAGE_ERROR.getValue();
         } else {
-            final GetException getException = new GetException(
+            throw new GetException(
                     "Remote storage returned unprocessable status code %s while getting key %s",
                     storageStatus,
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, getException);
-            throw getException;
         }
     }
 
