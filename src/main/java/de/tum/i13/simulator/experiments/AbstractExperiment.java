@@ -2,6 +2,7 @@ package de.tum.i13.simulator.experiments;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import de.tum.i13.ecs.ExternalConfigurationServer;
+import de.tum.i13.shared.Constants;
 import de.tum.i13.simulator.client.ClientManager;
 import de.tum.i13.simulator.events.DelayedEvent;
 import de.tum.i13.simulator.events.StatsAccumulator;
@@ -29,6 +30,8 @@ abstract class AbstractExperiment implements Experiment {
 
     protected AbstractExperiment(ExperimentConfiguration cfg) {
         this.cfg = cfg;
+        // TODO This should be done differently
+        Constants.NUMBER_OF_REPLICAS = cfg.getReplicationFactor();
     }
 
     private int startExperiment(int initialTimeOffSetFromZero) throws InterruptedException {
