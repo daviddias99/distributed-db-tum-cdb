@@ -3,6 +3,7 @@ package de.tum.i13.shared;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.spi.StandardLevel;
@@ -30,11 +31,14 @@ public class LogSetup {
      * @param logLevel the log level to use
      */
     public static void setupLogging(Path logfile, Level logLevel) {
-        System.setProperty("logFilename", logfile.toString());
-        getLoggerContext().reconfigure();
+        setLogFile(logfile);
 
         setRootLoggerLevel(logLevel);
         LOGGER.info("Setup logging to file '{}' and level '{}'", logfile, logLevel);
+    }
+
+    public static void setLogFile(Path logfile) {
+        ThreadContext.put("ROUTINGKEY", logfile.toString());
     }
 
     /**

@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static de.tum.i13.simulator.SimulatorUtils.withLoggedToDifferentFiles;
 import static de.tum.i13.simulator.SimulatorUtils.wrapWarnLogging;
 
 public class ClientManager {
@@ -99,7 +100,11 @@ public class ClientManager {
     }
 
     private void startClient(ClientSimulator clientSimulator) {
-        EXECUTOR_SERVICE.submit(wrapWarnLogging(clientSimulator));
+        EXECUTOR_SERVICE.submit(() -> {
+                    final Path logFile = Path.of("logs", Thread.currentThread().getName() + ".log");
+                    wrapWarnLogging(withLoggedToDifferentFiles(clientSimulator, logFile))
+                            .run();
+                });
     }
 
 }

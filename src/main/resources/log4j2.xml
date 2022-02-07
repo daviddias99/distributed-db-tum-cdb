@@ -15,25 +15,40 @@
                 <KeyValuePair key="SIMULATOR" value="true"/>
             </ContextMapFilter>
         </Console>
-        <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
-        </File>
+        <Routing name="Routing">
+            <Routes pattern="$${ctx:ROUTINGKEY}">
+                <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
+                <Route key="$${ctx:ROUTINGKEY}">
+                    <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
+                        <PatternLayout pattern="${LOG_PATTERN}"/>
+                    </File>
+                </Route>
+
+                <!-- This route is chosen if ThreadContext has a value for ROUTINGKEY
+                     The value dynamically determines the name of the log file. -->
+                <Route>
+                    <File name="Rolling-${ctx:ROUTINGKEY}" fileName="logs/other-${ctx:ROUTINGKEY}">
+                        <PatternLayout pattern="${LOG_PATTERN}"/>
+                    </File>
+                </Route>
+            </Routes>
+        </Routing>
     </Appenders>
     <Loggers>
         <Root level="all">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="LogFile"/>
+            <AppenderRef ref="Routing"/>
             <ContextMapFilter onMatch="DENY" onMismatch="ACCEPT" operator="or">
                 <KeyValuePair key="SIMULATOR" value="true"/>
             </ContextMapFilter>
         </Root>
         <Logger name="de.tum.i13.server" level="all">
             <AppenderRef ref="SimulatorConsole" level="warn"/>
-            <AppenderRef ref="LogFile"/>
+            <AppenderRef ref="Routing"/>
         </Logger>
         <Logger name="de.tum.i13.client" level="all">
             <AppenderRef ref="SimulatorConsole" level="warn"/>
-            <AppenderRef ref="LogFile"/>
+            <AppenderRef ref="Routing"/>
         </Logger>
     </Loggers>
 </Configuration>
