@@ -101,7 +101,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized void addNetworkLocation(BigInteger hash, NetworkLocation networkLocation) {
-        LOGGER.debug("Adding {} '{}' at hash {}", NetworkLocation.class.getSimpleName(), networkLocation, hash);
+        LOGGER.debug("Adding {} '{}' at hash {}", NetworkLocation.class::getSimpleName, () -> networkLocation,
+                () -> convertHashToHex(hash));
         Optional.ofNullable(networkLocationMap.put(hash, networkLocation))
                 .ifPresent(previousValue -> {
                     throw new IllegalStateException(
@@ -284,8 +285,8 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
     private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) {
         final List<NetworkLocation> precedingNetworkLocations = getPrecedingNetworkLocations(networkLocation,
                 Constants.NUMBER_OF_REPLICAS);
-        precedingNetworkLocations.add(networkLocation);
-        return precedingNetworkLocations;
+        return Stream.concat(precedingNetworkLocations.stream(), Stream.of(networkLocation))
+                .collect(Collectors.toList());
     }
 
     @Override
