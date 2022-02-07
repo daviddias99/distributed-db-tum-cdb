@@ -1,5 +1,10 @@
 package de.tum.i13.server.kvchord;
 
+import de.tum.i13.shared.hashing.HashingAlgorithm;
+import de.tum.i13.shared.net.NetworkLocation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,11 +13,7 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.shared.hashing.HashingAlgorithm;
-import de.tum.i13.shared.net.NetworkLocation;
+import static java.lang.Math.min;
 
 class ChordSuccessorList {
 
@@ -43,7 +44,7 @@ class ChordSuccessorList {
 
   int count() {
     readWriteLock.readLock().lock();
-    int size = this.successors.size(); 
+    int size = this.successors.size();
     readWriteLock.readLock().unlock();
     return size;
   }
@@ -57,7 +58,7 @@ class ChordSuccessorList {
 
   List<NetworkLocation> get(int n) {
     readWriteLock.readLock().lock();
-    List<NetworkLocation> res = new LinkedList<>(this.successors.subList(0, Math.min(n, this.successors.size())));
+    List<NetworkLocation> res = new LinkedList<>(this.successors.subList(0, min(n, this.successors.size())));
     readWriteLock.readLock().unlock();
 
     return res;
@@ -113,7 +114,11 @@ class ChordSuccessorList {
       return;
     }
 
-    List<NetworkLocation> testEquality = new LinkedList<>(successorsUpdate.subList(0, this.tableSize - 1));
+    List<NetworkLocation> testEquality = new LinkedList<>(
+            successorsUpdate.subList(
+                    0,
+                    min(this.tableSize - 1, successorsUpdate.size())
+    ));
     testEquality.remove(this.ownLocation);
 
     if(this.successors.subList(1, this.successors.size()).equals(testEquality)) {
