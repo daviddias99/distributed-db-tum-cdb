@@ -428,8 +428,8 @@ public class Chord {
                 .exists(Boolean::booleanValue);
     }
 
-    private boolean isReplicationActive() {
-        return this.getSuccessorCount() == Constants.NUMBER_OF_REPLICAS;
+    public boolean isReplicationActive() {
+        return Constants.NUMBER_OF_REPLICAS > 0 && this.getSuccessorCount() >= Constants.NUMBER_OF_REPLICAS;
     }
 
     private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) throws ChordException {

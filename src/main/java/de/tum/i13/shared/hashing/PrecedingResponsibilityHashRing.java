@@ -327,7 +327,7 @@ public abstract class PrecedingResponsibilityHashRing implements ConsistentHashR
 
     @Override
     public synchronized boolean isReplicationActive() {
-        return size() > Constants.NUMBER_OF_REPLICAS;
+        return Constants.NUMBER_OF_REPLICAS > 0 && size() > Constants.NUMBER_OF_REPLICAS;
     }
 
     private void checkPresence(NetworkLocation networkLocation) {

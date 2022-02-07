@@ -3,7 +3,6 @@ package de.tum.i13.server.state;
 import de.tum.i13.server.ServerException;
 import de.tum.i13.server.kvchord.Chord;
 import de.tum.i13.server.kvchord.ChordException;
-import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.NetworkLocation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,7 +68,7 @@ public class ChordServerState extends AbstractServerState {
 
     @Override
     public boolean isReplicationActive() {
-        return chord.getSuccessorCount() >= Constants.NUMBER_OF_REPLICAS;
+        return chord.isReplicationActive();
     }
 
 }

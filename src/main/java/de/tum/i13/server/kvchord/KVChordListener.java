@@ -178,8 +178,8 @@ public class KVChordListener implements ChordListener {
 
     @Override
     public void successorsChanged(List<NetworkLocation> previous, List<NetworkLocation> current) {
-        final boolean wasReplicated = previous.size() >= Constants.NUMBER_OF_REPLICAS;
-        final boolean isReplicated = current.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean wasReplicated = Constants.NUMBER_OF_REPLICAS > 0 && previous.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean isReplicated = Constants.NUMBER_OF_REPLICAS > 0 && current.size() >= Constants.NUMBER_OF_REPLICAS;
         final boolean replicationChangedOrOff = !(wasReplicated && isReplicated);
 
         if (replicationChangedOrOff) {
