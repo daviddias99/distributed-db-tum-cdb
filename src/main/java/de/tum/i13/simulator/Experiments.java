@@ -10,6 +10,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static de.tum.i13.server.cache.CachingStrategy.LFU;
 import static de.tum.i13.simulator.experiments.ExperimentConfiguration.experimentConfiguration;
@@ -107,6 +109,48 @@ public class Experiments {
         Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
     }
 
+    static void replicationExperiment(boolean useChord) {
+        // WIP
+        Builder experimentBuilder = experimentConfiguration()
+                .initialDelay(10)
+                .startingServerCount(1)
+                .startingClientCount(0)
+                .finalServerCount(2)
+                .finalClientCount(20)
+                .afterAdditionalClientsDelay(10)
+                .afterAdditionalServersDelay(120)
+                .serverStartDelay(30)
+                .clientStartDelay(5)
+                .serverCacheSize(500)
+                .bTreeNodeSize(200)
+                .serverCachingStrategy(LFU)
+                .replicationFactor(3)
+                .statsName(String.format("behaviour_%s", useChord ? "chord" : "normal"));
+
+        Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
+    }
+
+    static void noReplicationExperiment(boolean useChord) {
+        // WIP
+        Builder experimentBuilder = experimentConfiguration()
+                .initialDelay(10)
+                .startingServerCount(25)
+                .startingClientCount(0)
+                .finalServerCount(30)
+                .finalClientCount(20)
+                .afterAdditionalClientsDelay(10)
+                .afterAdditionalServersDelay(120)
+                .serverStartDelay(30)
+                .clientStartDelay(5)
+                .serverCacheSize(500)
+                .bTreeNodeSize(200)
+                .serverCachingStrategy(LFU)
+                .replicationFactor(0)
+                .statsName(String.format("behaviour_%s", useChord ? "chord" : "normal"));
+
+        Experiments.optionalChordHardShutdownExperiment(experimentBuilder, useChord);
+    }
+
     private static void optionalChordHardShutdownExperiment(Builder experimentBuilder, boolean useChord) {
         final var experimentConfiguration = experimentBuilder.useChord(useChord)
                 .build();
@@ -116,7 +160,7 @@ public class Experiments {
 
     public static void main(String[] args) {
         resetFolders();
-        behaviorExperiment(true);
+        noReplicationExperiment(false);
         // behaviorExperiment(false);
         // replicationExperiment(true, 0);
         // replicationExperiment(true, 2);
