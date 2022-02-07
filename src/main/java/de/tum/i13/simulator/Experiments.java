@@ -108,11 +108,8 @@ public class Experiments {
     }
 
     private static void optionalChordHardShutdownExperiment(Builder experimentBuilder, boolean useChord) {
-        if (useChord) {
-            experimentBuilder = experimentBuilder.useChord();
-        }
-
-        final ExperimentConfiguration experimentConfiguration = experimentBuilder.build();
+        final var experimentConfiguration = experimentBuilder.useChord(useChord)
+                .build();
         final Experiment experiment = new HardShutdownExperiment(experimentConfiguration);
         experiment.scheduleExperiment();
     }

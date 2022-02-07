@@ -157,6 +157,7 @@ public class ExperimentConfiguration {
             this.startingServerCount = startingServerCount;
             return this;
         }
+
         public Builder startingClientCount(int startingClientCount) {
             this.startingClientCount = startingClientCount;
             return this;
@@ -223,7 +224,15 @@ public class ExperimentConfiguration {
         }
 
         public Builder useChord() {
-            this.useChord = true;
+            return useChord(true);
+        }
+
+        public Builder notUseChord() {
+            return useChord(false);
+        }
+        
+        public Builder useChord(boolean useChord) {
+            this.useChord = useChord;
             return this;
         }
 
