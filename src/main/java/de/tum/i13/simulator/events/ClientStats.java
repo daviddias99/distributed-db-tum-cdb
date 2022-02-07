@@ -55,7 +55,7 @@ public class ClientStats implements TimeEvent {
 
     public void print() {
         LOGGER.info(
-                "Client stats state\n    GET({}, {} {})\n    PUT({}, {}, {})\n    DEL({}, {}, {})",
+                "Client stats state\n    GET({}, {}, {})\n    PUT({}, {}, {})\n    DEL({}, {}, {})",
                 getCount, getFailCount, getTime,
                 putCount, putFailCount, putTime,
                 deleteCount, deleteFailCount, deleteTime

@@ -230,7 +230,7 @@ public class ExperimentConfiguration {
         public Builder notUseChord() {
             return useChord(false);
         }
-        
+
         public Builder useChord(boolean useChord) {
             this.useChord = useChord;
             return this;
