@@ -1,12 +1,5 @@
 package de.tum.i13.server.kv.replication;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.commandprocessing.handlers.AsyncDeleteHandler;
 import de.tum.i13.server.kv.commandprocessing.handlers.BulkReplicationHandler;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -16,6 +9,14 @@ import de.tum.i13.shared.hashing.RingRange;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 public class ReplicationOrchestrator {
 
@@ -104,8 +105,9 @@ public class ReplicationOrchestrator {
   }
 
   private List<Pair<String>> getRingRangeFromStorage(RingRange range) throws GetException {
-    String lowerBound = padLeftZeros(range.getStart().toString(16), Constants.MD5_HASH_HEX_STRING_SIZE);
-    String upperBound = padLeftZeros(range.getEnd().toString(16), Constants.MD5_HASH_HEX_STRING_SIZE);
+    final int hashLength = range.getHashingAlgorithm().getHashSizeBits() / Constants.BITS_PER_HEX_CHARACTER;
+    String lowerBound = padLeftZeros(range.getStart().toString(16), hashLength);
+    String upperBound = padLeftZeros(range.getEnd().toString(16), hashLength);
 
     // TODO: this won't work for real-life data situations (whole range can't
     // probably fit in memory)

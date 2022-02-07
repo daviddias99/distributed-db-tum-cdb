@@ -39,8 +39,8 @@ public class Constants {
     public static final String SENDING_AND_EXPECTING_MESSAGE = "Sending '{}' message to successor and expecting '{}' " +
             "message as response";
     public static final int METADATA_UPDATE_TIMEOUT = 5;
-    public static final int MD5_HASH_HEX_STRING_SIZE = 16;
-    public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", MD5_HASH_HEX_STRING_SIZE);
+    public static final BigInteger MD5_HASH_MAX_VALUE = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    public static final int BITS_PER_HEX_CHARACTER = 4;
     public static int NUMBER_OF_REPLICAS = 2;
 
     private Constants() {
