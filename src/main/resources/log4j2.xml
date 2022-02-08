@@ -22,7 +22,7 @@
             <Routes pattern="$${ctx:ROUTINGKEY}">
                 <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
                 <Route key="$${ctx:ROUTINGKEY}">
-                    <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
+                    <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}" createOnDemand="true" append="false">
                         <PatternLayout pattern="${LOG_PATTERN}"/>
                     </File>
                 </Route>
@@ -30,7 +30,7 @@
                 <!-- This route is chosen if ThreadContext has a value for ROUTINGKEY
                      The value dynamically determines the name of the log file. -->
                 <Route>
-                    <File name="Rolling-${ctx:ROUTINGKEY}" fileName="logs/other-${ctx:ROUTINGKEY}">
+                    <File name="Rolling-${ctx:ROUTINGKEY}" fileName="logs/other-${ctx:ROUTINGKEY}" createOnDemand="true" append="false">
                         <PatternLayout pattern="${LOG_PATTERN}"/>
                     </File>
                 </Route>

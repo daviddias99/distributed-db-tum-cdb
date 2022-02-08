@@ -1,11 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -16,6 +10,11 @@ import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
@@ -138,13 +137,8 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
             return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
-        } catch (StorageException | PersistentBTreeException e) {
-            LOGGER.error(e);
-            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
-                    upperBound);
         } catch (Exception e) {
-            LOGGER.error(e.getLocalizedMessage());
-            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+            throw new GetException(e, "An error occurred while fetching elements in range %s-%s from storage.", lowerBound,
                     upperBound);
         }
     }

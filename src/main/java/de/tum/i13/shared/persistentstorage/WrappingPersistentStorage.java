@@ -65,7 +65,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         try {
             return sendAndReceive(getMessage);
         } catch (CommunicationClientException exception) {
-            LOGGER.error("Caught exception while getting. Wrapping the exception.", exception);
             throw new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
     }
@@ -112,9 +111,6 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
         try {
             return sendAndReceive(putOrDeleteMessage);
         } catch (CommunicationClientException exception) {
-            LOGGER.atError()
-                    .withThrowable(exception)
-                    .log("Caught exception while sending {}. Wrapping the exception.", putOrDeleteMessage.getStatus());
             throw new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
         }
     }

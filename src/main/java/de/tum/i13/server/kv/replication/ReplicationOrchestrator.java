@@ -151,7 +151,7 @@ public class ReplicationOrchestrator {
         LOGGER.info("Sending {} keys ({}) to {}", toAdd.size(), ringRange, peer);
         (new Thread(withExceptionsLogged(new BulkReplicationHandler(peer, toAdd)))).start();
       } catch (GetException e) {
-        LOGGER.error("Could not fetch range for replication.");
+        LOGGER.error("Could not fetch range for replication.", e);
       }
     }
   }

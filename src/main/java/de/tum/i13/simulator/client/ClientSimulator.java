@@ -1,8 +1,10 @@
 package de.tum.i13.simulator.client;
 
 import de.tum.i13.client.shell.CLICommands;
+import de.tum.i13.client.shell.ExecutionExceptionHandler;
 import de.tum.i13.client.shell.ExitCode;
 import de.tum.i13.client.shell.ExitCodeMapper;
+import de.tum.i13.client.shell.ParameterExceptionHandler;
 import de.tum.i13.client.shell.ServerType;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -62,6 +64,8 @@ public class ClientSimulator implements Runnable {
                     .setOut(temp)
                     .setErr(temp)
                     .setExitCodeExceptionMapper(new ExitCodeMapper())
+                    .setParameterExceptionHandler(new ParameterExceptionHandler())
+                    .setExecutionExceptionHandler(new ExecutionExceptionHandler())
                     .setCaseInsensitiveEnumValuesAllowed(true);
             int exitCode = cmd.execute(KVMessage.extractTokens(String.format("connect %s %d", serverAddress,
                     serverPort)));
@@ -79,11 +83,13 @@ public class ClientSimulator implements Runnable {
         if (this.sent.isEmpty()) {
             return;
         }
+        LOGGER.trace("Getting random key");
 
         Random rand = new Random();
         int toGetIndex = rand.nextInt(this.sent.size());
         Pair<String> email = this.sent.get(toGetIndex);
 
+        LOGGER.trace("Getting key '{}'", email.key);
         long time1 = System.nanoTime();
         int exitCode = cmd.execute(KVMessage.extractTokens(String.format("get %s", email.key)));
         long time2 = System.nanoTime();
@@ -91,6 +97,7 @@ public class ClientSimulator implements Runnable {
         boolean fail = false;
 
         if (exitCode != ExitCode.SUCCESS.getValue()) {
+            LOGGER.trace("Getting key '{}' was unsuccessful. Removing from sent.", email.key);
             fail = true;
             sent.remove(toGetIndex);
         }
@@ -104,11 +111,13 @@ public class ClientSimulator implements Runnable {
         if (this.toSend.isEmpty()) {
             return;
         }
+        LOGGER.trace("Putting random key");
 
         Random rand = new Random();
         int toSendIndex = rand.nextInt(this.toSend.size());
         Pair<String> email = this.toSend.get(toSendIndex);
 
+        LOGGER.trace("Putting key '{}'", email.key);
         long time1 = System.nanoTime();
         int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s %s", email.key,
                 email.value.substring(0, Math.min(email.value.length(), 200)))));
@@ -116,11 +125,13 @@ public class ClientSimulator implements Runnable {
 
         boolean fail = false;
 
-        if (exitCode != ExitCode.SUCCESS.getValue()) {
-            fail = true;
-        } else {
+        if (exitCode == ExitCode.SUCCESS.getValue()) {
+            LOGGER.trace("Putting key '{}' was successful. Removing from toSend and adding to sent", email.key);
             toSend.remove(toSendIndex);
             sent.addLast(email);
+        } else {
+            LOGGER.trace("Putting key '{}' was unsuccessful", email.key);
+            fail = true;
         }
 
         synchronized (this.stats) {
@@ -132,22 +143,26 @@ public class ClientSimulator implements Runnable {
         if (this.sent.size() < 0.3 * this.totalEmailCount) {
             return;
         }
+        LOGGER.trace("Deleting random key");
 
         Random rand = new Random();
         int toDeleteIndex = rand.nextInt(this.sent.size());
         Pair<String> email = this.sent.get(toDeleteIndex);
 
+        LOGGER.trace("Deleting key '{}'", email.key);
         long time1 = System.nanoTime();
         int exitCode = cmd.execute(KVMessage.extractTokens(String.format("put %s null", email.key)));
         long time2 = System.nanoTime();
 
         boolean fail = false;
 
-        if (exitCode != ExitCode.SUCCESS.getValue()) {
-            fail = true;
-        } else {
-            sent.remove(email);
+        if (exitCode == ExitCode.SUCCESS.getValue()) {
+            LOGGER.trace("Deleting key '{}' was successful. Deleting from send and adding to toSend", email.key);
+            sent.remove(toDeleteIndex);
             toSend.addLast(email);
+        } else {
+            LOGGER.trace("Deleting key '{}' was unsuccessful", email.key);
+            fail = true;
         }
 
         synchronized (this.stats) {

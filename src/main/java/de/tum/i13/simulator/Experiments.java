@@ -172,8 +172,8 @@ public class Experiments {
     }
 
     private static void resetFolders() {
-        Experiments.deleteFolder(new File("logs"));
         Experiments.deleteFolder(new File("data"));
+        Experiments.deleteFolder(new File("logs"));
     }
 
     private static void deleteFolder(File files) {

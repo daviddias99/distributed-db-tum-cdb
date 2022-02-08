@@ -6,7 +6,7 @@ import picocli.CommandLine;
 
 import java.io.PrintWriter;
 
-class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandler {
+public class ParameterExceptionHandler implements CommandLine.IParameterExceptionHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(ParameterExceptionHandler.class);
 
