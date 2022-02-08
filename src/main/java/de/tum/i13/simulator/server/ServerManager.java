@@ -31,7 +31,7 @@ public class ServerManager {
 
     public List<Future<?>> servers;
     public List<String> addresses;
-    int port = 35660;
+    int port = 11000;
     String ecsAddress = "127.0.0.1:25670";
 
     int cacheSize;

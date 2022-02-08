@@ -119,7 +119,7 @@ public class ClientSimulator implements Runnable {
         if (exitCode != ExitCode.SUCCESS.getValue()) {
             fail = true;
         } else {
-            // toSend.remove(toSendIndex);
+            toSend.remove(toSendIndex);
             sent.addLast(email);
         }
 
@@ -146,7 +146,7 @@ public class ClientSimulator implements Runnable {
         if (exitCode != ExitCode.SUCCESS.getValue()) {
             fail = true;
         } else {
-            sent.remove(toDeleteIndex);
+            sent.remove(email);
             toSend.addLast(email);
         }
 

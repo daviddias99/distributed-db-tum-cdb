@@ -13,7 +13,7 @@ def plot_v_line(ax, data, color, label):
       ax.axvline(data[i], alpha=0.5, linestyle='--', color=color)
 
 CSV_FOLDER = path.join(dirname(__file__), '..', 'stats')
-CSV_FILE = 'out_behaviour_normal_20220207150925.csv'
+CSV_FILE = 'out_repl_normal_2_20220208004126.csv'
 ROLLING_AVG_WINDOW_SIZE = 10
 TITLE='FIFO Cache (size=100 elements)'
 
@@ -37,7 +37,7 @@ plot_v_line(ax, server_start, 'green', 'Server start')
 plot_v_line(ax, server_stop, 'red', 'Server stop')
 plot_v_line(ax, client_start, 'black', 'Client start')
 
-ax.set_ylim(0, 300)
+# ax.set_ylim(0, 300)
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Operations')
 ax.set_title(TITLE)

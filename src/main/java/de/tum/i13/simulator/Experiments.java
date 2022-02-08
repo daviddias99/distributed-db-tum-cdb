@@ -74,12 +74,12 @@ public class Experiments {
     static void replicationExperiment(boolean useChord, int replicaCount) {
         Builder experimentBuilder = experimentConfiguration()
                 .initialDelay(10)
-                .startingServerCount(5)
-                .startingClientCount(0)
-                .finalServerCount(5)
-                .finalClientCount(10)
-                .afterAdditionalServersDelay(120)
-                .clientStartDelay(5)
+                .startingServerCount(6)
+                .startingClientCount(20)
+                .finalServerCount(6)
+                .finalClientCount(0)
+                .afterAdditionalServersDelay(180)
+                .clientStartDelay(0)
                 .serverCacheSize(500)
                 .bTreeNodeSize(200)
                 .serverCachingStrategy(LFU)
@@ -92,14 +92,14 @@ public class Experiments {
     static void behaviorExperiment(boolean useChord) {
         Builder experimentBuilder = experimentConfiguration()
                 .initialDelay(10)
-                .startingServerCount(1)
+                .startingServerCount(3)
                 .startingClientCount(0)
-                .finalServerCount(10)
+                .finalServerCount(6)
                 .finalClientCount(20)
                 .afterAdditionalClientsDelay(120)
                 .afterAdditionalServersDelay(120)
                 .serverStartDelay(120)
-                .clientStartDelay(20)
+                .clientStartDelay(5)
                 .serverCacheSize(500)
                 .bTreeNodeSize(200)
                 .serverCachingStrategy(LFU)
@@ -161,14 +161,14 @@ public class Experiments {
     public static void main(String[] args) {
         resetFolders();
         // noReplicationExperiment(false);
-        replicationExperiment(false);
-        // behaviorExperiment(false);
-        // replicationExperiment(true, 0);
+        // replicationExperiment(true);
+        // behaviorExperiment(true);
+        // replicationExperimentPok(true, 0);
+        // replicationExperiment(true, 1);
         // replicationExperiment(true, 2);
-        // replicationExperiment(true, 5);
         // replicationExperiment(false, 0);
-        // replicationExperiment(false, 2);
-        // replicationExperiment(false, 5);
+        // replicationExperiment(false, 1);
+        replicationExperiment(false, 2);
     }
 
     private static void resetFolders() {
