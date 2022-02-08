@@ -5,6 +5,7 @@ import de.tum.i13.server.kv.commandprocessing.handlers.BulkReplicationHandler;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.shared.hashing.HashingAlgorithm;
 import de.tum.i13.shared.hashing.RingRange;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.GetException;
@@ -114,8 +115,8 @@ public class ReplicationOrchestrator {
 
   private List<Pair<String>> getRingRangeFromStorage(RingRange range) throws GetException {
     final int hashLength = range.getHashingAlgorithm().getHashSizeBits() / Constants.BITS_PER_HEX_CHARACTER;
-    String lowerBound = padLeftZeros(range.getStart().toString(16), hashLength);
-    String upperBound = padLeftZeros(range.getEnd().toString(16), hashLength);
+    String lowerBound = HashingAlgorithm.padLeftZeros(range.getStart().toString(16), hashLength);
+    String upperBound = HashingAlgorithm.padLeftZeros(range.getEnd().toString(16), hashLength);
 
     // TODO: this won't work for real-life data situations (whole range can't
     // probably fit in memory)
@@ -197,22 +198,5 @@ public class ReplicationOrchestrator {
 
     // Delete ranges that are no longer replicated
     this.deleteStaleRanges();
-  }
-
-  // TODO: Think of a way to avoid having to pad strings for get range. The
-  // problem is that the BTree implementation respects the lexicographic order of
-  // the keys. However, the conversions from BigInteger to hex string don't pad
-  // the values with zeros.
-  private String padLeftZeros(String inputString, int length) {
-    if (inputString.length() >= length) {
-      return inputString;
-    }
-    StringBuilder sb = new StringBuilder();
-    while (sb.length() < length - inputString.length()) {
-      sb.append('0');
-    }
-    sb.append(inputString);
-
-    return sb.toString();
   }
 }

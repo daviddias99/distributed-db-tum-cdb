@@ -59,7 +59,7 @@ public class Chord {
     public Chord(HashingAlgorithm hashingAlgorithm, NetworkLocation ownLocation, NetworkLocation bootstrapNode) {
         this.hashingAlgorithm = hashingAlgorithm;
         this.ownLocation = ownLocation;
-        this.predecessor = ownLocation; // TODO: check this
+        this.predecessor = ownLocation;
         this.TABLE_SIZE = hashingAlgorithm.getHashSizeBits();
         this.fingerTable = new ConcurrentSkipListMap<>();
         this.fingerTableKeys = new ArrayList<>();
@@ -351,7 +351,6 @@ public class Chord {
 
     private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
                                    boolean closedRight) {
-        // TODO: Took this from my previous project, but I think Lukas already did it
         // somewhere
         // Equal to one of the bounds and are inclusive
         if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))

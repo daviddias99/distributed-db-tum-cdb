@@ -111,9 +111,6 @@ public class Main {
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
                 dataDir.toString(),
                 false);
-
-        // TODO: is using MD5 by default, should somehow be configured with the one used
-        // in the Ring
         BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, new MD5HashAlgorithm());
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }

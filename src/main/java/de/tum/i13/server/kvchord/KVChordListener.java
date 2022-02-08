@@ -131,8 +131,7 @@ public class KVChordListener implements ChordListener {
             try {
                 Thread.sleep(retryWaitSec * 1000l);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+
             }
         }
 

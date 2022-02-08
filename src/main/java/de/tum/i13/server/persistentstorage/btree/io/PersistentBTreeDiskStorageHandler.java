@@ -6,8 +6,6 @@ import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkDiskStorageHandle
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListenerImpl;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -22,7 +20,6 @@ import java.nio.file.Paths;
 public class PersistentBTreeDiskStorageHandler<V>
         implements PersistentBTreeStorageHandler<V>, Serializable {
     private static final long serialVersionUID = 6523685098267757691L;
-    private static final Logger LOGGER = LogManager.getLogger(PersistentBTreeDiskStorageHandler.class);
 
     private static final String DEFAULT_DIRECTORY = "bckp";
 

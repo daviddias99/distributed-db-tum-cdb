@@ -2,8 +2,6 @@ package de.tum.i13.server.persistentstorage.btree.io.transactions;
 
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,8 +13,6 @@ import java.util.Set;
  * An implementation of a {@link ChangeListener}
  */
 public class ChangeListenerImpl implements ChangeListener {
-    private static final Logger LOGGER = LogManager.getLogger(ChangeListenerImpl.class);
-
     private static final String DEFAULT_DIRECTORY = "bckp";
 
     // These fields are static because, reading nodes from file leads to new

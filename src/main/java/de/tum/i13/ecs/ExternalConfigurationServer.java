@@ -29,7 +29,6 @@ public class ExternalConfigurationServer {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 LOGGER.info("Closing ECS socket");
                 try {
-                    //TODO what else when ECS shuts down?
                     socket.close();
                 } catch (IOException ex) {
                     LOGGER.fatal("Caught exception, while closing ECS socket", ex);
