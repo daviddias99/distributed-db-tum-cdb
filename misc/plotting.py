@@ -1,9 +1,12 @@
 from posixpath import dirname
 from matplotlib.figure import Figure
+from mpl_toolkits.axisartist.axislines import Axes
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from os import path
+
+plt.rcParams.update({'font.size': 22})
 
 def plot_v_line(ax, data, color, label):
   for i in range(len(data)):
@@ -26,21 +29,36 @@ client_start = dataframe.loc[dataframe['event'] == 'START_CLIENT']['timeStep'].t
 
 fig: Figure = plt.figure()
 
-ax = fig.add_subplot(111)
+ax = fig.add_subplot(111, axes_class=Axes)
 fig.set_size_inches(12, 7)
 
 # plt.plot(dataframe['timeStep'], dataframe['totalSucc'])
-ax.plot(dataframe['timeStep'], dataframe['MA'], label=f'Successful ops. (avg., window={ROLLING_AVG_WINDOW_SIZE})')
+ax.plot(dataframe['timeStep'], dataframe['MA'], label=f'Successful ops.')
 ax.plot(dataframe['timeStep'], dataframe['getFailCount'] + dataframe['putFailCount'] + dataframe['deleteFailCount'], label="Unsuccessful ops.")
 
 plot_v_line(ax, server_start, 'green', 'Server start')
 plot_v_line(ax, server_stop, 'red', 'Server stop')
 plot_v_line(ax, client_start, 'black', 'Client start')
 
-ax.set_ylim(0, 300)
+# ax.set_ylim(0, 300)
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Operations')
-ax.set_title(TITLE)
-ax.legend()
+# ax.set_title(TITLE)
+ax.legend(
+#  loc="upper left"
+)
+for direction in ["left", "bottom"]:
+  # adds arrows at the ends of each axis
+  ax.axis[direction].set_axisline_style("->")
+
+  # adds X and Y-axis from the origin
+  ax.axis[direction].set_visible(True)
+
+for direction in ["right", "top"]:
+  # hides borders
+  ax.axis[direction].set_visible(False)
 # ax.show()
-fig.savefig(path.join(dirname(__file__), 'plots', CSV_FILE + '.png'), format='png')
+ax.margins(0.03)
+ax.grid(linestyle="dotted")
+fig.tight_layout(pad=1.5)
+fig.savefig(path.join('plots', CSV_FILE[:-4] + '.pdf'))
