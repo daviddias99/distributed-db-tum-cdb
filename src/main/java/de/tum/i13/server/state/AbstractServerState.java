@@ -9,13 +9,19 @@ import org.apache.logging.log4j.Logger;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
 
-
+/**
+ * An implementation of {@link ServerState} containing state management methods
+ */
 public abstract class AbstractServerState implements ServerState {
     private static final Logger LOGGER = LogManager.getLogger(AbstractServerState.class);
 
     private State currentState;
     private List<String> nodesToDelete = new LinkedList<>();
 
+    /**
+     * Create a new {@link AbstractServerState} with a given initial state
+     * @param startState initial state
+     */
     protected AbstractServerState(State startState) {
         this.currentState = startState;
     }
@@ -61,7 +67,7 @@ public abstract class AbstractServerState implements ServerState {
     }
 
     @Override
-    public void start () {
+    public void start() {
         this.setState(State.ACTIVE);
     }
 
@@ -69,20 +75,29 @@ public abstract class AbstractServerState implements ServerState {
         this.currentState = state;
     }
 
+    /**
+     * Execute queued up deletes in given {@link PersistentStorage}
+     * 
+     * @param storage {@link PersistentStorage} where deletes are to be executed
+     */
     public void executeStoredDeletes(PersistentStorage storage) {
         for (String key : nodesToDelete) {
-          try {
-            LOGGER.info("Trying to delete item with key {}.", key);
-            storage.put(key, null);
-          } catch (PutException e) {
-            LOGGER.error("Could not delete item with key {} after keyrange change.", key);
-          }
+            try {
+                LOGGER.info("Trying to delete item with key {}.", key);
+                storage.put(key, null);
+            } catch (PutException e) {
+                LOGGER.error("Could not delete item with key {} after keyrange change.", key);
+            }
         }
         nodesToDelete = new LinkedList<>();
-      }
-    
-      public synchronized List<String> getDeleteQueue() {
+    }
+
+    /**
+     * Get list of nodes to be deleted
+     * @return list of nodes to be deleted
+     */
+    public synchronized List<String> getDeleteQueue() {
         return this.nodesToDelete;
-      }
+    }
 
 }

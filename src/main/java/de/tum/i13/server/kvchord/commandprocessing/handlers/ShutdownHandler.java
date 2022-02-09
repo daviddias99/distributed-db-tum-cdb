@@ -21,12 +21,13 @@ public class ShutdownHandler implements Runnable {
   private Chord chordInstance;
   private KVChordListener changeListener;
 
-
   /**
    * Create a new shutdown handler
-   * 
-   * @param ecsComms  ECS communications interface
-   * @param processor processor of commands from the ECS
+   * @param listeningThread  main server connection listening thread
+   * @param chordInstance Chord instance used by server
+   * @param state current server state
+   * @param storage current server storage
+   * @param changeListener Chord change listener (used for managing replication)
    */
   public ShutdownHandler(Thread listeningThread, Chord chordInstance, ChordServerState state, PersistentStorage storage, KVChordListener changeListener) {
     this.listeningThread = listeningThread;

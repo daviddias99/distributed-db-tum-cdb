@@ -34,12 +34,13 @@ public class HandoffHandler implements Runnable {
   private HashingAlgorithm hashingAlgorithm;
 
   /**
-   * Create a new handoff handler
+   * Create new handoff handler
    * @param peer target server
-   * @param ecs ECS communications interface
    * @param lowerBound lower bound for the keys of the transfered elements
    * @param upperBound upper bound for the keys of the transfered elements
    * @param storage current server storage
+   * @param state current server state
+   * @param hashingAlgorithm hashing algorithm used by ring
    */
   public HandoffHandler(NetworkLocation peer, String lowerBound, String upperBound, PersistentStorage storage, ChordServerState state, HashingAlgorithm hashingAlgorithm)  {
     this.storage = storage;

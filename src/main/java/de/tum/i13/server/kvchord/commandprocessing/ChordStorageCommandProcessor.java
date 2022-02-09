@@ -11,11 +11,19 @@ import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * {@link CommandProcessor} for Chord messages
+ */
 public class ChordStorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     private final ChordServerState serverState;
     private final StorageCommandProcessor standardStorageCommandProcessor;
 
+    /**
+     * Create new command processor for chord messages
+     * @param serverState server state of current node
+     * @param storage persistent storage of current node
+     */
     public ChordStorageCommandProcessor(ChordServerState serverState, PersistentStorage storage) {
         this.serverState = serverState;
         this.standardStorageCommandProcessor = new StorageCommandProcessor(serverState, storage);

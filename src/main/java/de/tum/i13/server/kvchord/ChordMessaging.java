@@ -19,11 +19,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Communication client used by {@link Chord} to communicate with other Chord
+ * instances
+ */
 public class ChordMessaging {
     private static final Logger LOGGER = LogManager.getLogger(ChordMessaging.class);
 
     private final Chord chordInstance;
 
+    /**
+     * Create new messaging instance
+     * 
+     * @param chordInstance own Chord node
+     */
     public ChordMessaging(Chord chordInstance) {
         this.chordInstance = chordInstance;
     }
@@ -57,9 +66,16 @@ public class ChordMessaging {
         }
     }
 
+    /**
+     * Execute find successor operation on peer
+     * 
+     * @param peer node to execute operation on
+     * @param key  operation argument
+     * @return successor of key
+     */
     public NetworkLocation findSuccessor(NetworkLocation peer, BigInteger key) {
         LOGGER.debug("Asking {} for successor of {} (findSuccessor)", peer, key.toString(16));
-        
+
         if (peer.equals(this.chordInstance.getLocation())) {
             try {
                 NetworkLocation result = this.chordInstance.findSuccessor(key);
@@ -75,12 +91,20 @@ public class ChordMessaging {
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_FIND_SUCESSSOR_RESPONSE);
 
-        NetworkLocation result = response == null ? NetworkLocation.NULL : NetworkLocation.extractNetworkLocation(response.getValue());
+        NetworkLocation result = response == null ? NetworkLocation.NULL
+                : NetworkLocation.extractNetworkLocation(response.getValue());
         LOGGER.debug("Successor of {} is {}", key.toString(16), result);
 
         return result;
     }
 
+    /**
+     * Execute find closest preceding finger operation on peer
+     * 
+     * @param peer node to execute operation on
+     * @param key  operation argument
+     * @return closest preceding finger of key
+     */
     public NetworkLocation closestPrecedingFinger(NetworkLocation peer, BigInteger key) {
         LOGGER.debug("Asking {} for closest preceding of {} (closestPrecedingFinger)", peer, key.toString(16));
 
@@ -94,11 +118,19 @@ public class ChordMessaging {
                 KVMessage.StatusType.CHORD_CLOSEST_PRECEDING_FINGER);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_CLOSEST_PRECEDING_FINGER_RESPONSE);
-        NetworkLocation result = response == null ? NetworkLocation.NULL : NetworkLocation.extractNetworkLocation(response.getValue());
+        NetworkLocation result = response == null ? NetworkLocation.NULL
+                : NetworkLocation.extractNetworkLocation(response.getValue());
         LOGGER.debug("Closest preceeding of {} is {}", key, result);
         return result;
     }
 
+    /**
+     * Execute get predecessor operation on peer
+     * 
+     * @param peer node to execute operation on
+     * @return predecessor of peer
+     * @throws ChordException an exception is thrown if communication can't be established
+     */
     public NetworkLocation getPredecessor(NetworkLocation peer) throws ChordException {
 
         LOGGER.debug("Asking {} for it's predecessor (getPredecessor)", peer);
@@ -113,7 +145,7 @@ public class ChordMessaging {
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_GET_PREDECESSOR_RESPONSE);
 
-        if(response == null) {
+        if (response == null) {
             throw new ChordException("Could not get predecessor from peer");
         }
 
@@ -124,6 +156,12 @@ public class ChordMessaging {
         return result;
     }
 
+    /**
+     * Execute get successor operation on peer
+     * 
+     * @param peer node to execute operation on
+     * @return successor of peer
+     */
     public NetworkLocation getSuccessor(NetworkLocation peer) {
 
         LOGGER.debug("Asking {} for it's successor (getSuccessor)", peer);
@@ -137,13 +175,21 @@ public class ChordMessaging {
         KVMessage outgoingMessage = new KVMessageImpl("1", KVMessage.StatusType.CHORD_GET_SUCCESSORS);
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
-        NetworkLocation result = response == null ? NetworkLocation.NULL : NetworkLocation.extractNetworkLocation(response.getKey());
+        NetworkLocation result = response == null ? NetworkLocation.NULL
+                : NetworkLocation.extractNetworkLocation(response.getKey());
 
         LOGGER.debug("Successor of {} is {}", peer, result);
 
         return result;
     }
 
+    /**
+     * Execute get successors operation on peer
+     * 
+     * @param peer node to execute operation on
+     * @param n    amount of successors to get
+     * @return n successors of peer
+     */
     public List<NetworkLocation> getSuccessors(NetworkLocation peer, int n) {
 
         LOGGER.debug("Asking {} for it's successors (getSuccessors)", peer);
@@ -158,41 +204,59 @@ public class ChordMessaging {
         KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
                 KVMessage.StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
 
-
-        if(response == null) {
+        if (response == null) {
             LOGGER.debug("Query peer for successors returned null");
             return new ArrayList<>();
         }
 
         String[] networkLocationsStr = response.getKey().split(",");
 
-        List<NetworkLocation> result  = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>() : new LinkedList<>(Arrays
-            .asList(networkLocationsStr)
-            .stream()
-            .map(NetworkLocation::extractNetworkLocation)
-            .collect(Collectors.toList()));
-        
-            LOGGER.debug("Peer {} returned list with {} successors", peer, result.size());
+        List<NetworkLocation> result = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>()
+                : new LinkedList<>(Arrays
+                        .asList(networkLocationsStr)
+                        .stream()
+                        .map(NetworkLocation::extractNetworkLocation)
+                        .collect(Collectors.toList()));
+
+        LOGGER.debug("Peer {} returned list with {} successors", peer, result.size());
 
         return new LinkedList<>(result);
     }
 
+    /**
+     * Execute notify operation on peer
+     * 
+     * @param peer node to execute operation on
+     */
     public void notifyNode(NetworkLocation peer) {
         LOGGER.debug("Notifying {} (notify)", peer);
-        KVMessage outgoingMessage = new KVMessageImpl(NetworkLocation.toPackedString(chordInstance.getLocation()), KVMessage.StatusType.CHORD_NOTIFY);
+        KVMessage outgoingMessage = new KVMessageImpl(NetworkLocation.toPackedString(chordInstance.getLocation()),
+                KVMessage.StatusType.CHORD_NOTIFY);
 
         // TODO: do something if it fails
         ChordMessaging.connectSendAndReceive(peer, outgoingMessage, KVMessage.StatusType.CHORD_NOTIFY_ACK);
     }
 
+    /**
+     * Check if peer is alive
+     * 
+     * @param peer to ping
+     * @return true if node is alive, false otherwise
+     */
     public boolean isNodeAlive(NetworkLocation peer) {
         LOGGER.debug("Sending hearbeat to {}", peer);
         KVMessage outgoingMessage = new KVMessageImpl(KVMessage.StatusType.CHORD_HEARTBEAT);
-        KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage, KVMessage.StatusType.CHORD_HEARTBEAT_RESPONSE);
+        KVMessage response = ChordMessaging.connectSendAndReceive(peer, outgoingMessage,
+                KVMessage.StatusType.CHORD_HEARTBEAT_RESPONSE);
 
         return response != null;
     }
 
+    /**
+     * Utility used to communicate with peers to find their Chord state
+     * @param args  arguments 
+     * @throws IOException an exception is thrown due to communication errors
+     */
     @SuppressWarnings("java:S2189")
     public static void main(String[] args) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

@@ -10,12 +10,19 @@ import org.apache.logging.log4j.Logger;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * State associated with a Chord Server
+ */
 public class ChordServerState extends AbstractServerState {
 
     private static final Logger LOGGER = LogManager.getLogger(ChordServerState.class);
 
     private final Chord chord;
 
+    /**
+     * Create new server state associated with a Chord instance
+     * @param chord chord instance associated with current node
+     */
     public ChordServerState(Chord chord) {
         super(State.ACTIVE);
         this.chord = chord;
@@ -39,6 +46,11 @@ public class ChordServerState extends AbstractServerState {
         }
     }
 
+    /**
+     * Get write responsible locations for given key
+     * @param key key to check
+     * @return location responsible for key
+     */
     public NetworkLocation getWriteResponsibleNetworkLocation(String key) {
         try {
             return chord.getWriteResponsibleNetworkLocation(key);

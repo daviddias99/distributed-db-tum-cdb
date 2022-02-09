@@ -20,6 +20,13 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
     private final PrintWriter output;
     private final BufferedReader input;
 
+    /**
+     * Create a new active connection
+     * 
+     * @param socket connection socket
+     * @param output connection output stream
+     * @param input  connection input stream
+     */
     public ActiveConnection(Socket socket, PrintWriter output, BufferedReader input) {
         this.socket = socket;
 
@@ -60,7 +67,10 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
         socket.close();
     }
 
-    // TODO: check this
+    /**
+     * Get {@link NetworkLocation} associated with this connection
+     * @return {@link NetworkLocation} associated with current connection
+     */
     public NetworkLocation getNetworkLocation() {
         return new NetworkLocationImpl(this.socket.getInetAddress().getHostAddress(), this.socket.getPort());
     }
