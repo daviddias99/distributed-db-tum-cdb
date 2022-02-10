@@ -1,6 +1,11 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.events;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ClientStats implements TimeEvent {
+
+    private static final Logger LOGGER = LogManager.getLogger(ClientStats.class);
 
     public double putTime = 0;
     public double getTime = 0;
@@ -49,10 +54,12 @@ public class ClientStats implements TimeEvent {
     }
 
     public void print() {
-        System.out.println(">> STATE");
-        System.out.println(String.format("GET(%d, %d, %f)", getCount, getFailCount, getTime));
-        System.out.println(String.format("PUT(%d, %d, %f)", putCount, putFailCount, putTime));
-        System.out.println(String.format("DELETE(%d, %d, %f)", deleteCount, deleteFailCount, deleteTime));
+        LOGGER.info(
+                "Client stats state\n    GET({}, {}, {})\n    PUT({}, {}, {})\n    DEL({}, {}, {})",
+                getCount, getFailCount, getTime,
+                putCount, putFailCount, putTime,
+                deleteCount, deleteFailCount, deleteTime
+        );
     }
 
     public void add(ClientStats c) {
@@ -80,7 +87,7 @@ public class ClientStats implements TimeEvent {
         builder.append(this.deleteFailCount).append(",");
         builder.append(this.deleteTime).append(",");
         builder.append(putCount - putFailCount + getCount - getFailCount + deleteCount - deleteFailCount).append(",");
-        builder.append(this.periodEvent == null ? "" : this.periodEvent).append("\n");
+        builder.append(this.periodEvent == null ? "" : this.periodEvent.getType()).append("\n");
 
         return builder.toString();
     }

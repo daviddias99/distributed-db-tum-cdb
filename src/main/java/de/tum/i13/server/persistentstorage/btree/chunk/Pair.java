@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Data class representing a {@link Serializable} key-value pair. Keys are
  * Strings and value types are configured through the generic {@code V}
- * 
+ *
  * @param <V> Type of vlaue
  */
 public class Pair<V> implements Serializable {
@@ -24,7 +24,7 @@ public class Pair<V> implements Serializable {
 
     /**
      * Create new pair
-     * 
+     *
      * @param key   key
      * @param value value
      */
@@ -38,21 +38,21 @@ public class Pair<V> implements Serializable {
         if (obj == this) {
             return true;
         }
- 
+
         if (!(obj instanceof Pair)) {
             return false;
         }
-         
+
         // typecast o to Complex so that we can compare data members
         Pair<?> c = (Pair<?>) obj;
-         
+
         // Compare the data members and return accordingly
-        return  c.key.equals(this.key) && c.value.equals(this.value);
+        return c.key.equals(this.key) && c.value.equals(this.value);
     }
 
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
         return this.key + " | " + this.value;
     }
+
 }

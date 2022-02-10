@@ -1,14 +1,10 @@
 package de.tum.i13.shared.persistentstorage;
 
 import de.tum.i13.server.kv.KVMessage;
-import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.Constants;
-import de.tum.i13.shared.hashing.ConsistentHashRing;
-import de.tum.i13.shared.hashing.TreeMapServerMetadata;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
-import de.tum.i13.shared.net.NetworkMessageServer;
 import io.github.resilience4j.retry.MaxRetriesExceededException;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -17,19 +13,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import static io.github.resilience4j.core.IntervalFunction.ofExponentialRandomBackoff;
 
-/**
- * A {@link WrappingPersistentStorage} that is aware of the distributed nature of the
- * {@link DistributedPersistentStorage}.
- * Uses a {@link ConsistentHashRing} to store server metadata.
- */
-public class DistributedPersistentStorage implements NetworkPersistentStorage {
+public abstract class DistributedPersistentStorage implements NetworkPersistentStorage {
 
     private static final Logger LOGGER = LogManager.getLogger(DistributedPersistentStorage.class);
-    private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
+    private static final Random RANDOM = new Random();
+
     private static final RetryConfig retryConfig = RetryConfig.<KVMessage>custom()
             .maxAttempts(Constants.MAX_REQUEST_RETRIES)
             .intervalFunction(ofExponentialRandomBackoff(
@@ -47,18 +40,11 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
             .retryOnException(ex -> false)
             .build();
     private static final RetryRegistry retryRegistry = RetryRegistry.of(retryConfig);
-    private final NetworkPersistentStorage persistentStorage;
+    private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
+    protected final NetworkPersistentStorage persistentStorage;
 
-    private ConsistentHashRing hashRing;
-
-    /**
-     * Creates a new {@link DistributedPersistentStorage} that wraps around the given {@link NetworkMessageServer}
-     *
-     * @param networkPersistentStorage the server to use for network communication
-     */
-    public DistributedPersistentStorage(NetworkPersistentStorage networkPersistentStorage) {
+    protected DistributedPersistentStorage(NetworkPersistentStorage networkPersistentStorage) {
         this.persistentStorage = networkPersistentStorage;
-        hashRing = new TreeMapServerMetadata();
     }
 
     /**
@@ -72,11 +58,10 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         final Callable<KVMessage> serverCallable = () -> persistentStorage.get(key);
 
         try {
-            return callServerResiliently(key, serverCallable, responseMessage);
+            return processResponseResiliently(key, RequestType.GET, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
-            final GetException getException = new GetException(exception, EXCEPTION_FORMAT, exception.getMessage());
-            LOGGER.error("Caught exception while getting. Wrapping the exception.", getException);
-            throw getException;
+            throw new GetException(exception,
+                    EXCEPTION_FORMAT, exception.getMessage());
         }
     }
 
@@ -91,11 +76,10 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         final Callable<KVMessage> serverCallable = () -> persistentStorage.put(key, value);
 
         try {
-            return callServerResiliently(key, serverCallable, responseMessage);
+            return processResponseResiliently(key, RequestType.PUT, serverCallable, responseMessage);
         } catch (CommunicationClientException exception) {
-            final PutException putException = new PutException(exception, EXCEPTION_FORMAT, exception.getMessage());
-            LOGGER.error("Caught exception while getting. Wrapping the exception.", putException);
-            throw putException;
+            throw new PutException(exception,
+                    EXCEPTION_FORMAT, exception.getMessage());
         }
     }
 
@@ -104,23 +88,24 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         return persistentStorage.getRange(lowerBound, upperBound);
     }
 
-    private KVMessage callServerResiliently(String key, Callable<KVMessage> serverCallable,
-                                            KVMessage responseMessage) throws CommunicationClientException {
+    private KVMessage processResponseResiliently(String key, RequestType requestType,
+                                                 Callable<KVMessage> serverCallable,
+                                                 KVMessage responseMessage) throws CommunicationClientException {
         KVMessage.StatusType responseStatus = responseMessage.getStatus();
         LOGGER.debug("Server indicated status '{}'", responseStatus);
-        if (responseStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE)
-            return handleServerNotResponsible(serverCallable, key);
-        else if (responseStatus == KVMessage.StatusType.SERVER_STOPPED)
-            return retryWithBackOff(serverCallable);
-        else if (responseStatus == KVMessage.StatusType.SERVER_WRITE_LOCK)
-            return retryWithBackOff(serverCallable);
-        else {
-            LOGGER.debug("Server indicated no status that requires additional action. Therefore, returning message.");
-            return responseMessage;
-        }
+        return switch (responseStatus) {
+            case SERVER_NOT_RESPONSIBLE -> handleServerNotResponsible(serverCallable, key, requestType,
+                    responseMessage);
+            case SERVER_STOPPED, SERVER_WRITE_LOCK -> retryWithBackOff(serverCallable);
+            default -> {
+                LOGGER.debug("Server indicated no status that requires additional action. Therefore, returning " +
+                        "message.");
+                yield responseMessage;
+            }
+        };
     }
 
-    private KVMessage retryWithBackOff(Callable<KVMessage> serverCallable) throws CommunicationClientException {
+    protected KVMessage retryWithBackOff(Callable<KVMessage> serverCallable) throws CommunicationClientException {
         LOGGER.debug("Retrying using backoff with jitter");
         Retry retry = retryRegistry.retry("messageSending");
         try {
@@ -129,79 +114,13 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
                 return serverCallable.call();
             }));
         } catch (MaxRetriesExceededException ex) {
-            var exception = new CommunicationClientException(ex, "Reached maximum number of retries while " +
-                    "communicating with server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(
+                    ex,
+                    "Reached maximum number of retries while communicating with server"
+            );
         } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex, "The storage encountered an error" + ex.getMessage());
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
+            throw new CommunicationClientException(ex, "The storage encountered an error" + ex.getMessage());
         }
-    }
-
-    private KVMessage handleServerNotResponsible(Callable<KVMessage> serverCallable, String key) throws CommunicationClientException {
-        LOGGER.debug("Requesting new metadata from server");
-        updateHashRing();
-
-        NetworkLocation responsibleNetLocation = hashRing.getWriteResponsibleNetworkLocation(key)
-                .orElseThrow(() -> {
-                    var exception = new CommunicationClientException("Could not find server responsible for data");
-                    LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-                    return exception;
-                });
-        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
-        connectAndReceive(
-                responsibleNetLocation.getAddress(),
-                responsibleNetLocation.getPort()
-        );
-
-        LOGGER.debug("Retrying with new server");
-        try {
-            final KVMessage newResponse = serverCallable.call();
-            return handleSecondServerResponse(serverCallable, key, newResponse);
-        } catch (Exception ex) {
-            var exception = new CommunicationClientException(ex,
-                    "The storage encountered an error. " + ex.getMessage());
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-    }
-
-    private void updateHashRing() throws CommunicationClientException {
-        final KVMessage keyRangeRequest = new KVMessageImpl(KVMessage.StatusType.KEYRANGE);
-        final CommunicationCallable getKeyRangeFunction = () -> sendAndReceive(keyRangeRequest);
-
-        KVMessage keyRangeResponse = getKeyRangeFunction.call();
-        final KVMessage.StatusType keyRangeStatus = keyRangeResponse.getStatus();
-
-        if (keyRangeStatus == KVMessage.StatusType.SERVER_STOPPED) {
-            retryWithBackOff(getKeyRangeFunction);
-        } else if (keyRangeStatus != KVMessage.StatusType.KEYRANGE_SUCCESS) {
-            var exception = new CommunicationClientException("Server did not respond with appropriate server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-
-        try {
-            hashRing = ConsistentHashRing.unpackMetadata(keyRangeResponse.getKey());
-        } catch (IllegalArgumentException ex) {
-            var exception = new CommunicationClientException(ex, "Could not unpack server metadata");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        }
-    }
-
-    private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
-                                                 KVMessage newResponse) throws CommunicationClientException {
-        final KVMessage.StatusType newStatus = newResponse.getStatus();
-        LOGGER.debug("Second server indicated status {}", newStatus);
-
-        if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
-            final var exception = new CommunicationClientException("Could not find responsible server");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
-        } else return callServerResiliently(key, serverCallable, newResponse);
     }
 
     @Override
@@ -249,11 +168,57 @@ public class DistributedPersistentStorage implements NetworkPersistentStorage {
         return persistentStorage.connectAndReceive(address, port);
     }
 
-    private interface CommunicationCallable extends Callable<KVMessage> {
+    private KVMessage handleServerNotResponsible(Callable<KVMessage> serverCallable, String key,
+                                                 RequestType requestType,
+                                                 KVMessage responseMessage) throws CommunicationClientException {
+        LOGGER.debug("Handling not responsible message from server");
+        final List<NetworkLocation> responsibleNetworkLocations = getResponsibleNetworkLocations(key, requestType,
+                responseMessage);
+        final NetworkLocation responsibleNetLocation = getRandomNetworkLocation(responsibleNetworkLocations);
 
-        @Override
-        KVMessage call() throws CommunicationClientException;
+        LOGGER.debug("Connecting to new {}", NetworkLocation.class.getSimpleName());
+        connectAndReceive(
+                responsibleNetLocation.getAddress(),
+                responsibleNetLocation.getPort()
+        );
 
+        LOGGER.debug("Retrying with new server");
+        try {
+            final KVMessage newResponse = serverCallable.call();
+            return handleSecondServerResponse(serverCallable, key, requestType, newResponse);
+        } catch (Exception ex) {
+            throw new CommunicationClientException(ex, "The storage encountered an error. " + ex.getMessage());
+        }
     }
+
+    private NetworkLocation getRandomNetworkLocation(List<NetworkLocation> networkLocations) throws CommunicationClientException {
+        if (networkLocations.isEmpty()) {
+            throw new CommunicationClientException("Could not find server responsible for data");
+        }
+        if (networkLocations.size() == 1) {
+            return networkLocations.get(0);
+        }
+        return networkLocations.get(RANDOM.nextInt(networkLocations.size()));
+    }
+
+    protected abstract List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType,
+                                                                            KVMessage responseMessage) throws CommunicationClientException;
+
+    private KVMessage handleSecondServerResponse(Callable<KVMessage> serverCallable, String key,
+                                                 RequestType requestType,
+                                                 KVMessage newResponse) throws CommunicationClientException {
+        final KVMessage.StatusType newStatus = newResponse.getStatus();
+        LOGGER.debug("Second server indicated status {}", newStatus);
+
+        if (newStatus == KVMessage.StatusType.SERVER_NOT_RESPONSIBLE) {
+            throw new CommunicationClientException("Could not find responsible server");
+        } else return processResponseResiliently(key, requestType, serverCallable, newResponse);
+    }
+
+    protected enum RequestType {
+        PUT,
+        GET
+    }
+
 
 }

@@ -20,7 +20,7 @@ public class ExternalConfigurationServer {
 
     private static final Logger LOGGER = LogManager.getLogger(ExternalConfigurationServer.class);
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         LOGGER.info("Starting {}", ExternalConfigurationServer.class.getSimpleName());
         Config cfg = Config.parseCommandlineArgs(args);
         setupLogging(cfg.logfile, cfg.logLevel);
@@ -29,7 +29,6 @@ public class ExternalConfigurationServer {
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 LOGGER.info("Closing ECS socket");
                 try {
-                    //TODO what else when ECS shuts down?
                     socket.close();
                 } catch (IOException ex) {
                     LOGGER.fatal("Caught exception, while closing ECS socket", ex);
@@ -39,14 +38,14 @@ public class ExternalConfigurationServer {
             socket.bind(new InetSocketAddress(cfg.listenAddress, cfg.port));
 
             startListening(socket);
-        } catch(IOException ex){
+        } catch (IOException ex) {
             LOGGER.fatal("Caught exception, while creating and binding ECS socket", ex);
         }
 
     }
 
     @SuppressWarnings("java:S2189")
-    public static void startListening(ServerSocket socket){
+    public static void startListening(ServerSocket socket) {
         LOGGER.info("Start listening on {} for new connections", socket);
 
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -64,10 +63,10 @@ public class ExternalConfigurationServer {
                 LOGGER.trace("Starting new server connection thread");
                 executor.submit(new ECSServerConnectionThread(new ECSCommandProcessor(), serverSocket));
             }
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             LOGGER.fatal("Caught exception while accepting server requests for ECS", ex);
             executor.shutdown();
         }
     }
-    
+
 }

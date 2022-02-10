@@ -49,7 +49,8 @@ public class CommunicationClientException extends Exception {
     }
 
     /**
-     * Creates a new {@link CommunicationClientException} with the supplied format string and objects, a cause and a type
+     * Creates a new {@link CommunicationClientException} with the supplied format string and objects, a cause and a
+     * type
      *
      * @param format the string to format
      * @param args   the parameters for the string formatting

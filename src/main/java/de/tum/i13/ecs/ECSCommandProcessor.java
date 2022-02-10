@@ -18,7 +18,7 @@ class ECSCommandProcessor implements CommandProcessor<String> {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSCommandProcessor.class);
 
-    public ECSCommandProcessor(){
+    public ECSCommandProcessor() {
     }
 
     @Override

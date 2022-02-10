@@ -1,11 +1,5 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVMessageImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
@@ -13,37 +7,41 @@ import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandle
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.shared.Preconditions;
 import de.tum.i13.shared.hashing.HashingAlgorithm;
-import de.tum.i13.shared.hashing.MD5HashAlgorithm;
 import de.tum.i13.shared.persistentstorage.GetException;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Uses a Persistent B-Tree (https://en.wikipedia.org/wiki/B-tree) implemented
  * by ({@link PersistentBTree}) to provide a {@link PersistentStorage}.
  */
 public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
+
     private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
     private PersistentBTree<Pair<String>> tree;
 
-    private HashingAlgorithm hashAlg;
+    private final HashingAlgorithm hashAlg;
 
     /**
      * Create a new B-Tree with a given minimum degree (see
      * {@link PersistentBTree}).
      * Storage handler is also configurable. First there is an attempt to load the
      * tree, if it fails, a new tree is created.
-     * 
+     *
      * @param minimumDegree    B-Tree minimum degree
      * @param storageHandler   Handler used by the BTree to persist
      * @param hashingAlgorithm algorithm to be use to hash data uses as key in BTree
-     * 
      * @throws StorageException An exception is thrown when an error occures while
      *                          saving tree to persistent storage
      */
     public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler,
-            HashingAlgorithm hashingAlgorithm)
+                                  HashingAlgorithm hashingAlgorithm)
             throws StorageException {
         try {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler);
@@ -58,26 +56,10 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         this.hashAlg = hashingAlgorithm;
     }
 
-    /**
-     * Create a new B-Tree with a given minimum degree (see
-     * {@link PersistentBTree}).
-     * Storage handler is also configurable. First there is an attempt to load the
-     * tree, if it fails, a new tree is created.
-     * 
-     * @param minimumDegree  B-Tree minimum degree
-     * @param storageHandler Handler used by the BTree to persist
-     *
-     * @throws StorageException An exception is thrown when an error occures while
-     *                          saving tree to persistent storage
-     */
-    public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler)
-            throws StorageException {
-        this(minimumDegree, storageHandler, new MD5HashAlgorithm());
-    }
 
     private String normalizeKey(String key) {
         String intermediate = this.hashAlg.hash(key).toString(16);
-        return "00000000000000000000000000000000".substring(intermediate.length()) + intermediate;
+        return HashingAlgorithm.padLeftZeros(intermediate, this.hashAlg.getHashSizeBits() / 4);
     }
 
     @Override
@@ -155,14 +137,11 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
     public List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         try {
             return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
-        } catch (StorageException | PersistentBTreeException e) {
-            LOGGER.error(e);
-            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
-                    upperBound);
         } catch (Exception e) {
-            LOGGER.error(e.getLocalizedMessage());
-            throw new GetException("An error occured while fetching elements in range %s-%s from storage.", lowerBound,
+            throw new GetException(e, "An error occurred while fetching elements in range %s-%s from storage.",
+                    lowerBound,
                     upperBound);
         }
     }
+
 }

@@ -1,256 +1,149 @@
 package de.tum.i13.server.state;
 
-import de.tum.i13.server.kv.replication.ReplicationOrchestrator;
-import de.tum.i13.shared.hashing.ConsistentHashRing;
+import de.tum.i13.server.ServerException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.shared.persistentstorage.PutException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Class that represents the server's state. It contains the actual state, the
- * ring metadata and the location of the ECS.
+ * Class that represents the server's state. It contains the actual state and potentially additional information
  */
-public class ServerState {
-  private static final Logger LOGGER = LogManager.getLogger(ServerState.class);
-
-  /**
-   * Enum that represents the server's state
-   */
-  public enum State {
+public interface ServerState {
 
     /**
-     * Server is active
+     * Get the server's current state
+     *
+     * @return current state
      */
-    ACTIVE,
+    State getState();
 
     /**
-     * Server is stopped
+     * Check if the server is stopped
+     *
+     * @return true if the server is stopped
      */
-    STOPPED,
+    boolean isStopped();
 
     /**
-     * Server is write locked
+     * Check if the server is on shutdown mode
+     *
+     * @return true if the server is on shutdown mode
      */
-    WRITE_LOCK
-  }
+    boolean isShutdown();
 
-  private State currentState;
-  private ConsistentHashRing ringMetadata;
-  private NetworkLocation curNetworkLocation;
-  private NetworkLocation ecsLocation;
-  private boolean isShuttingDown;
-  private List<String> nodesToDelete = new LinkedList<>();
-  private ReplicationOrchestrator replicationOrchestrator;
+    /**
+     * Check if the server is active
+     *
+     * @return true if the server is currently active
+     */
+    boolean isActive();
 
-  /**
-   * Create a new server state. The server is started in a STOPPED state.
-   * 
-   * @param curNetworkLocation location of the current server
-   * @param ecsLocation        location of the ecs
-   */
-  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation) {
-    this(curNetworkLocation, ecsLocation, null);
-  }
+    /**
+     * Check if the server is not write locked
+     *
+     * @return true if the server is not write locked
+     */
+    boolean canWrite();
 
-  /**
-   * Create a new server state. The server is started in a STOPPED state.
-   * 
-   * @param curNetworkLocation location of the current server
-   * @param ecsLocation        location of the ecs
-   */
-  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ReplicationOrchestrator replicationOrchestrator) {
-    this(curNetworkLocation, ecsLocation, null, State.STOPPED, replicationOrchestrator);
-  }
+    /**
+     * Set the server state to stopped
+     */
+    void stop();
 
-  /**
-   * Create a new server state, initialized with a given state and ring data.
-   * 
-   * @param curNetworkLocation location of the current server
-   * @param ecsLocation        location of the ecs
-   * @param ringMetadata       initial ring data
-   * @param startState         starting state
-   */
-  public ServerState(NetworkLocation curNetworkLocation, NetworkLocation ecsLocation, ConsistentHashRing ringMetadata,
-      State startState, ReplicationOrchestrator replicationOrchestrator) {
-    this.currentState = startState;
-    this.setRingMetadata(ringMetadata);
-    this.curNetworkLocation = curNetworkLocation;
-    this.ecsLocation = ecsLocation;
-    this.isShuttingDown = false;
-    this.replicationOrchestrator = replicationOrchestrator;
-  }
+    /**
+     * Write lock the server
+     */
+    void writeLock();
 
-  /**
-   * Get the server's current state
-   * 
-   * @return current state
-   */
-  public synchronized State getState() {
-    return currentState;
-  }
+    /**
+     * Set the server to shutdown mode
+     */
+    void shutdown();
 
-  /**
-   * Check if the server is stopped
-   * 
-   * @return true if the server is stopped
-   */
-  public synchronized boolean isStopped() {
-    return this.currentState == State.STOPPED;
-  }
+    /**
+     * Set the server to active mode
+     */
+    void start();
 
-  /**
-   * Check if the server is on shutdown mode
-   * 
-   * @return true if the server is on shutdown mode
-   */
-  public synchronized boolean isShutdown() {
-    return this.isShuttingDown;
-  }
+    /**
+     * Check if a given key is the responsibility of the current server for writing
+     *
+     * @param key key to check
+     * @return true if the server is responsible for the key
+     * @throws ServerException exception is thrown when the operation can't be completed due to an unforceen error
+     */
+    boolean isWriteResponsible(String key) throws ServerException;
 
-  /**
-   * Check if the server is active
-   * 
-   * @return true if the server is currently active
-   */
-  public synchronized boolean isActive() {
-    return this.currentState == State.ACTIVE;
-  }
+    /**
+     * Check if a given key is the responsibility of the current server for reading
+     *
+     * @param key key to check
+     * @return true if the server is responsible for the key
+     * @throws ServerException exception is thrown when the operation can't be completed due to an unforceen error
+     */
+    boolean isReadResponsible(String key) throws ServerException;
 
-  /**
-   * Check if the server is not write locked
-   * 
-   * @return true if the server is not write locked
-   */
-  public synchronized boolean canWrite() {
-    return this.currentState != State.WRITE_LOCK;
-  }
+    /**
+     * Get locations responsible for a given key
+     *
+     * @param key key to check
+     * @return list of responsible {@link NetworkLocation}s
+     */
+    List<NetworkLocation> getReadResponsibleNetworkLocation(String key);
 
-  /**
-   * Set the server state to stopped
-   */
-  public synchronized void stop() {
-    this.setState(State.STOPPED);
-  }
+    /**
+     * Get network location associated with current node
+     *
+     * @return network location of current node
+     */
+    NetworkLocation getCurNetworkLocation();
 
-  /**
-   * Write lock the server
-   */
-  public synchronized void writeLock() {
-    this.setState(State.WRITE_LOCK);
-  }
+    /**
+     * Check if there are enough servers to perform replication
+     *
+     * @return true if replication is active
+     */
+    boolean isReplicationActive();
 
-  /**
-   * Set the server to shutdown mode
-   */
-  public synchronized void shutdown() {
-    this.isShuttingDown = true;
-  }
+    /**
+     * Executed queued delete operations
+     *
+     * @param storage {@link PersistentStorage} where delete operations are to be executed
+     */
+    void executeStoredDeletes(PersistentStorage storage);
 
-  /**
-   * Set the server to active mode
-   */
-  public synchronized void start() {
-    this.setState(State.ACTIVE);
-  }
+    /**
+     * Get queued delete operations
+     *
+     * @return list of queued delete operations
+     */
+    List<String> getDeleteQueue();
 
-  /**
-   * Get the network location of the ECS
-   * 
-   * @return network location of the ECS
-   */
-  public synchronized NetworkLocation getEcsLocation() {
-    return ecsLocation;
-  }
+    /**
+     * Enum that represents the server's state
+     */
+    enum State {
 
-  /**
-   * Get the network location of the current node
-   * 
-   * @return network location of the current node
-   */
-  public synchronized NetworkLocation getCurNetworkLocation() {
-    return curNetworkLocation;
-  }
+        /**
+         * Server is active
+         */
+        ACTIVE,
 
-  /**
-   * Get the ring metadata
-   * 
-   * @return ring metadata
-   */
-  public synchronized ConsistentHashRing getRingMetadata() {
-    return ringMetadata;
-  }
+        /**
+         * Server is stopped
+         */
+        STOPPED,
 
-  /**
-   * Set the ring metadata
-   * 
-   * @param ringMetadata new ring metadata
-   */
-  public synchronized void setRingMetadata(ConsistentHashRing ringMetadata) {
-    this.ringMetadata = ringMetadata;
-  }
+        /**
+         * Server is doing shutdown
+         */
+        SHUTDOWN,
 
-  /**
-   * Check if a given key is the responsability of the current server (i.e.
-   * writting)
-   * 
-   * @param key key to check
-   * @return true if the server is responsible for the key
-   */
-  public synchronized boolean isWriteResponsibleForKey(String key) {
-    return ringMetadata.isWriteResponsible(curNetworkLocation, key);
-  }
-
-  /**
-   * Check if a given key is the responsability of the current server (i.e.
-   * reading). This method extends {@code writeResponsibleForKey} by considering
-   * responsibility through replication.
-   * 
-   * @param key key to check
-   * @return true if the server is responsible for the key
-   */
-  public synchronized boolean isReadResponsibleForKey(String key) {
-    return ringMetadata.isReadResponsible(curNetworkLocation, key);
-
-  }
-
-  private synchronized void setState(State state) {
-    this.currentState = state;
-  }
-
-  public synchronized void executeStoredDeletes(PersistentStorage storage) {
-    for (String key : nodesToDelete) {
-      try {
-        LOGGER.info("Trying to delete item with key {}.", key);
-        storage.put(key, null);
-      } catch (PutException e) {
-        LOGGER.error("Could not delete item with key {} after keyrange change.", key);
-      }
+        /**
+         * Server is write locked
+         */
+        WRITE_LOCK
     }
-    nodesToDelete = new LinkedList<>();
-  }
 
-  public synchronized List<String> getDeleteQueue() {
-    return this.nodesToDelete;
-  }
-
-  public synchronized void handleKeyRangeChange(ConsistentHashRing oldMetadata, ConsistentHashRing newMetadata) {
-    if (this.replicationOrchestrator == null) {
-      return;
-    }
-    
-    this.replicationOrchestrator.handleKeyRangeChange(oldMetadata, newMetadata);
-  }
-
-  public synchronized void deleteReplicatedRanges() {
-    if (this.replicationOrchestrator == null) {
-      return;
-    }
-    
-    this.replicationOrchestrator.deleteReplicatedRangesWithoutUpdate();
-  }
 }

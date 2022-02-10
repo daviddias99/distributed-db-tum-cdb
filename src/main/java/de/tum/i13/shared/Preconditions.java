@@ -5,14 +5,14 @@ import java.util.function.Supplier;
 
 /**
  * Preconditions which can be used to validate the argument passed to methods.
- *
+ * <p>
  * Taken from a different university project.
  */
 public final class Preconditions {
-    
+
     private Preconditions() {
     }
-    
+
     /**
      * Checks if the given object is {@code null}. If this is the case,
      * a {@link NullPointerException} is thrown.
@@ -26,7 +26,7 @@ public final class Preconditions {
     public static <T> T notNull(T object) {
         return notNull(object, "Object must not be null");
     }
-    
+
     /**
      * Checks if the given object if {@code null}. If this is the case,
      * a {@link NullPointerException} with the given message is thrown.
@@ -43,10 +43,10 @@ public final class Preconditions {
         if (object == null) {
             throw new NullPointerException(message);
         }
-        
+
         return object;
     }
-    
+
     /**
      * Checks if the given object is {@code null}. If this is the case,
      * a {@link NullPointerException} with the message provided by the
@@ -63,7 +63,7 @@ public final class Preconditions {
     public static <T> T notNull(T object, Supplier<String> messageSupplier) {
         return notNull(object, messageSupplier.get());
     }
-    
+
     /**
      * Checks if the given {@link Collection} contains any {@code null} element.
      * If this is the case, a {@link IllegalArgumentException} is thrown.
@@ -83,7 +83,7 @@ public final class Preconditions {
     public static <T> Collection<T> doesNotContainNull(Collection<T> collection) {
         return doesNotContainNull(collection, "The collection must not contain null");
     }
-    
+
     /**
      * Checks if the given {@link Collection} contains any {@code null} element.
      * If this is the case, a {@link IllegalArgumentException} with the given
@@ -106,10 +106,10 @@ public final class Preconditions {
         if (collection.contains(null)) {
             throw new IllegalArgumentException(message);
         }
-        
+
         return collection;
     }
-    
+
     /**
      * Checks if the given {@link Collection} contains any {@code null} element.
      * If this is the case, a {@link IllegalArgumentException} with the message
@@ -131,7 +131,7 @@ public final class Preconditions {
     public static <T> Collection<T> doesNotContainNull(Collection<T> collection, Supplier<String> messageSupplier) {
         return doesNotContainNull(collection, messageSupplier.get());
     }
-    
+
     /**
      * Checks whether the given expression evaluates to {@code true}. If this is
      * not the case, an {@link IllegalArgumentException} is thrown.
@@ -143,7 +143,7 @@ public final class Preconditions {
     public static void check(boolean expression) {
         check(expression, "The expression must not evaluate to false");
     }
-    
+
     /**
      * Checks whether the given expression evaluates to {@code true}. If this is
      * not the case, an {@link IllegalArgumentException} with the given message
@@ -159,7 +159,7 @@ public final class Preconditions {
             throw new IllegalArgumentException(message);
         }
     }
-    
+
     /**
      * Checks whether the given expression evaluates to {@code true}. If this is
      * not the case, an {@link IllegalArgumentException} with the message given
@@ -173,4 +173,5 @@ public final class Preconditions {
     public static void check(boolean expression, Supplier<String> messageSupplier) {
         check(expression, messageSupplier.get());
     }
+
 }

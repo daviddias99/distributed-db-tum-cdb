@@ -1,10 +1,5 @@
 package de.tum.i13.server.threadperconnection;
 
-import de.tum.i13.shared.net.CommunicationClient;
-import de.tum.i13.shared.net.CommunicationClientException;
-import de.tum.i13.shared.net.NetworkLocation;
-import de.tum.i13.shared.net.NetworkLocationImpl;
-import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.server.Config;
 import de.tum.i13.server.cache.CachedPersistentStorage;
 import de.tum.i13.server.cache.CachingStrategy;
@@ -17,17 +12,23 @@ import de.tum.i13.server.persistentstorage.btree.BTreePersistentStorage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeDiskStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
+import de.tum.i13.server.state.ECSServerState;
 import de.tum.i13.shared.CommandProcessor;
+import de.tum.i13.shared.Constants;
+import de.tum.i13.shared.hashing.MD5HashAlgorithm;
+import de.tum.i13.shared.net.CommunicationClient;
+import de.tum.i13.shared.net.CommunicationClientException;
+import de.tum.i13.shared.net.NetworkLocation;
+import de.tum.i13.shared.net.NetworkLocationImpl;
+import de.tum.i13.shared.net.NetworkMessageServer;
 import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.server.state.ServerState;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 
-
 import static de.tum.i13.shared.LogSetup.setupLogging;
+import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 /**
  * The main class responsible for stating the database server.
@@ -46,6 +47,9 @@ public class Main {
         Config cfg = Config.parseCommandlineArgs(args); // Do not change this
         setupLogging(cfg.logfile, cfg.logLevel);
 
+        // TODO: Not really a good practice
+        Constants.NUMBER_OF_REPLICAS = cfg.replicationFactor;
+
         try {
             // Setup storage
             final PersistentStorage storage = setUpStorage(cfg.dataDir, cfg.minimumDegree, cfg.cachingStrategy,
@@ -60,7 +64,7 @@ public class Main {
             // Create state
             LOGGER.trace("Creating server state");
             final ReplicationOrchestrator replicationOrchestrator = new ReplicationOrchestrator(curLocation, storage);
-            final ServerState state = new ServerState(curLocation, ecsLocation, replicationOrchestrator);
+            final ECSServerState state = new ECSServerState(curLocation, ecsLocation, replicationOrchestrator);
 
             // Setup communications with ECS
             final ServerCommunicator ecsCommunicator = setupEcsOutgoingCommunications(ecsLocation);
@@ -71,9 +75,11 @@ public class Main {
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor));
+            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress,
+                    cfg.port, commandProcessor)));
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state)));
+            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(ecsCommunicator,
+                    ecsCommandProcessor, cfg, listeningThread, state))));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(500);
@@ -94,23 +100,20 @@ public class Main {
     /**
      * Method that sets the persistent storage directory, caching strategy and cache
      * size.
-     * 
+     *
      * @param dataDir
      * @param cachingStrategy
      * @param cacheSize
      * @return
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree,
-            CachingStrategy cachingStrategy, int cacheSize)
+                                                        CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
                 dataDir.toString(),
                 false);
-
-        // TODO: is using MD5 by default, should somehow be configured with the one used
-        // in the Ring
-        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler);
+        BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, new MD5HashAlgorithm());
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
 
@@ -125,4 +128,5 @@ public class Main {
         communicator.connect(ecsLocation.getAddress(), ecsLocation.getPort());
         return communicator;
     }
+
 }

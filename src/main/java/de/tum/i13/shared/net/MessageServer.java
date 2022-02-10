@@ -10,7 +10,7 @@ public interface MessageServer {
      *
      * @param message Message to be sent to the host
      * @throws CommunicationClientException if the message is too large, the client isn't connected or
-     *                         the message fails to be sent
+     *                                      the message fails to be sent
      */
     void send(String message) throws CommunicationClientException;
 

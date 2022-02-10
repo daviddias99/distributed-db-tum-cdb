@@ -23,10 +23,10 @@ public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
 
-    private CommandProcessor<String> cp;
-    private Socket clientSocket;
-    private InetSocketAddress serverAddress;
-    private ConnectionHandler connectionHandler;
+    private final CommandProcessor<String> cp;
+    private final Socket clientSocket;
+    private final InetSocketAddress serverAddress;
+    private final ConnectionHandler connectionHandler;
 
     /**
      * Create new connection handler
@@ -47,7 +47,7 @@ public class ConnectionHandleThread implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Handling connection to {} in new thread", clientSocket);
+        LOGGER.debug("Handling connection to {} in new thread", serverAddress);
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(clientSocket.getInputStream(), Constants.TELNET_ENCODING));
@@ -57,7 +57,7 @@ public class ConnectionHandleThread implements Runnable {
             ActiveConnection activeConnection = new ActiveConnection(clientSocket, out, in);
             // Send a confirmation message to peer upon connection if he needs the greet
 
-            LOGGER.info("Sending greet to peer");
+            LOGGER.trace("({}) Sending greet to peer", Thread.currentThread().getName());
 
             String connSuccess = connectionHandler.connectionAccepted(this.serverAddress,
                     (InetSocketAddress) clientSocket.getRemoteSocketAddress());
@@ -68,14 +68,14 @@ public class ConnectionHandleThread implements Runnable {
             while ((firstLine = activeConnection.receive()) != null && !firstLine.equals("-1")) {
                 String response = cp.process(firstLine);
 
-                if (!response.startsWith("server_heart_beat")) {
+                if (!isHeartbeat(response)) {
                     LOGGER.info("Peer message exchange in: {} out: {}", firstLine, response);
                 }
 
                 activeConnection.send(response);
             }
 
-            LOGGER.info("Closing connection");
+            LOGGER.trace("({}) Closing connection", Thread.currentThread().getName());
             activeConnection.close();
             connectionHandler.connectionClosed(clientSocket.getInetAddress());
 
@@ -90,6 +90,10 @@ public class ConnectionHandleThread implements Runnable {
                     .withThrowable(ex)
                     .log("Caught exception while trying to close connection with {}.", clientSocket.getInetAddress());
         }
+    }
+
+    private boolean isHeartbeat(String response) {
+        return response.startsWith("server_heart_beat") || response.startsWith("chord_heartbeat");
     }
 
 }

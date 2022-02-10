@@ -1,21 +1,33 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.events;
+
+import de.tum.i13.simulator.client.ClientSimulator;
+import de.tum.i13.simulator.experiments.ExperimentConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 public class StatsAccumulator implements Runnable {
+
+    private static final Logger LOGGER = LogManager.getLogger(StatsAccumulator.class);
 
     List<ClientSimulator> clients;
     LinkedList<ClientStats> timeStats;
     ClientStats accStats;
     DelayedEvent event;
     String name;
+
+    public StatsAccumulator(ExperimentConfiguration experimentConfiguration) {
+        this(experimentConfiguration.getStatsName());
+    }
 
     public StatsAccumulator(String name) {
         this.timeStats = new LinkedList<>();
@@ -55,7 +67,7 @@ public class StatsAccumulator implements Runnable {
                 }
             }
 
-            if (i % 50 == 0) {
+            if (i % 30 == 0) {
                 this.accStats.print();
             }
 
@@ -77,10 +89,9 @@ public class StatsAccumulator implements Runnable {
             directory.mkdir();
         }
 
-        Random random = new Random();
-
-        File fout = new File(String.format("stats/out_%s_%d.csv", this.name, random.nextInt()));
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fout)))) {
+        File fOut = new File(String.format("stats/out_%s_%s.csv", this.name, new SimpleDateFormat("yyyy-MM-dd-HH-mm" +
+                "-ss").format(new Date())));
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fOut)))) {
             bw.write("timeStep,getCount,getFailCount,getTime,putCount,putFailCount,putTime,deleteCount," +
                     "deleteFailCount,deleteTime,totalSucc,event\n");
             synchronized (this.timeStats) {
@@ -89,7 +100,7 @@ public class StatsAccumulator implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Caught exception while saving stats", e);
         }
     }
 

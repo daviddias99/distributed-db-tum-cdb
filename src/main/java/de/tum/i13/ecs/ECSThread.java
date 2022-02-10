@@ -58,9 +58,7 @@ abstract class ECSThread implements Runnable {
             LOGGER.trace("Trying to receive welcome message");
             activeConnection.receive();
         } catch (CommunicationClientException exception) {
-            final IOException newException = new IOException("Could not receive welcome message", exception);
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
-            throw newException;
+            throw new IOException("Could not receive welcome message", exception);
         }
     }
 
@@ -107,16 +105,12 @@ abstract class ECSThread implements Runnable {
         try {
             unpackedResponse = KVMessage.unpackMessage(response);
         } catch (IllegalArgumentException exception) {
-            final IOException newException = new IOException("Could not unpack received message", exception);
-            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, newException);
-            throw newException;
+            throw new IOException("Could not unpack received message", exception);
         }
 
         if (response == null || "-1".equals(response)) {
-            final ECSException exception = new ECSException(ECSException.Type.NO_ACK_RECEIVED,
+            throw new ECSException(ECSException.Type.NO_ACK_RECEIVED,
                     "No response received from server");
-            LOGGER.fatal(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
         } else if (unpackedResponse.getStatus() != expectedType) {
             final ECSException exception = ECSException.determineException(expectedType);
             LOGGER.atError()

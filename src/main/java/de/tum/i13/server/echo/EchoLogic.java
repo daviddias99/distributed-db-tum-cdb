@@ -2,7 +2,6 @@ package de.tum.i13.server.echo;
 
 import de.tum.i13.shared.CommandProcessor;
 import de.tum.i13.shared.ConnectionHandler;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,6 +12,7 @@ import java.net.InetSocketAddress;
  * Outdated class
  */
 public class EchoLogic implements CommandProcessor<String>, ConnectionHandler {
+
     private static final Logger LOGGER = LogManager.getLogger(EchoLogic.class);
 
     public String process(String command) {
@@ -34,4 +34,5 @@ public class EchoLogic implements CommandProcessor<String>, ConnectionHandler {
     public void connectionClosed(InetAddress remoteAddress) {
         LOGGER.info("connection closed: {}", remoteAddress);
     }
+
 }

@@ -6,6 +6,29 @@ package de.tum.i13.shared.net;
  */
 public interface NetworkLocation {
 
+    NetworkLocation NULL = new NetworkLocationImpl();
+
+    /**
+     * Create a new {@link NetworkLocation} from a string
+     *
+     * @param networkLocationString string containing a network location
+     * @return a {@link NetworkLocation} object
+     */
+    static NetworkLocation extractNetworkLocation(String networkLocationString) {
+        final String[] networkLocationData = networkLocationString.split(":");
+        if (networkLocationData.length != 2) {
+            throw new IllegalArgumentException();
+        }
+        final String address = networkLocationData[0];
+        final String port = networkLocationData[1];
+
+        return new NetworkLocationImpl(address, Integer.parseInt(port));
+    }
+
+    static String toPackedString(NetworkLocation location) {
+        return String.format("%s:%s", location.getAddress(), location.getPort());
+    }
+
     /**
      * Returns the host address of the network location.
      *
@@ -20,19 +43,4 @@ public interface NetworkLocation {
      */
     int getPort();
 
-    /**
-     * Create a new {@link NetworkLocation} from a string
-     * @param networkLocationString string containing a network location
-     * @return a {@link NetworkLocation} object
-     */
-    static NetworkLocation extractNetworkLocation(String networkLocationString) {
-        final String[] networkLocationData = networkLocationString.split(":");
-        if (networkLocationData.length != 2) {
-            throw new IllegalArgumentException();
-        }
-        final String address = networkLocationData[0];
-        final String port = networkLocationData[1];
-
-        return new NetworkLocationImpl(address, Integer.parseInt(port));
-    }
 }

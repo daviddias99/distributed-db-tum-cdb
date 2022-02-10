@@ -1,10 +1,10 @@
 package de.tum.i13.shared.persistentstorage;
 
-import java.util.List;
-
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
+
+import java.util.List;
 
 /**
  * An interface for a persistent storage with altered exceptions compared to
@@ -29,7 +29,7 @@ public interface PersistentStorage extends KVStore {
     /**
      * Get elements of storage that contain keys in range [lowerBound-upperBound]
      * (limits included).
-     * 
+     *
      * @param lowerBound lower bound of keys
      * @param upperBound upper bound of keys
      * @return elements with keys in interval [lowerBound-upperBound]
@@ -37,4 +37,5 @@ public interface PersistentStorage extends KVStore {
      *                      the elements
      */
     List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException;
+
 }

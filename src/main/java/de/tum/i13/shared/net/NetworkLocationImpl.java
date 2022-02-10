@@ -28,6 +28,14 @@ public class NetworkLocationImpl implements NetworkLocation {
         this.port = port;
     }
 
+    /**
+     * Creates a new null {@link NetworkLocation} with address "null" and port 0
+     */
+    NetworkLocationImpl() {
+        this.address = "null";
+        this.port = 0;
+    }
+
     @Override
     public String getAddress() {
         return this.address;
@@ -41,8 +49,8 @@ public class NetworkLocationImpl implements NetworkLocation {
     @Override
     public boolean equals(Object otherObject) {
         if (this == otherObject) return true;
-        if (!(otherObject instanceof NetworkLocationImpl)) return false;
-        NetworkLocationImpl that = (NetworkLocationImpl) otherObject;
+        if (!(otherObject instanceof NetworkLocation)) return false;
+        NetworkLocation that = (NetworkLocation) otherObject;
         return getPort() == that.getPort() && Objects.equals(getAddress(), that.getAddress());
     }
 

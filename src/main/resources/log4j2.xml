@@ -1,17 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
+
+    <Properties>
+        <Property name="LOG_PATTERN">%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n</Property>
+    </Properties>
+
     <Appenders>
         <Console name="Console" target="SYSTEM_ERR">
-            <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>
         </Console>
-        <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}">
-            <PatternLayout pattern="%d{DEFAULT} [%t] %-5level [%logger{36}] - %maxLength{%msg}{1000}%n"/>
-        </File>
+        <Console name="SimulatorConsole" target="SYSTEM_ERR">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Filters>
+                <ContextMapFilter onMatch="NEUTRAL" onMismatch="DENY" operator="or">
+                    <KeyValuePair key="SIMULATOR" value="true"/>
+                </ContextMapFilter>
+                <ThresholdFilter level="WARN" onMatch="DENY" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+        <Routing name="KeyRouting">
+            <Routes pattern="$${ctx:ROUTINGKEY}">
+                <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
+                <Route key="$${ctx:ROUTINGKEY}">
+                    <File name="LogFile" fileName="${sys:logFilename:-logs/cdb.log}" createOnDemand="true" append="false">
+                        <PatternLayout pattern="${LOG_PATTERN}"/>
+                    </File>
+                </Route>
+
+                <!-- This route is chosen if ThreadContext has a value for ROUTINGKEY
+                     The value dynamically determines the name of the log file. -->
+                <Route>
+                    <File name="Rolling-${ctx:ROUTINGKEY}" fileName="logs/other-${ctx:ROUTINGKEY}" createOnDemand="true" append="false">
+                        <PatternLayout pattern="${LOG_PATTERN}"/>
+                    </File>
+                </Route>
+            </Routes>
+        </Routing>
+        <Routing name="SimulatorRouting">
+            <Routes pattern="$${ctx:SIMULATOR}">
+                <Route key="true" ref="SimulatorConsole"/>
+                <!-- This route is chosen if ThreadContext has no value for key ROUTINGKEY. -->
+                <Route ref="Console"/>
+            </Routes>
+        </Routing>
     </Appenders>
     <Loggers>
         <Root level="all">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="LogFile"/>
+            <AppenderRef ref="KeyRouting"/>
+            <AppenderRef ref="SimulatorRouting"/>
         </Root>
     </Loggers>
 </Configuration>

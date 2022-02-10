@@ -1,4 +1,4 @@
-package de.tum.i13.simulator;
+package de.tum.i13.simulator.client;
 
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 
@@ -17,10 +17,9 @@ public class EmailParser {
             String content = Files.readString(emailPath, StandardCharsets.US_ASCII).replaceAll("[\\t\\n\\r]+", " ");
             return new Pair<>(getIdFromEmail(content), content);
         } catch (IOException e) {
-            // e.printStackTrace();
+            return null;
         }
 
-        return null;
     }
 
     private static String getIdFromEmail(String email) {

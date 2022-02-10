@@ -2,7 +2,6 @@ package de.tum.i13.client.shell;
 
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.shared.Constants;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -29,7 +28,12 @@ public class Shell {
      * @param args command line arguments of the program. Unused in this class
      */
     public static void main(String[] args) {
-        final CLICommands commands = new CLICommands();
+        Config cfg = Config.parseCommandlineArgs(args);
+
+        // TODO Quick and dirty fix, should not be done like this in production
+        Constants.NUMBER_OF_REPLICAS = cfg.replicationFactor;
+
+        final CLICommands commands = new CLICommands(cfg.serverType);
         final CommandLine cmd = new CommandLine(commands)
                 .setExitCodeExceptionMapper(new ExitCodeMapper())
                 .setParameterExceptionHandler(new ParameterExceptionHandler())

@@ -1,19 +1,20 @@
 package de.tum.i13.server.persistentstorage.btree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.chunk.ChunkImpl;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.server.persistentstorage.btree.io.PersistentBTreeStorageHandler;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.chunk.ChunkStorageHandler;
+import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
 import de.tum.i13.shared.Preconditions;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Node of a {@link PersistentBTree}
@@ -33,7 +34,7 @@ public class PersistentBTreeNode<V> implements Serializable {
      * Creates a B-Tree node with the specified parameters. This also creates a new
      * persistent Chunk using the handler provided by the tree persistent storage
      * implementation
-     * 
+     *
      * @param minimumDegree      minimum degree of the tree (see PersistentBTree for
      *                           details)
      * @param leaf               true if the current node is a leaf node, i.e.
@@ -45,7 +46,7 @@ public class PersistentBTreeNode<V> implements Serializable {
      *                          contained chunk
      */
     PersistentBTreeNode(int minimumDegree, boolean leaf, Pair<V> initialElement,
-            PersistentBTreeStorageHandler<V> treeStorageHandler) throws StorageException {
+                        PersistentBTreeStorageHandler<V> treeStorageHandler) throws StorageException {
 
         Preconditions.check(minimumDegree >= 2);
         this.minimumDegree = minimumDegree;
@@ -69,7 +70,7 @@ public class PersistentBTreeNode<V> implements Serializable {
      * Creates a B-Tree node with the specified parameters. This also creates a new
      * persistent Chunk using the handler provided by the tree persistent storage
      * implementation.
-     * 
+     *
      * @param minimumDegree      minimum degree of the tree (see PersistentBTree for
      *                           details)
      * @param leaf               true if the current node is a leaf node, i.e.
@@ -87,7 +88,7 @@ public class PersistentBTreeNode<V> implements Serializable {
     /**
      * Search a key in the subtree rooted with this node. Insert 'value' if key is
      * found and 'insert' is true
-     * 
+     *
      * @param key    key to search
      * @param insert true if the parameter value is to be inserted if key is found
      * @param value  value to insert if insert is true and key is found.
@@ -128,11 +129,11 @@ public class PersistentBTreeNode<V> implements Serializable {
     /**
      * Searches for key-value pairs in the range [lowerBound-upperBound] (limits
      * included)
-     * 
+     *
      * @param lowerBound lower bound for keys
      * @param upperBound upper bounds for keys
      * @return key-value pairs with keys in range [lowerBound-upperBound] in the
-     *         subtree rooted in the current node
+     * subtree rooted in the current node
      * @throws StorageException An exception is thrown if a problem occurs
      *                          with persistent storage.
      */
@@ -164,7 +165,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Search a key in the subtree rooted with this node.
-     * 
+     *
      * @param key key to search
      * @return The value associated with {@code key} or null if it is not present.
      * @throws StorageException Is thrown when there is an error while
@@ -177,7 +178,7 @@ public class PersistentBTreeNode<V> implements Serializable {
     /**
      * Search a key in the subtree rooted with this node. If key is found change
      * value to 'value'
-     * 
+     *
      * @param key   key to search
      * @param value value to insert if found
      * @return The value associated with {@code key} or null if it is not present.
@@ -190,7 +191,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Insert a new element into node. It is assumed that the node is not full
-     * 
+     *
      * @param key   key to insert
      * @param value value to insert
      * @throws StorageException Is thrown when there is an error while
@@ -240,7 +241,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Split child. Assumes that child is full when function is called
-     * 
+     *
      * @param i           index of child
      * @param parentChunk chunk of parent node (current). This is passed to avoid
      *                    reading from storage again.
@@ -301,7 +302,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Get index of the first key that is greater than or equal to key
-     * 
+     *
      * @param key key to compare
      * @return index of the first key that is greater than or equal to key
      * @throws StorageException Is thrown when there is an error while
@@ -319,11 +320,11 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Remove the key from the sub-tree rooted with this node
-     * 
+     *
      * @param key key to remove
+     * @return True if an element was removed, false otherwise
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
-     * @return True if an element was removed, false otherwise
      */
     boolean remove(String key) throws StorageException {
         int idx = findKey(key);
@@ -368,11 +369,11 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * A function to remove the idx-th key from this node. Assumes that node is leaf
-     * 
+     *
      * @param idx index of key to remove
+     * @return True if an element was removed, false otherwise
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
-     * @return True if an element was removed, false otherwise
      */
     private boolean removeFromLeaf(int idx) throws StorageException {
 
@@ -395,11 +396,11 @@ public class PersistentBTreeNode<V> implements Serializable {
     /**
      * A function to remove the idx-th key from this node. Assumes that node is non
      * leaf
-     * 
+     *
      * @param idx index of key to remove
+     * @return True if an element was removed, false otherwise
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
-     * @return True if an element was removed, false otherwise
      */
     private boolean removeFromNonLeaf(int idx) throws StorageException {
 
@@ -448,7 +449,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Get predecessor of element with index 'idx'
-     * 
+     *
      * @param idx index to of element
      * @return element preceding idx
      * @throws StorageException Is thrown when there is an error while
@@ -467,7 +468,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Get successor of element with index 'idx'
-     * 
+     *
      * @param idx index to of element
      * @return element proceding idx
      * @throws StorageException Is thrown when there is an error while
@@ -489,7 +490,7 @@ public class PersistentBTreeNode<V> implements Serializable {
     /**
      * Fill children[idx]. Assume that children[idx] has less than minimumDegree - 1
      * keys
-     * 
+     *
      * @param idx index of child to fill
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
@@ -502,16 +503,16 @@ public class PersistentBTreeNode<V> implements Serializable {
         if (idx != 0 && this.getChildren().get(idx - 1).getElementCount() >= this.minimumDegree)
             borrowFromPrev(idx);
 
-        // If the next child(children[idx+1]) has more than minimumDegree-1 keys, borrow
-        // a key
-        // from that child
+            // If the next child(children[idx+1]) has more than minimumDegree-1 keys, borrow
+            // a key
+            // from that child
         else if (idx != this.getElementCount()
                 && this.getChildren().get(idx + 1).getElementCount() >= this.minimumDegree)
             borrowFromNext(idx);
 
-        // Merge children[idx] with its sibling
-        // If children[idx] is the last child, merge it with with its previous sibling
-        // Otherwise merge it with its next sibling
+            // Merge children[idx] with its sibling
+            // If children[idx] is the last child, merge it with with its previous sibling
+            // Otherwise merge it with its next sibling
         else {
             if (idx != this.getElementCount())
                 merge(idx);
@@ -522,7 +523,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Borrow a key from children[idx-1] and insert it into children[idx]
-     * 
+     *
      * @param idx index of child that borrows key
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
@@ -576,7 +577,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Borrow a key from children[idx+1] and insert it into children[idx]
-     * 
+     *
      * @param idx index of child that borrows key
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
@@ -625,7 +626,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Merge children[idx] with children[idx+1]
-     * 
+     *
      * @param idx index of child to merge
      * @throws StorageException Is thrown when there is an error while
      *                          reading/writing contained chunks
@@ -687,7 +688,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Check if the node is a leaf node.
-     * 
+     *
      * @return True if node is leaf false otherwise
      */
     boolean isLeaf() {
@@ -696,7 +697,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Check if node is full (number of elements is equal to 2 * minimumDegree - 1)
-     * 
+     *
      * @return true if node is full, false otherwise
      */
     boolean isFull() {
@@ -705,7 +706,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Get number of children in node
-     * 
+     *
      * @return number of children in node
      */
     int getChildrenCount() {
@@ -729,7 +730,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Increase element count by 1
-     * 
+     *
      * @return new element count
      */
     private int incrementElementCount() {
@@ -739,7 +740,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Decrease element count by 1
-     * 
+     *
      * @return new element count
      */
     private int decrementElementCount() {
@@ -749,7 +750,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Set new element count
-     * 
+     *
      * @param newElementCount new element count
      * @return new element count (same as parameter)
      */
@@ -764,7 +765,7 @@ public class PersistentBTreeNode<V> implements Serializable {
 
     /**
      * Stores given chunk in memory. The chunk is deleted if it has no elements.
-     * 
+     *
      * @param chunk Chunk to store
      * @throws StorageException Throws an exception if some error occured while
      *                          storing chunk in memory
@@ -772,4 +773,16 @@ public class PersistentBTreeNode<V> implements Serializable {
     void setChunk(Chunk<V> chunk) throws StorageException {
         this.chunkStorageInterface.storeChunk(chunk);
     }
+
+    public void setAndPropagateChangeListenerAndStorageHandler(ChangeListener listener,
+                                                               PersistentBTreeStorageHandler<V> sHandler) {
+        this.chunkStorageInterface.setListener(listener);
+        this.treeStorageInterface = sHandler;
+        for (PersistentBTreeNode<V> persistentBTreeNode : children) {
+            if (persistentBTreeNode != null) {
+                persistentBTreeNode.setAndPropagateChangeListenerAndStorageHandler(listener, sHandler);
+            }
+        }
+    }
+
 }

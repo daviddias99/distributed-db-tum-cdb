@@ -3,7 +3,6 @@ package de.tum.i13.client.shell;
 import de.tum.i13.server.kv.KVException;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -11,7 +10,7 @@ import picocli.CommandLine;
 /**
  * Handles {@link KVException} thrown by the {@link NetworkPersistentStorage}
  */
-class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
+public class ExecutionExceptionHandler implements CommandLine.IExecutionExceptionHandler {
 
     private static final Logger LOGGER = LogManager.getLogger(ExecutionExceptionHandler.class);
 

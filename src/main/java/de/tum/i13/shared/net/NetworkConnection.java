@@ -11,7 +11,7 @@ public interface NetworkConnection extends NetworkLocation {
      * @param address Hostname or address of the destination.
      * @param port    Port of the destination. Must be between 0 and 65535 inclusive.
      * @throws CommunicationClientException A ClientException is thrown when either the host.
-     *                         address/port is invalid or a socket can't be created.
+     *                                      address/port is invalid or a socket can't be created.
      */
     void connect(String address, int port) throws CommunicationClientException;
 
@@ -19,8 +19,8 @@ public interface NetworkConnection extends NetworkLocation {
      * Disconnects from current connection.
      *
      * @throws CommunicationClientException An exception is thrown when the connection couldn't
-     *                         been close or when disconnect is called on an
-     *                         unconnected client.
+     *                                      been close or when disconnect is called on an
+     *                                      unconnected client.
      */
     void disconnect() throws CommunicationClientException;
 

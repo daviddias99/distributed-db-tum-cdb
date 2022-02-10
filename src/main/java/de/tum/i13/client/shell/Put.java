@@ -3,7 +3,6 @@ package de.tum.i13.client.shell;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.persistentstorage.PutException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
@@ -61,7 +60,7 @@ class Put implements Callable<Integer> {
             out.printf("Successfully put value '%s' for key '%s' via update%n", value, key);
             return ExitCode.SUCCESS.getValue();
         } else if (storageStatus == KVMessage.StatusType.PUT_ERROR) {
-            LOGGER.info("Remote storage returned error while putting key '{}' to value '{}'", key, value);
+            LOGGER.warn("Remote storage returned error while putting key '{}' to value '{}'", key, value);
             out.printf("Could not put key '%s' to value '%s' on remote storage%n", key, value);
             return ExitCode.STORAGE_ERROR.getValue();
         } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_SUCCESS) {
@@ -69,7 +68,7 @@ class Put implements Callable<Integer> {
             out.printf("Successfully deleted key '%s'%n", key);
             return ExitCode.SUCCESS.getValue();
         } else if (value == null && storageStatus == KVMessage.StatusType.DELETE_ERROR) {
-            LOGGER.info("Remote storage returned error while deleting key '{}'", key);
+            LOGGER.warn("Remote storage returned error while deleting key '{}'", key);
             out.printf("Could not delete key '%s' on remote storage%n", key);
             return ExitCode.STORAGE_ERROR.getValue();
         } else if (storageStatus == KVMessage.StatusType.ERROR) {
@@ -78,13 +77,11 @@ class Put implements Callable<Integer> {
             out.printf("Remote storage returned an error with message: %s", storageResponse);
             return ExitCode.STORAGE_ERROR.getValue();
         } else {
-            final PutException putException = new PutException(
+            throw new PutException(
                     "Remote storage returned unprocessable status code %s while putting key '%s'",
                     storageStatus,
                     key
             );
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, putException);
-            throw putException;
         }
     }
 

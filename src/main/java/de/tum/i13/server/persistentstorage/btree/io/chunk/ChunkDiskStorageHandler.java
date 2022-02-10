@@ -1,36 +1,36 @@
 package de.tum.i13.server.persistentstorage.btree.io.chunk;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.nio.file.*;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import de.tum.i13.server.persistentstorage.btree.chunk.Chunk;
 import de.tum.i13.server.persistentstorage.btree.io.StorageException;
 import de.tum.i13.server.persistentstorage.btree.io.StorageUtils;
 import de.tum.i13.server.persistentstorage.btree.io.transactions.ChangeListener;
-import de.tum.i13.shared.Constants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * Implements {@link ChunkStorageHandler} by storing chunks of type
  * {@link Chunk} on disk.
  */
 public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Serializable {
+
     private static final Logger LOGGER = LogManager.getLogger(ChunkDiskStorageHandler.class);
 
     private static final long serialVersionUID = 6529685098267757691L;
 
-    private String chunkId; // Chunk ID
-    private String storageFolder; // Storage folder
+    private final String chunkId; // Chunk ID
+    private final String storageFolder; // Storage folder
 
     private ChangeListener cListener;
 
     /**
      * Create new storage handler. This handler interfaces with a chunk at
      * {@code filePath}
-     * 
+     *
      * @param storageFolder path to the folder where chunks are storage
      * @param chunkId       ID of the current chunk
      * @param transHandler  transactionHandler
@@ -68,9 +68,13 @@ public class ChunkDiskStorageHandler<V> implements ChunkStorageHandler<V>, Seria
             Files.delete(Paths.get(storageFolder, chunkId));
             LOGGER.debug("Deleted chunk ({}) from disk.", Paths.get(storageFolder, chunkId));
         } catch (IOException e) {
-            StorageException storageException = new StorageException(e, "I/O error while deleting chunk from disk");
-            LOGGER.error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, storageException);
-            throw storageException;
+            throw new StorageException(e, "I/O error while deleting chunk from disk");
         }
     }
+
+    @Override
+    public void setListener(ChangeListener listener) {
+        this.cListener = listener;
+    }
+
 }

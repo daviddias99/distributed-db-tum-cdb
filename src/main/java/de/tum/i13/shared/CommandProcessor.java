@@ -8,8 +8,10 @@ public interface CommandProcessor<T> {
 
     /**
      * Process {@code command}. Returns the answer to the command, or null if no answer.
+     *
      * @param command Command to process
      * @return Answer to command or null if no answer.
      */
     T process(T command);
+
 }

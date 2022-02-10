@@ -4,7 +4,6 @@ import de.tum.i13.server.kv.KVStore;
 import de.tum.i13.shared.Constants;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.net.NetworkLocationImpl;
-import org.apache.logging.log4j.LogManager;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -45,32 +44,26 @@ public interface ConsistentHashRing {
 
     private static void checkKVStoreData(String[] kvStoreData) {
         if (kvStoreData.length != 3) {
-            final IllegalArgumentException exception = new IllegalArgumentException(
+            throw new IllegalArgumentException(
                     String.format(
                             "Could not convert metadata to a '%s'. %s data '%s' was malformed",
                             ConsistentHashRing.class.getSimpleName(),
                             KVStore.class.getSimpleName(),
                             Arrays.toString(kvStoreData)
                     ));
-            LogManager.getLogger(ConsistentHashRing.class)
-                    .error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
         }
     }
 
     private static NetworkLocation extractNetworkLocation(String networkLocationString) {
         final String[] networkLocationData = networkLocationString.split(":");
         if (networkLocationData.length != 2) {
-            final IllegalArgumentException exception = new IllegalArgumentException(
+            throw new IllegalArgumentException(
                     String.format(
                             "Could not convert metadata to a '%s'. %s data '%s' was malformed",
                             ConsistentHashRing.class.getSimpleName(),
                             NetworkLocation.class.getSimpleName(),
                             Arrays.toString(networkLocationData)
                     ));
-            LogManager.getLogger(ConsistentHashRing.class)
-                    .error(Constants.THROWING_EXCEPTION_LOG_MESSAGE, exception);
-            throw exception;
         }
         final String address = networkLocationData[0];
         final String port = networkLocationData[1];
@@ -206,7 +199,8 @@ public interface ConsistentHashRing {
      *
      * @param networkLocation   the {@link NetworkLocation} whose successors are to be determined
      * @param numberOfLocations the number of successors to return. Restricted according to the description
-     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the
+     * description
      * @see #getSucceedingNetworkLocations(NetworkLocation, int)
      * @see #getPrecedingNetworkLocation(NetworkLocation)
      */
@@ -227,7 +221,8 @@ public interface ConsistentHashRing {
      *
      * @param networkLocation   the {@link NetworkLocation} whose predecessors are to be determined
      * @param numberOfLocations the number of predecessors to return. Restricted according to the description
-     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the
+     * description
      * @see #getSucceedingNetworkLocations(NetworkLocation, int)
      * @see #getPrecedingNetworkLocation(NetworkLocation)
      */

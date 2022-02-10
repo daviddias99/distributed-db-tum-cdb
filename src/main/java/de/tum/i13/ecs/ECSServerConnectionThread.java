@@ -8,17 +8,17 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.Socket;
 
-class ECSServerConnectionThread extends ECSThread{
+class ECSServerConnectionThread extends ECSThread {
 
     private static final Logger LOGGER = LogManager.getLogger(ECSServerConnectionThread.class);
 
     private final CommandProcessor<String> cp;
 
-    ECSServerConnectionThread(CommandProcessor<String> commandProcessor, Socket server) throws IOException{
+    ECSServerConnectionThread(CommandProcessor<String> commandProcessor, Socket server) throws IOException {
         super(server);
         this.cp = commandProcessor;
     }
-    
+
     @Override
     public void run() {
         LOGGER.info("Starting server connection thread");
@@ -32,15 +32,15 @@ class ECSServerConnectionThread extends ECSThread{
                 LOGGER.trace("Sending response after processing '{}'", response);
                 getActiveConnection().send(response);
             }
-        } catch(CommunicationClientException ex) {
+        } catch (CommunicationClientException ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Caught exception while trying to read from {}.", getSocket());
-        } catch(Exception ex){
+        } catch (Exception ex) {
             LOGGER.atFatal()
                     .withThrowable(ex)
                     .log("Caught exception while trying to close connection with {}.", getSocket());
         }
     }
-    
+
 }
