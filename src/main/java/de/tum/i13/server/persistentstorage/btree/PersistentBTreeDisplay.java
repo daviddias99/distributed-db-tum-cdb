@@ -11,7 +11,7 @@ public class PersistentBTreeDisplay<V> {
 
     /**
      * Used to traverse the tree
-     * 
+     *
      * @param tree tree to traverse
      * @return string containing the tree traversal
      */
@@ -25,7 +25,7 @@ public class PersistentBTreeDisplay<V> {
 
     /**
      * Used to traverse the tree, showing summary information
-     * 
+     *
      * @param tree tree to traverse
      * @return string containing the tree traversal
      */
@@ -41,7 +41,7 @@ public class PersistentBTreeDisplay<V> {
 
     /**
      * Used to traverse the tree, showing complete information
-     * 
+     *
      * @param tree tree to traverse
      * @return string containing the tree traversal
      */
@@ -56,6 +56,7 @@ public class PersistentBTreeDisplay<V> {
     }
 
     private class PersistentBTreeNodeDisplay {
+
         // A function to traverse all nodes in a subtree rooted with this node
         void traverse(PersistentBTreeNode<V> node, StringBuilder result) {
 
@@ -129,7 +130,7 @@ public class PersistentBTreeDisplay<V> {
         void traverseSpecial(PersistentBTreeNode<V> node, StringBuilder result) {
 
             result.append("--\n");
-            result.append("Node(" + Integer.toString(node.id) + ")\n");
+            result.append("Node(" + node.id + ")\n");
             result.append("Key count: " + node.elementCount + "\n");
             result.append("Keys: ");
 
@@ -165,7 +166,7 @@ public class PersistentBTreeDisplay<V> {
                     break;
                 }
 
-                result.append(Integer.toString(bTreeNode.id) + " ");
+                result.append(bTreeNode.id + " ");
             }
 
             result.append("\n");

@@ -19,20 +19,21 @@ import java.nio.file.Paths;
  */
 public class PersistentBTreeDiskStorageHandler<V>
         implements PersistentBTreeStorageHandler<V>, Serializable {
+
     private static final long serialVersionUID = 6523685098267757691L;
 
     private static final String DEFAULT_DIRECTORY = "bckp";
 
-    private String storageFolder; // Tree and chunks storage folder
-    private String backupFolder; // Tree and chunks storage folder
-    private ChangeListener cListener;
+    private final String storageFolder; // Tree and chunks storage folder
+    private final String backupFolder; // Tree and chunks storage folder
+    private final ChangeListener cListener;
     private boolean transactionsEnabled;
     private boolean transactionStarted; // True if a transaction has been started
 
     /**
      * Create a new storage handler which will store a tree in
      * {@code storageFolder}. Note, transactions are enabled by default
-     * 
+     *
      * @param storageFolder Folder where the tree and it's chunks will be
      *                      stored
      * @param reset         True if the target folder should be cleared if it
@@ -43,7 +44,7 @@ public class PersistentBTreeDiskStorageHandler<V>
      *                          {@code storageFolder} occurs
      */
     public PersistentBTreeDiskStorageHandler(String storageFolder, boolean reset, ChangeListener cListener,
-            String backupFolder) throws StorageException {
+                                             String backupFolder) throws StorageException {
         this.storageFolder = storageFolder;
         this.transactionsEnabled = true;
 
@@ -60,7 +61,7 @@ public class PersistentBTreeDiskStorageHandler<V>
     /**
      * Create a new storage handler which will store a tree in
      * {@code storageFolder}.
-     * 
+     *
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @param reset         True if the target folder should be cleared if it
      *                      already exists.
@@ -76,7 +77,7 @@ public class PersistentBTreeDiskStorageHandler<V>
     /**
      * Create a new storage handler which will store a tree in
      * {@code storageFolder}.
-     * 
+     *
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @param reset         True if the target folder should be cleared if it
      *                      already exists.
@@ -90,7 +91,7 @@ public class PersistentBTreeDiskStorageHandler<V>
     /**
      * Create a new storage handler which will store a tree in
      * {@code storageFolder}.
-     * 
+     *
      * @param storageFolder Folder where the tree and it's chunks will be stored
      * @throws StorageException An exception is thrown when an error with the
      *                          {@code storageFolder} occurs
@@ -111,7 +112,7 @@ public class PersistentBTreeDiskStorageHandler<V>
     @Override
     public PersistentBTreeNode<V> load() throws StorageException {
 
-        if(!Paths.get(storageFolder, "root").toFile().exists()) {
+        if (!Paths.get(storageFolder, "root").toFile().exists()) {
             return null;
         }
 
@@ -212,4 +213,5 @@ public class PersistentBTreeDiskStorageHandler<V>
             throw new StorageException(e, "An error occured during chunk transfer");
         }
     }
+
 }

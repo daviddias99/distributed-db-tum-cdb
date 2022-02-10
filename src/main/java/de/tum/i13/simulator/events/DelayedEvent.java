@@ -68,9 +68,9 @@ public class DelayedEvent implements Runnable, TimeEvent {
     public String toString() {
         final long minutes = TimeUnit.SECONDS.toMinutes(this.timeSeconds);
         final long leftOverSeconds = this.timeSeconds - TimeUnit.MINUTES.toSeconds(minutes);
-        return "DelayedEvent{" +this.eType.name() + ", "
-                + minutes + "m "+ leftOverSeconds + "s" +
-                " from start ("+ timeSeconds + "s)}";
+        return "DelayedEvent{" + this.eType.name() + ", "
+                + minutes + "m " + leftOverSeconds + "s" +
+                " from start (" + timeSeconds + "s)}";
     }
 
     public Type getType() {

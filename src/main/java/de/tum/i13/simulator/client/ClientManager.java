@@ -28,15 +28,14 @@ public class ClientManager {
             new ThreadFactoryBuilder().setNameFormat("client-pool_%d").build()
     );
     private static final Random RANDOM = new Random();
-
+    public ServerManager servers;
     List<ClientSimulator> clients;
     File[] emailDirs;
     int counter = 0;
     int clientCount;
-    public ServerManager servers;
     StatsAccumulator statsAcc;
 
-    private boolean useChord;
+    private final boolean useChord;
 
     public ClientManager(ExperimentConfiguration experimentConfiguration, ExperimentManager experimentManager) {
         this(
@@ -101,10 +100,10 @@ public class ClientManager {
 
     private void startClient(ClientSimulator clientSimulator) {
         EXECUTOR_SERVICE.submit(() -> {
-                    final Path logFile = Path.of("logs", Thread.currentThread().getName() + ".log");
-                    wrapWarnLogging(withLoggedToDifferentFiles(clientSimulator, logFile))
-                            .run();
-                });
+            final Path logFile = Path.of("logs", Thread.currentThread().getName() + ".log");
+            wrapWarnLogging(withLoggedToDifferentFiles(clientSimulator, logFile))
+                    .run();
+        });
     }
 
 }

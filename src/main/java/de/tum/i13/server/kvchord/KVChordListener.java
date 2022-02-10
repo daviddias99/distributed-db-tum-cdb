@@ -31,20 +31,19 @@ import static java.util.function.Predicate.not;
 
 public class KVChordListener implements ChordListener {
 
+    public static final int REPLICATION_DELETION_DELAY = 5000;
     private static final Logger LOGGER = LogManager.getLogger(KVChordListener.class);
     private static final ScheduledExecutorService DELETION_EXECUTOR_SERVICE =
             Executors.newSingleThreadScheduledExecutor();
     private static final Set<ScheduledFuture<?>> DELETION_TASKS = new HashSet<>();
-    public static final int REPLICATION_DELETION_DELAY = 5000;
-
-    private ChordServerState state;
-    private boolean doAsyncHandoff = false;
-    private PersistentStorage storage;
-    private HashingAlgorithm hashing;
+    private final ChordServerState state;
+    private final boolean doAsyncHandoff = false;
+    private final PersistentStorage storage;
+    private final HashingAlgorithm hashing;
     private NetworkLocation predecessorChangeMemory;
     private NetworkLocation lastPredecessor;
-    private int maxRetryCount = 3;
-    private int retryWaitSec = 2;
+    private final int maxRetryCount = 3;
+    private final int retryWaitSec = 2;
 
     public KVChordListener(ChordServerState state, PersistentStorage storage, HashingAlgorithm hashing) {
         this.state = state;
@@ -177,7 +176,8 @@ public class KVChordListener implements ChordListener {
 
     @Override
     public void successorsChanged(List<NetworkLocation> previous, List<NetworkLocation> current) {
-        final boolean wasReplicated = Constants.NUMBER_OF_REPLICAS > 0 && previous.size() >= Constants.NUMBER_OF_REPLICAS;
+        final boolean wasReplicated =
+                Constants.NUMBER_OF_REPLICAS > 0 && previous.size() >= Constants.NUMBER_OF_REPLICAS;
         final boolean isReplicated = Constants.NUMBER_OF_REPLICAS > 0 && current.size() >= Constants.NUMBER_OF_REPLICAS;
         final boolean replicationChangedOrOff = !(wasReplicated && isReplicated);
 
@@ -253,7 +253,8 @@ public class KVChordListener implements ChordListener {
 
     private void scheduleReplicationDeletion() {
         final var deletionTask = DELETION_EXECUTOR_SERVICE.schedule(
-                withExceptionsLogged(() -> this.deleteReplicatedRanges(true)), REPLICATION_DELETION_DELAY, MILLISECONDS);
+                withExceptionsLogged(() -> this.deleteReplicatedRanges(true)), REPLICATION_DELETION_DELAY,
+                MILLISECONDS);
         DELETION_TASKS.add(deletionTask);
     }
 

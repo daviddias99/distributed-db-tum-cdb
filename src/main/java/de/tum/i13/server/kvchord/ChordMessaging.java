@@ -24,13 +24,14 @@ import java.util.stream.Collectors;
  * instances
  */
 public class ChordMessaging {
+
     private static final Logger LOGGER = LogManager.getLogger(ChordMessaging.class);
 
     private final Chord chordInstance;
 
     /**
      * Create new messaging instance
-     * 
+     *
      * @param chordInstance own Chord node
      */
     public ChordMessaging(Chord chordInstance) {
@@ -38,7 +39,7 @@ public class ChordMessaging {
     }
 
     private static KVMessage connectSendAndReceive(NetworkLocation peer, KVMessage outgoingMessage,
-            KVMessage.StatusType expectedStatus) {
+                                                   KVMessage.StatusType expectedStatus) {
         try (CommunicationClient communications = new CommunicationClient()) {
             communications.connect(peer.getAddress(), peer.getPort());
             String responseRaw = communications.receive();
@@ -67,8 +68,37 @@ public class ChordMessaging {
     }
 
     /**
+     * Utility used to communicate with peers to find their Chord state
+     *
+     * @param args arguments
+     * @throws IOException an exception is thrown due to communication errors
+     */
+    @SuppressWarnings("java:S2189")
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while (true) {
+            // Create the console object
+            System.out.print("Enter command: ");
+            // Read line
+            String str = reader.readLine();
+
+            try {
+                final NetworkLocation peer = NetworkLocation.extractNetworkLocation(String.format("127.0.0.1:%s", str));
+                KVMessage response = ChordMessaging.connectSendAndReceive(
+                        peer,
+                        new KVMessageImpl(StatusType.CHORD_GET_STATE_STR),
+                        StatusType.CHORD_GET_STATE_STR_RESPONSE);
+                System.out.println(response == null ? "COULD NOT FETCH RESPONSE" : response.getKey());
+            } catch (NumberFormatException ex) {
+                LOGGER.warn("Could not parse port number", ex);
+            }
+
+        }
+    }
+
+    /**
      * Execute find successor operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      * @param key  operation argument
      * @return successor of key
@@ -100,7 +130,7 @@ public class ChordMessaging {
 
     /**
      * Execute find closest preceding finger operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      * @param key  operation argument
      * @return closest preceding finger of key
@@ -126,7 +156,7 @@ public class ChordMessaging {
 
     /**
      * Execute get predecessor operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      * @return predecessor of peer
      * @throws ChordException an exception is thrown if communication can't be established
@@ -158,7 +188,7 @@ public class ChordMessaging {
 
     /**
      * Execute get successor operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      * @return successor of peer
      */
@@ -185,7 +215,7 @@ public class ChordMessaging {
 
     /**
      * Execute get successors operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      * @param n    amount of successors to get
      * @return n successors of peer
@@ -213,10 +243,10 @@ public class ChordMessaging {
 
         List<NetworkLocation> result = networkLocationsStr[0].equals("NO_SUCCS") ? new LinkedList<>()
                 : new LinkedList<>(Arrays
-                        .asList(networkLocationsStr)
-                        .stream()
-                        .map(NetworkLocation::extractNetworkLocation)
-                        .collect(Collectors.toList()));
+                .asList(networkLocationsStr)
+                .stream()
+                .map(NetworkLocation::extractNetworkLocation)
+                .collect(Collectors.toList()));
 
         LOGGER.debug("Peer {} returned list with {} successors", peer, result.size());
 
@@ -225,7 +255,7 @@ public class ChordMessaging {
 
     /**
      * Execute notify operation on peer
-     * 
+     *
      * @param peer node to execute operation on
      */
     public void notifyNode(NetworkLocation peer) {
@@ -239,7 +269,7 @@ public class ChordMessaging {
 
     /**
      * Check if peer is alive
-     * 
+     *
      * @param peer to ping
      * @return true if node is alive, false otherwise
      */
@@ -252,31 +282,4 @@ public class ChordMessaging {
         return response != null;
     }
 
-    /**
-     * Utility used to communicate with peers to find their Chord state
-     * @param args  arguments 
-     * @throws IOException an exception is thrown due to communication errors
-     */
-    @SuppressWarnings("java:S2189")
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        while (true) {
-            // Create the console object
-            System.out.print("Enter command: ");
-            // Read line
-            String str = reader.readLine();
-
-            try {
-                final NetworkLocation peer = NetworkLocation.extractNetworkLocation(String.format("127.0.0.1:%s", str));
-                KVMessage response = ChordMessaging.connectSendAndReceive(
-                        peer,
-                        new KVMessageImpl(StatusType.CHORD_GET_STATE_STR),
-                        StatusType.CHORD_GET_STATE_STR_RESPONSE);
-                System.out.println(response == null ? "COULD NOT FETCH RESPONSE" : response.getKey());
-            } catch (NumberFormatException ex) {
-                LOGGER.warn("Could not parse port number", ex);
-            }
-
-        }
-    }
 }

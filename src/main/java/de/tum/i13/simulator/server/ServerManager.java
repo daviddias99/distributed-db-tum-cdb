@@ -22,13 +22,11 @@ import static de.tum.i13.simulator.SimulatorUtils.wrapWarnLogging;
 
 public class ServerManager {
 
+    public static final Random RANDOM = new Random();
     private static final Logger LOGGER = LogManager.getLogger(ServerManager.class);
-
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(
             new ThreadFactoryBuilder().setNameFormat("server-pool_%d").build()
     );
-    public static final Random RANDOM = new Random();
-
     public List<Future<?>> servers;
     public List<String> addresses;
     int port = 11000;
@@ -51,7 +49,8 @@ public class ServerManager {
         );
     }
 
-    public ServerManager(int count, int cacheSize, CachingStrategy cacheStrategy, int bTreeNodeSize, boolean useChord, int replicationFactor) {
+    public ServerManager(int count, int cacheSize, CachingStrategy cacheStrategy, int bTreeNodeSize, boolean useChord
+            , int replicationFactor) {
 
         this.servers = new LinkedList<>();
         this.addresses = new LinkedList<>();
@@ -85,15 +84,15 @@ public class ServerManager {
                     .forEachOrdered(parameters::add);
         }
         Stream.of(
-                "-ll", "ALL",
-                "-t", bTreeNodeSize,
-                "-p", port,
-                "-s", cacheStrategy,
-                "-c", cacheSize,
-                "-d", dataDir,
-                "-l", String.format("logs/server_%d.log", port),
-                "-r", replicationFactor
-        ).map(String::valueOf)
+                        "-ll", "ALL",
+                        "-t", bTreeNodeSize,
+                        "-p", port,
+                        "-s", cacheStrategy,
+                        "-c", cacheSize,
+                        "-d", dataDir,
+                        "-l", String.format("logs/server_%d.log", port),
+                        "-r", replicationFactor
+                ).map(String::valueOf)
                 .forEachOrdered(parameters::add);
         return parameters;
     }

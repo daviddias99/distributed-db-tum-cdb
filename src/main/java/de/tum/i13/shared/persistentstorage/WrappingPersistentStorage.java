@@ -19,18 +19,11 @@ import java.util.List;
  */
 public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
-    public enum MessageMode {
-        CLIENT,
-        SERVER,
-        SERVER_OWNER
-    }
-
     private static final Logger LOGGER = LogManager.getLogger(WrappingPersistentStorage.class);
     private static final String EXCEPTION_FORMAT = "Communication client threw exception: %s";
     private static final String KEY_MAX_LENGTH_EXCEPTION_FORMAT = "Key '%s' exceeded maximum byte length of %s";
     private final NetworkMessageServer networkMessageServer;
     private MessageMode messageMode;
-
     /**
      * Creates a new {@link WrappingPersistentStorage} that wraps around the given
      * {@link NetworkMessageServer}
@@ -158,7 +151,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage.StatusType getPutMessageStatus() {
         return switch (this.messageMode) {
-            case CLIENT -> KVMessage.StatusType.PUT;        
+            case CLIENT -> KVMessage.StatusType.PUT;
             case SERVER -> KVMessage.StatusType.PUT_SERVER;
             case SERVER_OWNER -> KVMessage.StatusType.PUT_SERVER_OWNER;
         };
@@ -166,7 +159,7 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
 
     private KVMessage.StatusType getDelMessageStatus() {
         return switch (this.messageMode) {
-            case CLIENT -> KVMessage.StatusType.DELETE;        
+            case CLIENT -> KVMessage.StatusType.DELETE;
             case SERVER -> KVMessage.StatusType.DELETE_SERVER;
             case SERVER_OWNER -> KVMessage.StatusType.DELETE_SERVER;
         };
@@ -175,4 +168,11 @@ public class WrappingPersistentStorage implements NetworkPersistentStorage {
     public void setMessageMode(MessageMode mode) {
         this.messageMode = mode;
     }
+
+    public enum MessageMode {
+        CLIENT,
+        SERVER,
+        SERVER_OWNER
+    }
+
 }

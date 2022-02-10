@@ -21,12 +21,13 @@ import java.nio.file.StandardCopyOption;
  * copying/deleting files
  */
 public class StorageUtils {
+
     private static final Logger LOGGER = LogManager.getLogger(StorageUtils.class);
 
     /**
      * Copies file at {@code src} to {@code dst}, replacing if {@code dst} already
      * exists
-     * 
+     *
      * @param src path to the source location
      * @param dst path to the destination location
      * @throws IOException See
@@ -38,7 +39,7 @@ public class StorageUtils {
 
     /**
      * Create a new directory
-     * 
+     *
      * @param storageFolder path of the new directory
      */
     public static void createDirectory(Path storageFolder) {
@@ -50,7 +51,7 @@ public class StorageUtils {
 
     /**
      * Delete a directory
-     * 
+     *
      * @param directoryToBeDeleted directory to be deleted
      * @return true if directory was deleted successfuly, false otherwise
      * @throws IOException
@@ -68,7 +69,7 @@ public class StorageUtils {
 
     /**
      * Read object from disk
-     * 
+     *
      * @param filePath path to the object in disk
      * @param <V>      Type of object to read
      * @return read object
@@ -94,7 +95,6 @@ public class StorageUtils {
     }
 
     /**
-     * 
      * @param filePath path where the object will be stored
      * @param obj      object to store
      * @param <V>      Type of object to write
@@ -116,7 +116,7 @@ public class StorageUtils {
 
     /**
      * Delete file from disk
-     * 
+     *
      * @param filePath path to file
      * @throws StorageException an exception is thrown for unexpected I/O errors
      */
@@ -134,4 +134,5 @@ public class StorageUtils {
             throw new StorageException(e, "I/O error while deleting file from disk");
         }
     }
+
 }

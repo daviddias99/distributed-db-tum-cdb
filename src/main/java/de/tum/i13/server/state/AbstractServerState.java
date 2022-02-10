@@ -1,18 +1,18 @@
 package de.tum.i13.server.state;
 
-import java.util.LinkedList;
-import java.util.List;
-
+import de.tum.i13.shared.persistentstorage.PersistentStorage;
+import de.tum.i13.shared.persistentstorage.PutException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.tum.i13.shared.persistentstorage.PersistentStorage;
-import de.tum.i13.shared.persistentstorage.PutException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * An implementation of {@link ServerState} containing state management methods
  */
 public abstract class AbstractServerState implements ServerState {
+
     private static final Logger LOGGER = LogManager.getLogger(AbstractServerState.class);
 
     private State currentState;
@@ -20,6 +20,7 @@ public abstract class AbstractServerState implements ServerState {
 
     /**
      * Create a new {@link AbstractServerState} with a given initial state
+     *
      * @param startState initial state
      */
     protected AbstractServerState(State startState) {
@@ -29,6 +30,10 @@ public abstract class AbstractServerState implements ServerState {
     @Override
     public synchronized State getState() {
         return currentState;
+    }
+
+    private synchronized void setState(State state) {
+        this.currentState = state;
     }
 
     @Override
@@ -71,13 +76,9 @@ public abstract class AbstractServerState implements ServerState {
         this.setState(State.ACTIVE);
     }
 
-    private synchronized void setState(State state) {
-        this.currentState = state;
-    }
-
     /**
      * Execute queued up deletes in given {@link PersistentStorage}
-     * 
+     *
      * @param storage {@link PersistentStorage} where deletes are to be executed
      */
     public void executeStoredDeletes(PersistentStorage storage) {
@@ -94,6 +95,7 @@ public abstract class AbstractServerState implements ServerState {
 
     /**
      * Get list of nodes to be deleted
+     *
      * @return list of nodes to be deleted
      */
     public synchronized List<String> getDeleteQueue() {

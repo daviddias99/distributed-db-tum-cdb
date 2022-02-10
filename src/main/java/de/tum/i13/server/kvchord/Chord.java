@@ -25,65 +25,56 @@ import static de.tum.i13.shared.SharedUtils.withExceptionsLogged;
 
 /**
  * Implementation of the Chord procotol
- * 
+ *
  * @see <a href="https://doi.org/10.1145/964723.383071">Chord protocol
- *      description</a>
+ * description</a>
  */
 public class Chord {
-
-    private static final Logger LOGGER = LogManager.getLogger(Chord.class);
 
     /**
      * Period in milliseconds of the stabilization calls
      */
     public static final int STABILIZATION_INTERVAL = 1000;
-
     /**
      * Period in milliseconds of the fix fingers calls
      */
     public static final int FIX_FINGERS_INTERVAL = 500;
-
     /**
      * Period in milliseconds of the check predecessor calls
      */
     public static final int CHECK_PREDECESSORS_INTERVAL = 1000;
-
     /**
      * Offset for starting stabilization calls
      */
     public static final int STABILIZATION_START_OFFSET = 0;
-
     /**
      * Offset for starting fix fingers calls
      */
     public static final int FIX_FINGERS_START_OFFSET = 200;
-
     /**
      * Offset for starting check predecessor calls
      */
     public static final int CHECK_PREDECESSORS_START_OFFSET = 400;
-
+    private static final Logger LOGGER = LogManager.getLogger(Chord.class);
     private final int TABLE_SIZE;
     private final int SUCCESSOR_LIST_SIZE = Constants.NUMBER_OF_REPLICAS;
 
     private final HashingAlgorithm hashingAlgorithm;
     private final ChordMessaging messaging;
-
-    private int fingerTableUpdateIndex;
     private final NetworkLocation ownLocation;
     private final NetworkLocation bootstrapNode;
-    private NetworkLocation predecessor;
-    private ChordSuccessorList successors; // Maybe this and the finger table can be merged
     private final ConcurrentNavigableMap<BigInteger, NetworkLocation> fingerTable;
     private final List<BigInteger> fingerTableKeys;
-
     private final List<ChordListener> listeners;
+    private int fingerTableUpdateIndex;
+    private NetworkLocation predecessor;
+    private final ChordSuccessorList successors; // Maybe this and the finger table can be merged
 
     /* CHORD */
 
     /**
      * Create a new Chord ring
-     * 
+     *
      * @param hashingAlgorithm hashing algorithm used for keys and node IDs
      * @param ownLocation      {@link NetworkLocation} of the current ring
      */
@@ -93,7 +84,7 @@ public class Chord {
 
     /**
      * Join a Chord ring Chord ring
-     * 
+     *
      * @param hashingAlgorithm hashing algorithm used for keys and node IDs
      * @param ownLocation      {@link NetworkLocation} of the current ring
      * @param bootstrapNode    {@link NetworkLocation} of node in ring that will be
@@ -114,6 +105,12 @@ public class Chord {
         this.initFingerTable(ownLocation);
     }
 
+    private static NetworkLocation checkNullLocation(NetworkLocation networkLocation) throws ChordException {
+        if (networkLocation.equals(NetworkLocation.NULL))
+            throw new ChordException("Supplied location '%s' was null location", networkLocation);
+        return networkLocation;
+    }
+
     private void doBoostrap() throws ChordException {
         NetworkLocation successor = this.messaging.findSuccessor(bootstrapNode,
                 this.hashingAlgorithm.hash(ownLocation));
@@ -128,6 +125,7 @@ public class Chord {
 
     /**
      * Connect to ring and start periodic threads
+     *
      * @throws ChordException an exception is thrown if the operation can't
      *                        be performed (possible due to connection or peer
      *                        issues)
@@ -144,7 +142,7 @@ public class Chord {
         NetworkLocation nPrimeSuccessor = this.getSuccessor();
 
         if (nPrimeSuccessor.equals(NetworkLocation.NULL)) {
-            return new NetworkLocation[] { nPrime, nPrime };
+            return new NetworkLocation[]{nPrime, nPrime};
         }
 
         while (!this.betweenTwoKeys(
@@ -172,12 +170,12 @@ public class Chord {
             }
         }
 
-        return new NetworkLocation[] { nPrime, nPrimeSuccessor };
+        return new NetworkLocation[]{nPrime, nPrimeSuccessor};
     }
 
     /**
      * Lookup location of given key
-     * 
+     *
      * @param key key to lookup
      * @return {@link NetworkLocation} responsible for key
      * @throws ChordException an exception is thrown if the lookup operation can't
@@ -195,7 +193,7 @@ public class Chord {
 
     /**
      * Get closest preceding finger from given key
-     * 
+     *
      * @param key key search
      * @return largest {@link NetworkLocation} smaller than given key
      */
@@ -218,6 +216,7 @@ public class Chord {
 
     /**
      * Notify current node that peer might be it's predecessor, set the predecessor if applicable
+     *
      * @param peer candidate node
      */
     public void notifyNode(NetworkLocation peer) {
@@ -351,29 +350,11 @@ public class Chord {
                 CHECK_PREDECESSORS_START_OFFSET, CHECK_PREDECESSORS_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
-    private void setPredecessor(NetworkLocation predecessor) {
-        NetworkLocation oldPredecessor = this.predecessor;
-        this.predecessor = predecessor;
-
-        this.listeners.forEach(list -> list.predecessorChanged(oldPredecessor, predecessor));
-    }
-
     /* HELPER */
-
-    private static class StabilizationData {
-
-        public final NetworkLocation successorPredecessor;
-        public final List<NetworkLocation> successorSuccessors;
-
-        public StabilizationData(NetworkLocation successorPredecessor, List<NetworkLocation> successorSuccessors) {
-            this.successorPredecessor = successorPredecessor;
-            this.successorSuccessors = successorSuccessors;
-        }
-
-    }
 
     /**
      * Get {@link HashingAlgorithm} used by ring
+     *
      * @return used hashing algorithm
      */
     public HashingAlgorithm getHashingAlgorithm() {
@@ -382,6 +363,7 @@ public class Chord {
 
     /**
      * Get imediate successor of current node
+     *
      * @return successor of curent Node
      */
     public NetworkLocation getSuccessor() {
@@ -390,6 +372,7 @@ public class Chord {
 
     /**
      * Get list of n successors of current node
+     *
      * @param n size of list to return
      * @return list containing the min between n and the total amount of successors of the current node
      */
@@ -399,6 +382,7 @@ public class Chord {
 
     /**
      * Get location of current node
+     *
      * @return {@link NetworkLocation} of current node
      */
     public NetworkLocation getLocation() {
@@ -407,10 +391,18 @@ public class Chord {
 
     /**
      * Get location of predecessor
+     *
      * @return {@link NetworkLocation}of the predecessor
      */
     public NetworkLocation getPredecessor() {
         return this.predecessor;
+    }
+
+    private void setPredecessor(NetworkLocation predecessor) {
+        NetworkLocation oldPredecessor = this.predecessor;
+        this.predecessor = predecessor;
+
+        this.listeners.forEach(list -> list.predecessorChanged(oldPredecessor, predecessor));
     }
 
     private void initFingerTable(NetworkLocation location) {
@@ -440,7 +432,7 @@ public class Chord {
     }
 
     private boolean betweenTwoKeys(BigInteger lowerBound, BigInteger upperBound, BigInteger key, boolean closedLeft,
-            boolean closedRight) {
+                                   boolean closedRight) {
         // somewhere
         // Equal to one of the bounds and are inclusive
         if ((closedLeft && key.equals(lowerBound)) || (closedRight && key.equals(upperBound)))
@@ -466,6 +458,7 @@ public class Chord {
 
     /**
      * Get the number of successors that the current node has
+     *
      * @return number of successors of the current node
      */
     public int getSuccessorCount() {
@@ -475,7 +468,7 @@ public class Chord {
 
     /**
      * Attach a new {@link ChordListener} to current node
-     * 
+     *
      * @param listener listener to attach
      */
     public void addListener(ChordListener listener) {
@@ -486,6 +479,7 @@ public class Chord {
 
     /**
      * Check if current node is write responsible for the given key
+     *
      * @param key key to check
      * @return true if the current node is responsible for key
      * @throws ChordException an exception is thrown if the operation can't
@@ -509,14 +503,9 @@ public class Chord {
                 true);
     }
 
-    private static NetworkLocation checkNullLocation(NetworkLocation networkLocation) throws ChordException {
-        if (networkLocation.equals(NetworkLocation.NULL))
-            throw new ChordException("Supplied location '%s' was null location", networkLocation);
-        return networkLocation;
-    }
-
     /**
      * Check if current node is read responsible for the given key
+     *
      * @param key key to check
      * @return true if the current node is responsible for key
      * @throws ChordException an exception is thrown if the operation can't
@@ -532,8 +521,8 @@ public class Chord {
             throw new ChordException("Could not find replicated locations for location %s", ownLocation);
 
         return Try.sequence(replicatedLocations.stream()
-                .map(iterLocation -> Try.of(() -> isWriteResponsible(iterLocation, key)))
-                .collect(Collectors.toList()))
+                        .map(iterLocation -> Try.of(() -> isWriteResponsible(iterLocation, key)))
+                        .collect(Collectors.toList()))
                 .getOrElseThrow(throwable -> new ChordException("Could not check write responsibility of replicated " +
                         "locations", throwable))
                 .exists(Boolean::booleanValue);
@@ -541,6 +530,7 @@ public class Chord {
 
     /**
      * Check if replication is current active, i.e. if there are enough nodes to perform replication
+     *
      * @return true if replication is active, false otherwise
      */
     public boolean isReplicationActive() {
@@ -549,10 +539,10 @@ public class Chord {
 
     private List<NetworkLocation> getReplicatedLocations(NetworkLocation networkLocation) throws ChordException {
         return Try.sequence(Stream.iterate(Try.success(networkLocation),
-                iterTry -> iterTry.mapTry(messaging::getPredecessor)
-                        .mapTry(Chord::checkNullLocation))
-                .limit(Constants.NUMBER_OF_REPLICAS + 1L)
-                .collect(Collectors.toList()))
+                                iterTry -> iterTry.mapTry(messaging::getPredecessor)
+                                        .mapTry(Chord::checkNullLocation))
+                        .limit(Constants.NUMBER_OF_REPLICAS + 1L)
+                        .collect(Collectors.toList()))
                 .getOrElseThrow(
                         failCause -> new ChordException("Caught exception while getting predecessors", failCause))
                 .reverse().toJavaList();
@@ -560,8 +550,9 @@ public class Chord {
 
     /**
      * Find node that is write responsible for key
-     * @param key   key to check
-     * @return  node responsible for key
+     *
+     * @param key key to check
+     * @return node responsible for key
      * @throws ChordException an exception is thrown if the operation can't
      *                        be performed (possible due to connection or peer
      *                        issues)
@@ -572,6 +563,7 @@ public class Chord {
 
     /**
      * Find list of read-responsible locations for given key
+     *
      * @param key key to check
      * @return list of read responsible locations
      * @throws ChordException an exception is thrown if the operation can't
@@ -585,15 +577,15 @@ public class Chord {
             return new LinkedList<>(List.of(writeResponsibleNetworkLocation));
 
         List<NetworkLocation> result = Stream.concat(Stream.of(writeResponsibleNetworkLocation),
-                messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
+                        messaging.getSuccessors(writeResponsibleNetworkLocation, SUCCESSOR_LIST_SIZE).stream())
                 .collect(Collectors.toList());
 
         return new LinkedList<>(result);
     }
 
-    /* OTHER */
     /**
      * Get string representing current state of chord ring, including finger table, successor-list and predecessor
+     *
      * @return Chord state string
      */
     public String getStateStr() {
@@ -617,6 +609,20 @@ public class Chord {
         sb.append("------\n");
         sb.append(this.successors.getStateStr());
         return sb.toString();
+    }
+
+    /* OTHER */
+
+    private static class StabilizationData {
+
+        public final NetworkLocation successorPredecessor;
+        public final List<NetworkLocation> successorSuccessors;
+
+        public StabilizationData(NetworkLocation successorPredecessor, List<NetworkLocation> successorSuccessors) {
+            this.successorPredecessor = successorPredecessor;
+            this.successorSuccessors = successorSuccessors;
+        }
+
     }
 
 }

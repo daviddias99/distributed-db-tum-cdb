@@ -83,19 +83,19 @@ public class StorageCommandProcessor implements CommandProcessor<KVMessage> {
 
     protected KVMessage put(String key, String value) {
         // synchronized (this.kvStore) {
-            try {
-                if (!this.serverState.isWriteResponsible(key))
-                    return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
-            } catch (ServerException e) {
-                LOGGER.error(e);
-                return new KVMessageImpl(StatusType.ERROR);
-            }
+        try {
+            if (!this.serverState.isWriteResponsible(key))
+                return new KVMessageImpl(StatusType.SERVER_NOT_RESPONSIBLE);
+        } catch (ServerException e) {
+            LOGGER.error(e);
+            return new KVMessageImpl(StatusType.ERROR);
+        }
 
-            if (this.serverState.canWrite()) {
-                return putWithoutChecks(key, value, false, false);
-            }
+        if (this.serverState.canWrite()) {
+            return putWithoutChecks(key, value, false, false);
+        }
 
-            return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
+        return new KVMessageImpl(StatusType.SERVER_WRITE_LOCK);
         // }
     }
 

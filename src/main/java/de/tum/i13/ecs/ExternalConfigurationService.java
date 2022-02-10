@@ -69,7 +69,7 @@ class ExternalConfigurationService {
         LOGGER.debug("Preparing to update metadata of '{}'", newServer);
         new ECSUpdateMetadataThread(newServer, copyMetadata.packWriteRanges()).run();
         LOGGER.debug("Finished updagint metadata of '{}'", newServer);
-        
+
         LOGGER.debug("Initiating Handoff between '{}' and '{}'", newServer, nextInRing);
         new ECSHandoffThread(nextInRing, newServer, lowerBound, upperBound, copyMetadata.packWriteRanges(), false).run();
         LOGGER.debug("Finished Handoff between '{}' and '{}'", newServer, nextInRing);

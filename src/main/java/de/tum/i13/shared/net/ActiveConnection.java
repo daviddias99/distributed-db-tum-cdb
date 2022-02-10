@@ -22,7 +22,7 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
 
     /**
      * Create a new active connection
-     * 
+     *
      * @param socket connection socket
      * @param output connection output stream
      * @param input  connection input stream
@@ -69,6 +69,7 @@ public class ActiveConnection implements AutoCloseable, MessageServer {
 
     /**
      * Get {@link NetworkLocation} associated with this connection
+     *
      * @return {@link NetworkLocation} associated with current connection
      */
     public NetworkLocation getNetworkLocation() {

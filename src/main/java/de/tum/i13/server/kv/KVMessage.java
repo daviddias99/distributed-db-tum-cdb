@@ -9,6 +9,108 @@ import java.util.function.Function;
 public interface KVMessage {
 
     /**
+     * Unpacks a message in the {@link String} format using the standardc
+     * implementation {@link KVMessageImpl}.
+     * Uses {@link #extractTokens(String)} to extract the tokens from the message.
+     * Refer to the specification document for further details.
+     *
+     * @param message the message encoded as a {@link String}, must not be empty and
+     *                adhere to one of the message
+     *                format from the specification
+     * @return the message converted to a {@link KVMessage}
+     * @throws IllegalArgumentException if the message could not be converted
+     *                                  according to the specification
+     * @see KVMessageImpl
+     * @see #extractTokens(String)
+     */
+    static KVMessage unpackMessage(String message) {
+        String[] msgTokens = extractTokens(message);
+
+        final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
+                string.toUpperCase());
+        final Function<String, IllegalArgumentException> exceptionFunction =
+                receivedMessage -> new IllegalArgumentException(
+                String.format(
+                        "Could not convert \"%s\" to a %s",
+                        receivedMessage,
+                        KVMessage.class.getSimpleName()));
+
+        if (msgTokens.length == 1) {
+            if ("".equals(msgTokens[0])) {
+                throw exceptionFunction.apply(message);
+            } else {
+                return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
+            }
+        } else if (msgTokens.length == 2) {
+            return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
+        } else if (msgTokens.length == 3) {
+            return new KVMessageImpl(
+                    msgTokens[1],
+                    msgTokens[2],
+                    stringToStatusType.apply(msgTokens[0]));
+        } else {
+            throw exceptionFunction.apply(message);
+        }
+    }
+
+    /**
+     * Trims the message and then extracts the tokens of the message.
+     * Multiple spaces between tokens are considered as one and will not be part of
+     * the token.
+     * Keys cannot contain spaces, but values can.
+     * I.e.
+     *
+     * <pre>
+     * "    put   thisKey     to this   value   "
+     * </pre>
+     * <p>
+     * will produce the following tokens
+     *
+     * <pre>
+     * { "put", "thisKey", "to this   value" }
+     * </pre>
+     *
+     * @param message the message from which to extract the tokens
+     * @return the extracted tokens of the message
+     * @see String#trim()
+     */
+    static String[] extractTokens(String message) {
+        return message.trim().split("\\s+", 3);
+    }
+
+    /**
+     * @return the key that is associated with this message,
+     * null if not key is associated.
+     */
+    String getKey();
+
+    /**
+     * @return the value that is associated with this message,
+     * null if not value is associated.
+     */
+    String getValue();
+
+    /**
+     * @return a status string that is used to identify request types,
+     * response types and error types associated to the message.
+     */
+    StatusType getStatus();
+
+    /**
+     * Packs the message into a {@link String} format.
+     *
+     * @return the message encoded as a {@link String}
+     */
+    default String packMessage() {
+        final StatusType status = getStatus();
+        return String.format(
+                "%s %s %s",
+                status.toString().toLowerCase(),
+                Objects.toString(getKey(), ""),
+                Objects.toString(getValue(), "")).trim();
+    }
+
+    /**
      * The type and status of the {@link KVMessage}
      */
     enum StatusType {
@@ -164,9 +266,9 @@ public interface KVMessage {
          * the ranges (reading)
          */
         KEYRANGE_READ_SUCCESS(true, false),
-        
+
         DELETE_SERVER(true, false),
-        
+
 
         /* CHORD */
 
@@ -193,7 +295,8 @@ public interface KVMessage {
 
         /**
          * Create a new status type
-         * @param needsKey  true if status is associated with a key
+         *
+         * @param needsKey   true if status is associated with a key
          * @param needsValue true if the status is associated with a value
          */
         StatusType(boolean needsKey, boolean needsValue) {
@@ -220,107 +323,6 @@ public interface KVMessage {
         public boolean needsValue() {
             return this.needsValue;
         }
-    }
-
-    /**
-     * @return the key that is associated with this message,
-     *         null if not key is associated.
-     */
-    String getKey();
-
-    /**
-     * @return the value that is associated with this message,
-     *         null if not value is associated.
-     */
-    String getValue();
-
-    /**
-     * @return a status string that is used to identify request types,
-     *         response types and error types associated to the message.
-     */
-    StatusType getStatus();
-
-    /**
-     * Packs the message into a {@link String} format.
-     *
-     * @return the message encoded as a {@link String}
-     */
-    default String packMessage() {
-        final StatusType status = getStatus();
-        return String.format(
-                "%s %s %s",
-                status.toString().toLowerCase(),
-                Objects.toString(getKey(), ""),
-                Objects.toString(getValue(), "")).trim();
-    }
-
-    /**
-     * Unpacks a message in the {@link String} format using the standardc
-     * implementation {@link KVMessageImpl}.
-     * Uses {@link #extractTokens(String)} to extract the tokens from the message.
-     * Refer to the specification document for further details.
-     *
-     * @param message the message encoded as a {@link String}, must not be empty and
-     *                adhere to one of the message
-     *                format from the specification
-     * @return the message converted to a {@link KVMessage}
-     * @throws IllegalArgumentException if the message could not be converted
-     *                                  according to the specification
-     * @see KVMessageImpl
-     * @see #extractTokens(String)
-     */
-    static KVMessage unpackMessage(String message) {
-        String[] msgTokens = extractTokens(message);
-
-        final Function<String, StatusType> stringToStatusType = (String string) -> StatusType.valueOf(
-                string.toUpperCase());
-        final Function<String, IllegalArgumentException> exceptionFunction = receivedMessage -> new IllegalArgumentException(
-                String.format(
-                        "Could not convert \"%s\" to a %s",
-                        receivedMessage,
-                        KVMessage.class.getSimpleName()));
-
-        if (msgTokens.length == 1) {
-            if ("".equals(msgTokens[0])) {
-                throw exceptionFunction.apply(message);
-            } else {
-                return new KVMessageImpl(stringToStatusType.apply(msgTokens[0]));
-            }
-        } else if (msgTokens.length == 2) {
-            return new KVMessageImpl(msgTokens[1], stringToStatusType.apply(msgTokens[0]));
-        } else if (msgTokens.length == 3) {
-            return new KVMessageImpl(
-                    msgTokens[1],
-                    msgTokens[2],
-                    stringToStatusType.apply(msgTokens[0]));
-        } else {
-            throw exceptionFunction.apply(message);
-        }
-    }
-
-    /**
-     * Trims the message and then extracts the tokens of the message.
-     * Multiple spaces between tokens are considered as one and will not be part of
-     * the token.
-     * Keys cannot contain spaces, but values can.
-     * I.e.
-     * 
-     * <pre>
-     * "    put   thisKey     to this   value   "
-     * </pre>
-     * 
-     * will produce the following tokens
-     * 
-     * <pre>
-     * { "put", "thisKey", "to this   value" }
-     * </pre>
-     *
-     * @param message the message from which to extract the tokens
-     * @return the extracted tokens of the message
-     * @see String#trim()
-     */
-    static String[] extractTokens(String message) {
-        return message.trim().split("\\s+", 3);
     }
 
 }

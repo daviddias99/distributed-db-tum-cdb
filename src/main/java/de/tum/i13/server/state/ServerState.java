@@ -71,7 +71,6 @@ public interface ServerState {
      *
      * @param key key to check
      * @return true if the server is responsible for the key
-     * 
      * @throws ServerException exception is thrown when the operation can't be completed due to an unforceen error
      */
     boolean isWriteResponsible(String key) throws ServerException;
@@ -81,13 +80,13 @@ public interface ServerState {
      *
      * @param key key to check
      * @return true if the server is responsible for the key
-     * 
      * @throws ServerException exception is thrown when the operation can't be completed due to an unforceen error
      */
     boolean isReadResponsible(String key) throws ServerException;
 
     /**
      * Get locations responsible for a given key
+     *
      * @param key key to check
      * @return list of responsible {@link NetworkLocation}s
      */
@@ -95,28 +94,32 @@ public interface ServerState {
 
     /**
      * Get network location associated with current node
+     *
      * @return network location of current node
      */
     NetworkLocation getCurNetworkLocation();
 
     /**
      * Check if there are enough servers to perform replication
+     *
      * @return true if replication is active
      */
     boolean isReplicationActive();
 
     /**
      * Executed queued delete operations
-     * @param storage   {@link PersistentStorage} where delete operations are to be executed
+     *
+     * @param storage {@link PersistentStorage} where delete operations are to be executed
      */
     void executeStoredDeletes(PersistentStorage storage);
-    
+
     /**
      * Get queued delete operations
+     *
      * @return list of queued delete operations
      */
     List<String> getDeleteQueue();
-    
+
     /**
      * Enum that represents the server's state
      */

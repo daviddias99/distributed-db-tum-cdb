@@ -23,10 +23,10 @@ public class ConnectionHandleThread implements Runnable {
 
     private static final Logger LOGGER = LogManager.getLogger(ConnectionHandleThread.class);
 
-    private CommandProcessor<String> cp;
-    private Socket clientSocket;
-    private InetSocketAddress serverAddress;
-    private ConnectionHandler connectionHandler;
+    private final CommandProcessor<String> cp;
+    private final Socket clientSocket;
+    private final InetSocketAddress serverAddress;
+    private final ConnectionHandler connectionHandler;
 
     /**
      * Create new connection handler

@@ -17,7 +17,7 @@ public interface NetworkPersistentStorage extends PersistentStorage, NetworkMess
      * @param message the message to send
      * @return the message received from the server
      * @throws CommunicationClientException if the server message could not be unpacked, or something went wrong in
-     * sending ore receiving the message
+     *                                      sending ore receiving the message
      */
     default KVMessage sendAndReceive(KVMessage message) throws CommunicationClientException {
         final Logger logger = LogManager.getLogger(NetworkPersistentStorage.class);

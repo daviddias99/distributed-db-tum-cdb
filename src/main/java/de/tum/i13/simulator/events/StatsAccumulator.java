@@ -89,7 +89,8 @@ public class StatsAccumulator implements Runnable {
             directory.mkdir();
         }
 
-        File fOut = new File(String.format("stats/out_%s_%s.csv", this.name,new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date())));
+        File fOut = new File(String.format("stats/out_%s_%s.csv", this.name, new SimpleDateFormat("yyyy-MM-dd-HH-mm" +
+                "-ss").format(new Date())));
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fOut)))) {
             bw.write("timeStep,getCount,getFailCount,getTime,putCount,putFailCount,putTime,deleteCount," +
                     "deleteFailCount,deleteTime,totalSucc,event\n");

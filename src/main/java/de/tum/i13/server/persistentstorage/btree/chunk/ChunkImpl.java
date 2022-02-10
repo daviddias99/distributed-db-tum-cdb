@@ -1,27 +1,27 @@
 package de.tum.i13.server.persistentstorage.btree.chunk;
 
+import de.tum.i13.shared.Preconditions;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import de.tum.i13.shared.Preconditions;
-
 /**
  * An implementation of {@link Chunk} using ArrayList.
- * 
+ *
  * @param <V> type to be used in values
  */
 public class ChunkImpl<V> implements Chunk<V> {
-    // data stored in this chunk
-    private List<Pair<V>> elements;
 
     private static final long serialVersionUID = 6529685098267757681L;
+    // data stored in this chunk
+    private List<Pair<V>> elements;
 
     /**
      * Create a new Chunk with given minimum degree. Note that all nodes in a B-Tree
      * (except the root) must have at list {@code minimumDegree - 1} and at most
      * {@code 2*minimumDegree  - 1} elements.
-     * 
+     *
      * @param minimumDegree B-Tree minimum degree
      */
     public ChunkImpl(int minimumDegree) {
@@ -30,11 +30,25 @@ public class ChunkImpl<V> implements Chunk<V> {
 
     /**
      * Create a new chunk from another chunk
-     * 
+     *
      * @param chunk chunk to clone
      */
     public ChunkImpl(Chunk<V> chunk) {
         this.elements = chunk.getElements();
+    }
+
+    /**
+     * Create a new Chunk with given minimum degree and initialized with some
+     * elements. Note that all nodes in a B-Tree (except the root) must have at list
+     * {@code minimumDegree - 1} and at most {@code 2*minimumDegree  - 1} elements.
+     *
+     * @param minimumDegree B-Tree minimum degree
+     * @param newElements   List of initial elements
+     */
+    public ChunkImpl(int minimumDegree, List<Pair<V>> newElements) {
+        Preconditions.check(newElements.size() <= 2 * minimumDegree - 1);
+        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
+        Collections.copy(this.elements, newElements);
     }
 
     /**
@@ -47,23 +61,9 @@ public class ChunkImpl<V> implements Chunk<V> {
     }
 
     /**
-     * Create a new Chunk with given minimum degree and initialized with some
-     * elements. Note that all nodes in a B-Tree (except the root) must have at list
-     * {@code minimumDegree - 1} and at most {@code 2*minimumDegree  - 1} elements.
-     * 
-     * @param minimumDegree B-Tree minimum degree
-     * @param newElements   List of initial elements
-     */
-    public ChunkImpl(int minimumDegree, List<Pair<V>> newElements) {
-        Preconditions.check(newElements.size() <= 2 * minimumDegree - 1);
-        this.elements = new ArrayList<>(Collections.nCopies((2 * minimumDegree - 1), null));
-        Collections.copy(this.elements, newElements);
-    }
-
-    /**
      * Finds index that contains the first element with a key greater or equal than
      * {@code key}
-     * 
+     *
      * @param key key to check
      * @return index of first element with a key greater or equal than {@code key}
      */
@@ -87,7 +87,7 @@ public class ChunkImpl<V> implements Chunk<V> {
 
     /**
      * Get element at {@code index}
-     * 
+     *
      * @param index index of the element to return
      * @return the element at the specified position in this chunk
      */
@@ -98,7 +98,7 @@ public class ChunkImpl<V> implements Chunk<V> {
     /**
      * Replaces the element at the specified position in this list with the
      * specified element
-     * 
+     *
      * @param index   index of the element to replace
      * @param element element to be stored at the specified position
      * @return the element previously at the specified position
@@ -110,7 +110,7 @@ public class ChunkImpl<V> implements Chunk<V> {
     /**
      * Removes element at specified position in the chunk. After calling this
      * method, the {@code index} position will contain the value null.
-     * 
+     *
      * @param index the index of the element to be removed
      * @return the element previously at the specified position
      */
@@ -122,7 +122,7 @@ public class ChunkImpl<V> implements Chunk<V> {
 
     /**
      * Shifts all the elements after {@code startIndex} right one position.
-     * 
+     *
      * @param startIndex index of first element to shift right
      */
     public void shiftRightOne(int startIndex) {
@@ -137,7 +137,7 @@ public class ChunkImpl<V> implements Chunk<V> {
     /**
      * Shifts all the elements after {@code startIndex} left one position. If the
      * {@code startIndex} position contains any element it will be overriden.
-     * 
+     *
      * @param startIndex index of first element to shift left
      */
     public void shiftLeftOne(int startIndex) {
@@ -151,7 +151,7 @@ public class ChunkImpl<V> implements Chunk<V> {
     /**
      * Shifts all the elements after the first element with a key larger than key
      * {@code key} right one position.
-     * 
+     *
      * @param key key to check
      * @return index the chunk position where a new element should be in.
      */
@@ -174,7 +174,7 @@ public class ChunkImpl<V> implements Chunk<V> {
 
     /**
      * Get number of elements in chunk.
-     * 
+     *
      * @return Number of elements in chunk.
      */
     public int getElementCount() {
@@ -191,10 +191,11 @@ public class ChunkImpl<V> implements Chunk<V> {
 
     /**
      * Get elements list. Note that some positions might be {@code null}.
-     * 
+     *
      * @return list of key-value elements
      */
     public List<Pair<V>> getElements() {
         return this.elements;
     }
+
 }

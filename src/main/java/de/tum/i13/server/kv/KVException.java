@@ -19,7 +19,7 @@ public class KVException extends Exception {
      * Creates a new {@link KVException} with the supplied message and cause
      *
      * @param message the message of the exception
-     * @param cause the cause of the exception
+     * @param cause   the cause of the exception
      */
     public KVException(String message, Throwable cause) {
         super(message, cause);
@@ -29,7 +29,7 @@ public class KVException extends Exception {
      * Creates a new {@link KVException} with the supplied format string and objects
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
+     * @param args   the parameters for the string formatting
      * @see String#format(String, Object...)
      */
     public KVException(String format, Object... args) {
@@ -40,8 +40,8 @@ public class KVException extends Exception {
      * Creates a new {@link KVException} with the supplied format string and objects, and a cause
      *
      * @param format the string to format
-     * @param args the parameters for the string formatting
-     * @param cause the cause of the exception
+     * @param args   the parameters for the string formatting
+     * @param cause  the cause of the exception
      * @see String#format(String, Object...)
      */
     public KVException(Throwable cause, String format, Object... args) {

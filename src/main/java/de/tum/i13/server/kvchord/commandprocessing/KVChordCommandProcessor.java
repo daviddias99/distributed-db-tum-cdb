@@ -63,7 +63,8 @@ public class KVChordCommandProcessor implements CommandProcessor<KVMessage> {
                 .map(NetworkLocation::toPackedString)
                 .collect(Collectors.joining(","));
 
-        return new KVMessageImpl(packedSuccs.isEmpty() ? "NO_SUCCS" : packedSuccs, StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
+        return new KVMessageImpl(packedSuccs.isEmpty() ? "NO_SUCCS" : packedSuccs,
+                StatusType.CHORD_GET_SUCCESSOR_RESPONSE);
     }
 
     private KVMessage notifyChord(String peerAddr) {

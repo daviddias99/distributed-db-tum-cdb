@@ -69,7 +69,7 @@ abstract class AbstractExperiment implements Experiment {
     private void startInitialExperiment() throws InterruptedException {
         mgr = new ExperimentManager();
 
-        if(!cfg.useChord()) {
+        if (!cfg.useChord()) {
             startECS();
             LOGGER.debug("Waiting 4s...");
             Thread.sleep(4000);

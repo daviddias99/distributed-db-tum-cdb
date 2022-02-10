@@ -31,7 +31,8 @@ public class DistributedChordPersistentStorage extends DistributedPersistentStor
     }
 
     @Override
-    protected List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType, KVMessage responseMessage) throws CommunicationClientException {
+    protected List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType,
+                                                                   KVMessage responseMessage) throws CommunicationClientException {
         LOGGER.trace("Getting responsible network location for based on message '{}'", responseMessage);
         return Arrays.stream(responseMessage.getKey().split(","))
                 .map(NetworkLocation::extractNetworkLocation)

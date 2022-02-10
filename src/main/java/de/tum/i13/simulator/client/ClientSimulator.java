@@ -25,6 +25,7 @@ public class ClientSimulator implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(ClientSimulator.class);
 
     private static final double NANOS_PER_SECOND = 1000000000;
+    public ClientStats stats;
     LinkedList<Pair<String>> toSend = new LinkedList<>();
     LinkedList<Pair<String>> sent = new LinkedList<>();
     int totalEmailCount;
@@ -32,8 +33,7 @@ public class ClientSimulator implements Runnable {
     int serverPort;
     boolean stop = false;
     CommandLine cmd;
-    public ClientStats stats;
-    private boolean useChord;
+    private final boolean useChord;
 
     public ClientSimulator(Path emailDir, String serverAddress, int serverPort, boolean useChord) {
         this.serverAddress = serverAddress;
@@ -49,7 +49,7 @@ public class ClientSimulator implements Runnable {
 
         for (File file : files) {
             Pair<String> parsedEmail = EmailParser.parseEmail(file.toPath());
-            
+
             if (parsedEmail != null) {
                 toSend.push(EmailParser.parseEmail(file.toPath()));
             }
@@ -75,7 +75,7 @@ public class ClientSimulator implements Runnable {
             }
 
         } catch (FileNotFoundException e) {
-            LOGGER.error("Caught exception while setting up connectino",e);
+            LOGGER.error("Caught exception while setting up connectino", e);
         }
     }
 

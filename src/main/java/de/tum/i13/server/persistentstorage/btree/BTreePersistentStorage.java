@@ -21,27 +21,27 @@ import java.util.stream.Collectors;
  * by ({@link PersistentBTree}) to provide a {@link PersistentStorage}.
  */
 public class BTreePersistentStorage implements PersistentStorage, AutoCloseable {
+
     private static final Logger LOGGER = LogManager.getLogger(BTreePersistentStorage.class);
 
     private PersistentBTree<Pair<String>> tree;
 
-    private HashingAlgorithm hashAlg;
+    private final HashingAlgorithm hashAlg;
 
     /**
      * Create a new B-Tree with a given minimum degree (see
      * {@link PersistentBTree}).
      * Storage handler is also configurable. First there is an attempt to load the
      * tree, if it fails, a new tree is created.
-     * 
+     *
      * @param minimumDegree    B-Tree minimum degree
      * @param storageHandler   Handler used by the BTree to persist
      * @param hashingAlgorithm algorithm to be use to hash data uses as key in BTree
-     * 
      * @throws StorageException An exception is thrown when an error occures while
      *                          saving tree to persistent storage
      */
     public BTreePersistentStorage(int minimumDegree, PersistentBTreeStorageHandler<Pair<String>> storageHandler,
-            HashingAlgorithm hashingAlgorithm)
+                                  HashingAlgorithm hashingAlgorithm)
             throws StorageException {
         try {
             this.tree = new PersistentBTree<>(minimumDegree, storageHandler.load(), storageHandler);
@@ -59,7 +59,7 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
 
     private String normalizeKey(String key) {
         String intermediate = this.hashAlg.hash(key).toString(16);
-        return HashingAlgorithm.padLeftZeros(intermediate, this.hashAlg.getHashSizeBits()/4) ;
+        return HashingAlgorithm.padLeftZeros(intermediate, this.hashAlg.getHashSizeBits() / 4);
     }
 
     @Override
@@ -138,8 +138,10 @@ public class BTreePersistentStorage implements PersistentStorage, AutoCloseable 
         try {
             return this.tree.searchRange(lowerBound, upperBound).stream().map(elem -> elem.value).collect(Collectors.toList());
         } catch (Exception e) {
-            throw new GetException(e, "An error occurred while fetching elements in range %s-%s from storage.", lowerBound,
+            throw new GetException(e, "An error occurred while fetching elements in range %s-%s from storage.",
+                    lowerBound,
                     upperBound);
         }
     }
+
 }

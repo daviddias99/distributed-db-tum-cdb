@@ -29,6 +29,7 @@ public class ExperimentManager {
     public ClientManager getClientManager() {
         return clientManager;
     }
+
     public void setClientManager(ClientManager clientManager) {
         this.clientManager = clientManager;
     }

@@ -36,6 +36,28 @@ public class ExperimentConfiguration {
     private final int replicationFactor;
     private final boolean useChord;
 
+    private ExperimentConfiguration(Builder builder) {
+        startingServerCount = builder.startingServerCount;
+        startingClientCount = builder.startingClientCount;
+        finalServerCount = builder.finalServerCount;
+        finalClientCount = builder.finalClientCount;
+        serverStartDelay = builder.serverStartDelay;
+        clientStartDelay = builder.clientStartDelay;
+        serverCacheSize = builder.serverCacheSize;
+        bTreeNodeSize = builder.bTreeNodeSize;
+        serverCachingStrategy = builder.serverCachingStrategy;
+        statsName = builder.statsName;
+        afterAdditionalClientsDelay = builder.afterAdditionalClientsDelay;
+        afterAdditionalServersDelay = builder.afterAdditionalServersDelay;
+        initialDelay = builder.initialDelay;
+        replicationFactor = builder.replicationFactor;
+        useChord = builder.useChord;
+    }
+
+    public static Builder experimentConfiguration() {
+        return new Builder();
+    }
+
     public int getAfterAdditionalClientsDelay() {
         return afterAdditionalClientsDelay;
     }
@@ -95,29 +117,6 @@ public class ExperimentConfiguration {
     public boolean useChord() {
         return useChord;
     }
-
-    private ExperimentConfiguration(Builder builder) {
-        startingServerCount = builder.startingServerCount;
-        startingClientCount = builder.startingClientCount;
-        finalServerCount = builder.finalServerCount;
-        finalClientCount = builder.finalClientCount;
-        serverStartDelay = builder.serverStartDelay;
-        clientStartDelay = builder.clientStartDelay;
-        serverCacheSize = builder.serverCacheSize;
-        bTreeNodeSize = builder.bTreeNodeSize;
-        serverCachingStrategy = builder.serverCachingStrategy;
-        statsName = builder.statsName;
-        afterAdditionalClientsDelay = builder.afterAdditionalClientsDelay;
-        afterAdditionalServersDelay = builder.afterAdditionalServersDelay;
-        initialDelay = builder.initialDelay;
-        replicationFactor = builder.replicationFactor;
-        useChord = builder.useChord;
-    }
-
-    public static Builder experimentConfiguration() {
-        return new Builder();
-    }
-
 
     public static final class Builder {
 

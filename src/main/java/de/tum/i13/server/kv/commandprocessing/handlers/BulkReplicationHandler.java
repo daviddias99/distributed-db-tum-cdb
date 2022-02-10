@@ -1,11 +1,5 @@
 package de.tum.i13.server.kv.commandprocessing.handlers;
 
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
 import de.tum.i13.server.kv.KVMessage;
 import de.tum.i13.server.persistentstorage.btree.chunk.Pair;
 import de.tum.i13.shared.net.CommunicationClient;
@@ -13,6 +7,11 @@ import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.net.NetworkLocation;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
 import de.tum.i13.shared.persistentstorage.PutException;
+import de.tum.i13.shared.persistentstorage.WrappingPersistentStorage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 /**
  * Handler used to replicate a set of operations to e given
@@ -28,7 +27,7 @@ public class BulkReplicationHandler implements Runnable {
 
     /**
      * Create new replication handler
-     * 
+     *
      * @param peer     location where the operations will be sent
      * @param elements key-value pairs to send/delete
      * @param isDelete true if the operations are delete operations
@@ -41,7 +40,7 @@ public class BulkReplicationHandler implements Runnable {
 
     /**
      * Create new replication handler (put operation)
-     * 
+     *
      * @param peer     location where the operations will be sent
      * @param elements key-value pairs to send
      */
@@ -83,4 +82,5 @@ public class BulkReplicationHandler implements Runnable {
 
         LOGGER.info("Finished bulk replication to {}", peer);
     }
+
 }

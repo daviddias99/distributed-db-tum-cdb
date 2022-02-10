@@ -21,8 +21,9 @@ public class ChordStorageCommandProcessor implements CommandProcessor<KVMessage>
 
     /**
      * Create new command processor for chord messages
+     *
      * @param serverState server state of current node
-     * @param storage persistent storage of current node
+     * @param storage     persistent storage of current node
      */
     public ChordStorageCommandProcessor(ChordServerState serverState, PersistentStorage storage) {
         this.serverState = serverState;

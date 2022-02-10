@@ -1,8 +1,8 @@
 package de.tum.i13.simulator.experiments;
 
-import static de.tum.i13.simulator.events.DelayedEvent.Type.STOP_SERVER;
-
 import de.tum.i13.simulator.events.DelayedEvent;
+
+import static de.tum.i13.simulator.events.DelayedEvent.Type.STOP_SERVER;
 
 public class SoftShutdownExperiment extends AbstractExperiment {
 

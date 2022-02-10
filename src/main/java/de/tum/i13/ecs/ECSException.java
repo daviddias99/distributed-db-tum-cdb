@@ -32,6 +32,22 @@ public class ECSException extends Exception {
     }
 
     /**
+     * Creates a new exception for a situation where the expected {@link KVMessage.StatusType} was not received.
+     *
+     * @param expectedType the {@link KVMessage.StatusType} that was expected but not received
+     * @return a new {@link ECSException} matching the expected {@link KVMessage.StatusType}
+     */
+    public static ECSException determineException(KVMessage.StatusType expectedType) {
+        LOGGER.trace("Determining exception for '{}'", expectedType);
+        return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT,
+                switch (expectedType) {
+                    case SERVER_HANDOFF_SUCCESS -> new ECSException(Type.HANDOFF_FAILURE);
+                    case SERVER_ACK -> new ECSException(Type.NO_ACK_RECEIVED);
+                    default -> new ECSException(Type.UNEXPECTED_RESPONSE);
+                });
+    }
+
+    /**
      * Getter method for the message parameter of {@link ECSException}.
      *
      * @return String with the message related to the exception.
@@ -47,22 +63,6 @@ public class ECSException extends Exception {
      */
     public Type getType() {
         return this.type;
-    }
-
-    /**
-     * Creates a new exception for a situation where the expected {@link KVMessage.StatusType} was not received.
-     *
-     * @param expectedType the {@link KVMessage.StatusType} that was expected but not received
-     * @return a new {@link ECSException} matching the expected {@link KVMessage.StatusType}
-     */
-    public static ECSException determineException(KVMessage.StatusType expectedType) {
-        LOGGER.trace("Determining exception for '{}'", expectedType);
-        return LOGGER.traceExit(Constants.EXIT_LOG_MESSAGE_FORMAT,
-                switch (expectedType) {
-                    case SERVER_HANDOFF_SUCCESS -> new ECSException(Type.HANDOFF_FAILURE);
-                    case SERVER_ACK -> new ECSException(Type.NO_ACK_RECEIVED);
-                    default -> new ECSException(Type.UNEXPECTED_RESPONSE);
-                });
     }
 
 
@@ -86,7 +86,7 @@ public class ECSException extends Exception {
         /**
          * Indicates that the metadata of the server could not be updated by ECS.
          */
-        UPDATE_METADATA_FAILURE;
+        UPDATE_METADATA_FAILURE
     }
 
 }

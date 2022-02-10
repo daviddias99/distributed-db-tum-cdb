@@ -57,12 +57,13 @@ public class MainChord {
             // TODO: if listenAddress is default (localhost, it won't correspond to the
             // correct metadata)
             NetworkLocation curLocation = new NetworkLocationImpl(cfg.listenAddress, cfg.port);
-            NetworkLocation boostrapLocation = cfg.bootstrap == null ? null : new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
+            NetworkLocation boostrapLocation = cfg.bootstrap == null ? null :
+                    new NetworkLocationImpl(cfg.bootstrap.getAddress().getHostAddress(),
                     cfg.bootstrap.getPort());
 
-            Chord chord = boostrapLocation == null ? 
-                new Chord(hashingAlgorithm, curLocation) :
-                new Chord(hashingAlgorithm, curLocation, boostrapLocation);
+            Chord chord = boostrapLocation == null ?
+                    new Chord(hashingAlgorithm, curLocation) :
+                    new Chord(hashingAlgorithm, curLocation, boostrapLocation);
 
             // Create state
             LOGGER.trace("Creating server state");
@@ -74,10 +75,12 @@ public class MainChord {
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor)));
+            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress,
+                    cfg.port, commandProcessor)));
 
             // Setup shutdown procedure (handoff)
-            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(listeningThread, chord, state, storage, chordListener))));
+            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(listeningThread,
+                    chord, state, storage, chordListener))));
 
             listeningThread.start();
             Thread.sleep(600);
@@ -95,14 +98,15 @@ public class MainChord {
     /**
      * Method that sets the persistent storage directory, caching strategy and cache
      * size.
-     * 
+     *
      * @param dataDir
      * @param cachingStrategy
      * @param cacheSize
      * @return
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree,
-            CachingStrategy cachingStrategy, int cacheSize, HashingAlgorithm hashAlg)
+                                                        CachingStrategy cachingStrategy, int cacheSize,
+                                                        HashingAlgorithm hashAlg)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
@@ -112,4 +116,5 @@ public class MainChord {
         BTreePersistentStorage storage = new BTreePersistentStorage(minimumDegree, handler, hashAlg);
         return new CachedPersistentStorage(storage, cachingStrategy, cacheSize);
     }
+
 }

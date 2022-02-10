@@ -23,6 +23,7 @@ import java.util.Objects;
  * {@link KVServerCommandProcessor} and {@link KVChordCommandProcessor} to parse these messages.
  */
 public class KVCommandProcessor implements CommandProcessor<String> {
+
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
     private final ServerState serverState;
@@ -52,10 +53,11 @@ public class KVCommandProcessor implements CommandProcessor<String> {
                 .findFirst()
                 .orElseGet(() -> new KVMessageImpl(StatusType.ERROR));
 
-        if(response.getStatus() != StatusType.SERVER_HEART_BEAT) {
+        if (response.getStatus() != StatusType.SERVER_HEART_BEAT) {
             LOGGER.debug("Response processing '{}' -> '{}'", command, response);
         }
 
         return response.toString();
     }
+
 }

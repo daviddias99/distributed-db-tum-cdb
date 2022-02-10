@@ -9,20 +9,6 @@ public interface NetworkLocation {
     NetworkLocation NULL = new NetworkLocationImpl();
 
     /**
-     * Returns the host address of the network location.
-     *
-     * @return the address of the network location
-     */
-    String getAddress();
-
-    /**
-     * Returns the port of the network location.
-     *
-     * @return the port of the network location
-     */
-    int getPort();
-
-    /**
      * Create a new {@link NetworkLocation} from a string
      *
      * @param networkLocationString string containing a network location
@@ -42,5 +28,19 @@ public interface NetworkLocation {
     static String toPackedString(NetworkLocation location) {
         return String.format("%s:%s", location.getAddress(), location.getPort());
     }
+
+    /**
+     * Returns the host address of the network location.
+     *
+     * @return the address of the network location
+     */
+    String getAddress();
+
+    /**
+     * Returns the port of the network location.
+     *
+     * @return the port of the network location
+     */
+    int getPort();
 
 }

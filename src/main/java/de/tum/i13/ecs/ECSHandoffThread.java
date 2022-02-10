@@ -35,18 +35,21 @@ class ECSHandoffThread extends ECSThread {
     public void run() {
         LOGGER.info("Starting handoff thread");
         try {
-            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_LOCK, StatusType.SERVER_WRITE_LOCK);
+            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_LOCK,
+                    StatusType.SERVER_WRITE_LOCK);
             sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WRITE_LOCK), StatusType.SERVER_WRITE_LOCK);
 
-            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_HANDOFF, StatusType.SERVER_HANDOFF_SUCCESS);
+            LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_HANDOFF,
+                    StatusType.SERVER_HANDOFF_SUCCESS);
             sendAndReceiveMessage(this.handoffMessage, StatusType.SERVER_HANDOFF_SUCCESS);
 
-            if(!this.isShutdown) {
+            if (!this.isShutdown) {
                 LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, this.setMetadataMessage, StatusType.SERVER_ACK);
                 sendAndReceiveMessage(this.setMetadataMessage, StatusType.SERVER_ACK);
-    
-                LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_UNLOCK, StatusType.SERVER_WRITE_UNLOCK);
-                sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WRITE_UNLOCK), StatusType.SERVER_WRITE_UNLOCK);    
+
+                LOGGER.trace(Constants.SENDING_AND_EXPECTING_MESSAGE, StatusType.ECS_WRITE_UNLOCK,
+                        StatusType.SERVER_WRITE_UNLOCK);
+                sendAndReceiveMessage(new KVMessageImpl(StatusType.ECS_WRITE_UNLOCK), StatusType.SERVER_WRITE_UNLOCK);
             }
         } catch (IOException ex) {
             LOGGER.atFatal()

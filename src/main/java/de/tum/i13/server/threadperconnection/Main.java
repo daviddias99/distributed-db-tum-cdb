@@ -75,9 +75,11 @@ public class Main {
 
             LOGGER.trace("Starting the listening thread");
             // Listen for messages
-            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress, cfg.port, commandProcessor)));
+            final Thread listeningThread = new Thread(withExceptionsLogged(new RequestListener(cfg.listenAddress,
+                    cfg.port, commandProcessor)));
             LOGGER.trace("Adding shutdown handler for handoff");
-            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(ecsCommunicator, ecsCommandProcessor, cfg, listeningThread, state))));
+            Runtime.getRuntime().addShutdownHook(new Thread(withExceptionsLogged(new ShutdownHandler(ecsCommunicator,
+                    ecsCommandProcessor, cfg, listeningThread, state))));
             listeningThread.start();
             LOGGER.trace("Waiting briefly until server is ready to accept new connections");
             Thread.sleep(500);
@@ -98,14 +100,14 @@ public class Main {
     /**
      * Method that sets the persistent storage directory, caching strategy and cache
      * size.
-     * 
+     *
      * @param dataDir
      * @param cachingStrategy
      * @param cacheSize
      * @return
      */
     private static CachedPersistentStorage setUpStorage(Path dataDir, int minimumDegree,
-            CachingStrategy cachingStrategy, int cacheSize)
+                                                        CachingStrategy cachingStrategy, int cacheSize)
             throws StorageException {
         LOGGER.info("Setting up persistent storage at {}", dataDir);
         PersistentBTreeDiskStorageHandler<Pair<String>> handler = new PersistentBTreeDiskStorageHandler<>(
@@ -126,4 +128,5 @@ public class Main {
         communicator.connect(ecsLocation.getAddress(), ecsLocation.getPort());
         return communicator;
     }
+
 }

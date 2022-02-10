@@ -55,7 +55,7 @@ public class DistributedECSPersistentStorage extends DistributedPersistentStorag
 
     @Override
     protected List<NetworkLocation> getResponsibleNetworkLocations(String key, RequestType requestType,
-                                                             KVMessage responseMessage) throws CommunicationClientException {
+                                                                   KVMessage responseMessage) throws CommunicationClientException {
         LOGGER.debug("Requesting new metadata from server");
         updateHashRing();
         return switch (requestType) {

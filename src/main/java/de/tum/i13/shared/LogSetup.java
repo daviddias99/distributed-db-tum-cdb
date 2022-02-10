@@ -17,17 +17,18 @@ public class LogSetup {
 
     private static final Logger LOGGER = LogManager.getLogger(LogSetup.class);
 
-    private LogSetup() {}
+    private LogSetup() {
+    }
 
     /**
      * Set up the logging of the application.
-     *
+     * <p>
      * Configure the path of the logging file with a system property.
      * The default value is {@code logs/cdb.log} in the current directory.
-     *
+     * <p>
      * Additionally configure the log level of the root logger.
      *
-     * @param logfile the path of the file where to log to
+     * @param logfile  the path of the file where to log to
      * @param logLevel the log level to use
      */
     public static void setupLogging(Path logfile, Level logLevel) {
@@ -45,7 +46,7 @@ public class LogSetup {
      * Overloads {@link #setupLogging(Path, Level)} with {@link Level#getLevel(String)}
      * to convert {@link StandardLevel} to {@link Level}
      *
-     * @param logFile the path of the file where to log to
+     * @param logFile  the path of the file where to log to
      * @param logLevel the log level to use
      * @see #setupLogging(Path, Level)
      */

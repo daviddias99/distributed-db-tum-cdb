@@ -21,22 +21,25 @@ import java.util.List;
  * {@link KVServerCommandProcessor} and {@link KVEcsCommandProcessor} to parse these messages.
  */
 public class KVCommandProcessor implements CommandProcessor<String> {
+
     private static final Logger LOGGER = LogManager.getLogger(KVCommandProcessor.class);
 
-    private ServerState serverState;
-    private List<CommandProcessor<KVMessage>> processors;
+    private final ServerState serverState;
+    private final List<CommandProcessor<KVMessage>> processors;
 
     /**
      * Create a new KVMessage command processor
-     * @param storage server storage
-     * @param serverState server state
+     *
+     * @param storage         server storage
+     * @param serverState     server state
      * @param ecsCommunicator ECS communication interface
      */
-    public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState, ServerCommunicator ecsCommunicator) {
+    public KVCommandProcessor(PersistentStorage storage, ECSServerState serverState,
+                              ServerCommunicator ecsCommunicator) {
         this.serverState = serverState;
         this.processors = Arrays.asList(
-            new KVServerCommandProcessor(storage, serverState),
-            new KVEcsCommandProcessor(storage, serverState, ecsCommunicator, false),
+                new KVServerCommandProcessor(storage, serverState),
+                new KVEcsCommandProcessor(storage, serverState, ecsCommunicator, false),
                 new KVClientCommandProcessor(storage, serverState));
     }
 
@@ -69,10 +72,11 @@ public class KVCommandProcessor implements CommandProcessor<String> {
 
         response = response == null ? new KVMessageImpl(KVMessage.StatusType.ERROR) : response;
 
-        if(response.getStatus() != StatusType.SERVER_HEART_BEAT) {
+        if (response.getStatus() != StatusType.SERVER_HEART_BEAT) {
             LOGGER.info("Response processing '{}' -> '{}'", command, response);
         }
 
         return response.toString();
     }
+
 }

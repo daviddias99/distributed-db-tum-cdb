@@ -199,7 +199,8 @@ public interface ConsistentHashRing {
      *
      * @param networkLocation   the {@link NetworkLocation} whose successors are to be determined
      * @param numberOfLocations the number of successors to return. Restricted according to the description
-     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @return the successors of the supplied {@link NetworkLocation} or an empty {@link List} according to the
+     * description
      * @see #getSucceedingNetworkLocations(NetworkLocation, int)
      * @see #getPrecedingNetworkLocation(NetworkLocation)
      */
@@ -220,7 +221,8 @@ public interface ConsistentHashRing {
      *
      * @param networkLocation   the {@link NetworkLocation} whose predecessors are to be determined
      * @param numberOfLocations the number of predecessors to return. Restricted according to the description
-     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the description
+     * @return the predecessors of the supplied {@link NetworkLocation} or an empty {@link List} according to the
+     * description
      * @see #getSucceedingNetworkLocations(NetworkLocation, int)
      * @see #getPrecedingNetworkLocation(NetworkLocation)
      */

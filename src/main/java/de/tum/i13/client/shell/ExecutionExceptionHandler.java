@@ -3,7 +3,6 @@ package de.tum.i13.client.shell;
 import de.tum.i13.server.kv.KVException;
 import de.tum.i13.shared.net.CommunicationClientException;
 import de.tum.i13.shared.persistentstorage.NetworkPersistentStorage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;

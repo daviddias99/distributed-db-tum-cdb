@@ -118,8 +118,7 @@ public class CachedPersistentStorage implements PersistentStorage {
                         storageStatus,
                         key
                 );
-            }
-            else return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
+            } else return new KVMessageImpl(key, StatusType.DELETE_SUCCESS);
         }
     }
 
@@ -199,4 +198,5 @@ public class CachedPersistentStorage implements PersistentStorage {
     public synchronized List<Pair<String>> getRange(String lowerBound, String upperBound) throws GetException {
         return this.persistentStorage.getRange(lowerBound, upperBound);
     }
+
 }

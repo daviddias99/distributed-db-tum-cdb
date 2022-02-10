@@ -13,21 +13,22 @@ import java.util.Set;
  * An implementation of a {@link ChangeListener}
  */
 public class ChangeListenerImpl implements ChangeListener {
+
     private static final String DEFAULT_DIRECTORY = "bckp";
 
     // These fields are static because, reading nodes from file leads to new
     // references being created which caused nodes to access different transaction
     // handlers. This way, the datastructure-references remain constant for all.
     private Set<String> changedChunks = new HashSet<>(); // chunks that changed since the beginning of the
-                                                                // transaction
+    // transaction
     private Set<String> createdChunks = new HashSet<>(); // chunks created since the beggining of the transaction
 
-    private String storageFolder;
+    private final String storageFolder;
     private String backupFolder = DEFAULT_DIRECTORY;
 
     /**
      * Create a new transaction handler
-     * 
+     *
      * @param storageFolder folder where chunks are stored
      * @param backupFolder  folder where backup chunks are stored
      */
@@ -38,7 +39,7 @@ public class ChangeListenerImpl implements ChangeListener {
 
     /**
      * Create a new transaction handler
-     * 
+     *
      * @param storageFolder folder where chunks are stored
      */
     public ChangeListenerImpl(String storageFolder) {
@@ -86,4 +87,5 @@ public class ChangeListenerImpl implements ChangeListener {
         changedChunks = new HashSet<>();
         createdChunks = new HashSet<>();
     }
+
 }
