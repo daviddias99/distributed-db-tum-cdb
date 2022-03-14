@@ -4,7 +4,7 @@
 
 **Course:** *Cloud Databases* ([CDB](https://www.in.tum.de/i13/teaching/winter-semester-201920/practical-course-cloud-data-bases/))
 
-**Authors:** David Silva ([daviddias99](https://github.com/daviddias99)), Lukas Bernwald, Krisela Skenderi)
+**Authors:** David Silva ([daviddias99](https://github.com/daviddias99)), Lukas Bernwald, Krisela Skenderi
 
 ---
 
